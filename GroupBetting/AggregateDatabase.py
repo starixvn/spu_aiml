@@ -27,17 +27,19 @@ class AggregateDatabase():
         """
         >>> Input  : list of leagues
         >>> Output : league_score,
-                    number of minor leagues
+                     serie of leagues : string separated by ','
         """
         major = []
         minor = []
+        list_league = []
         for league in list_of_league:
+            list_league.append(str(league))
             if league in major_league_list:
                 major.append(league)
             else:
                 minor.append(league)
         league_score = algorithmScore.compute_league_score(list_minor=minor, list_major=major)
-        return (league_score, len(minor))
+        return (league_score, ','.join(list_league))
 
     def process_time(self, list_of_time_score):
         """
@@ -59,7 +61,7 @@ class AggregateDatabase():
             time_score = np.mean(new_array)
             num_eff_match = len(new_array)
             match_score = num_eff_match / num_joining_match
-        return (time_score, num_joining_match, num_eff_match, match_score)
+        return (time_score, num_eff_match, match_score)
 
     def aggregateScoreCouple(self, results):
         start = time.time()
@@ -71,14 +73,16 @@ class AggregateDatabase():
         # process league column
         df_scoreOfDate['process_league'] = df_scoreOfDate['league'].apply(self.process_league)
         df_scoreOfDate['league_score'] = df_scoreOfDate['process_league'].apply(lambda z: z[0])
-        df_scoreOfDate['num_minor'] = df_scoreOfDate['process_league'].apply(lambda z: z[1])
+        df_scoreOfDate['list_league'] = df_scoreOfDate['process_league'].apply(lambda z: z[1])
 
-        # process time score column | time_score --> num_joining_match --> num_eff_match --> match_score
+        # process time score column | time_score -->  num_eff_match -->  match_score
         df_scoreOfDate['process_time'] = df_scoreOfDate['time_score'].apply(self.process_time)
         df_scoreOfDate['time_score'] = df_scoreOfDate['process_time'].apply(lambda z: z[0])
-        df_scoreOfDate['num_match'] = df_scoreOfDate['process_time'].apply(lambda z: z[1])
-        df_scoreOfDate['num_effective_match'] = df_scoreOfDate['process_time'].apply(lambda z: z[2])
-        df_scoreOfDate['match_score'] = df_scoreOfDate['process_time'].apply(lambda z: z[3])
+        df_scoreOfDate['num_effective_match'] = df_scoreOfDate['process_time'].apply(lambda z: z[1])
+        df_scoreOfDate['match_score'] = df_scoreOfDate['process_time'].apply(lambda z: z[2])
+
+        # process match column
+        df_scoreOfDate['list_match'] = df_scoreOfDate['match'].apply(lambda z: ','.join(z))
 
         # process bet count column
         df_scoreOfDate['bet_count'] = df_scoreOfDate['bet_count'].apply(lambda z: sum(z))
@@ -87,12 +91,12 @@ class AggregateDatabase():
         df_scoreOfDate['transid'] = df_scoreOfDate['transid'].apply(lambda z: ' '.join(z))
 
         # filter
-        filterGroupBetting = df_scoreOfDate[(df_scoreOfDate.time_score < 0) | ((df_scoreOfDate.time_score == 0) & (df_scoreOfDate.num_minor >= 5))]
+        # filterGroupBetting = df_scoreOfDate[(df_scoreOfDate.time_score < 0) | ((df_scoreOfDate.time_score == 0) & (df_scoreOfDate.num_minor >= 3))]
 
         # final result
-        df_finalResults = filterGroupBetting[['time_score', 'match_score', 'league_score', 'num_effective_match', 'num_match', 'num_minor', 'bet_count', 'transid']]
+        df_finalResults = df_scoreOfDate[['time_score', 'match_score', 'league_score', 'num_effective_match', 'list_match', 'list_league', 'bet_count', 'transid']]
 
-        print(f"IMPLEMENTATION TIME {time.time() - start} seconds")
-        df_finalResults.head()
+        print(f"AGGREGATE TIME {time.time() - start} seconds")
+        print(f"FINAL DF {df_finalResults.head()}")
         # for index, row in df_finalResults.iterrows():
         #     couple = index.get_level_values

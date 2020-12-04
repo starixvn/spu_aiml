@@ -167,6 +167,7 @@ class FeatureScore():
                             'bet_type': bet_type,
                             'couple': (min(cus_a,cus_b), max(cus_a,cus_b)),
                             'time_score': time_score,
+                            'match':str(match),
                             'league': league,
                             'bet_count': len(transid),
                             'transid': ','.join([str(trans) for trans in transid_set])
