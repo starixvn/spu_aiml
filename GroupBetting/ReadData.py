@@ -4,15 +4,19 @@ import argparse
 import datetime
 
 class Read_data():
-    def __init__(self,date):
-        self.date = date
-        # pass
+    def __init__(self):
+        # self.date = date
+        pass
     
-    def read_data(self,prefix,suffix,name1,name2):
-        self.data = pd.read_csv(prefix+self.date+suffix)
+    def read_data(self,filecsv_name,name1,name2):
+        self.data = pd.read_csv(filecsv_name)
 
+        getFristdate = self.data['transdate'][0]
+        getDate = getFristdate.split()
+        self.date = getDate[0]
+        print(f"DATE {self.date}")
         # name = 'match_league_sport'
-        match_league_map = pd.read_csv(name1+suffix).set_index('matchid').to_dict(orient='index')
+        match_league_map = pd.read_csv(name1).set_index('matchid').to_dict(orient='index')
         self.data['leagueid'] = self.data['matchid'].apply(lambda z : match_league_map[z]['leagueid'])
 
         self.DATE = self.data[self.data.liveindicator==1]
@@ -27,7 +31,7 @@ class Read_data():
         #         my_list.append((match,bet_type))
         print(f"NUMBER COMBINATIONS {len(self.my_list)}")
 
-        MAJOR_LEAGUE = pd.read_csv(name2+suffix)
+        MAJOR_LEAGUE = pd.read_csv(name2)
         self.major_league_list = MAJOR_LEAGUE.LeagueId.unique()
         print(f"NUMBER OF MAJOR LEAGUES {len(self.major_league_list)}")
     

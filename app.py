@@ -28,17 +28,24 @@ config = Configuration()
 # aggregate = AggregateDatabase()
 
 # get information all ticket of each match
-save_dir =config.GetSaveDirectoryModel(config)
-path_csv =config.GetPathCsvFile(config)
-filecsv_name = config.GetNameFile(config)
-filemajorleague_name = config.GetMajorLeagueName(config)
-log_name = config.GetLogName(config)
+# save_dir =config.GetSaveDirectoryModel(config)
+path_csv = config.GetPathCsvFile(config)
+filecsv_name = os.path.join(path_csv,config.GetNameFile(config))
+name2 = os.path.join(path_csv,config.GetMajorLeagueName(config))
+# log_name = config.GetLogName(config)
+name1 = os.path.join(path_csv,config.GetMatchLeagueMapping(config))
+output1 = config.GetTemp1(config)
+output2 = config.GetTemp2(config)
+match_output = config.GetMatchOuput(config)
+score_output = config.GetScoreOuput(config)
+trans_output = config.GetTransOuput(config)
 
 # get information of database
 username = config.getUsername(config)
 password = config.getPassword(config)
 server = config.getServerName(config)
 database_name = config.getDatabaseName(config)
+
 #logging.basicConfig(filename=os.path.join(save_dir,log_name),level=logging.INFO)
 
 # def readMatchCSV():
@@ -57,11 +64,11 @@ def saveDataInDatabase():
 #     date = getDate[0]
 #     return date
 
-def submit_job(prefix,date,suffix,name1,name2,output1,output2,score_output,trans_output,match_output):
+def submit_job(filecsv_name,name1,name2,output1,output2,score_output,trans_output,match_output):
 
   # process_start_time = time.time()
-    objlv1 = Read_data(date)
-    objlv1.read_data(prefix,suffix,name1,name2)
+    objlv1 = Read_data()
+    objlv1.read_data(filecsv_name,name1,name2)
     objlv1.pre_process()
     results,trans = [],set()
     print("READ DATA AND PREPROCESS SUCESSFULLY !",objlv1.DATE.head(3),sep='\n')
@@ -101,22 +108,22 @@ def submit_job(prefix,date,suffix,name1,name2,output1,output2,score_output,trans
 if __name__ == '__main__':
     start_time = time.time()
 
-    parser = argparse.ArgumentParser()
+    # parser = argparse.ArgumentParser()
 
-    parser.add_argument('--prefix',type=str,default='D:/Project/Formula_BET/MatchData/not_')
-    parser.add_argument('--date',type=str,required=True)
-    parser.add_argument('--suffix',type=str,default='.csv')
-    parser.add_argument('--name1',type=str,default='D:/Project/Formula_BET/MatchData/match_league_sport')
-    parser.add_argument('--name2',type=str,default='D:/Project/Formula_BET/MatchData/major_league')
-    parser.add_argument('--output1',type=str,default='D:/Project/Formula_BET/SaveData/output1')
-    parser.add_argument('--output2',type=str,default='D:/Project/Formula_BET/SaveData/output2')
-    parser.add_argument('--score_output',type=str,default='D:/Project/Formula_BET/SaveData/score_output')
-    parser.add_argument('--trans_output',type=str,default='D:/Project/Formula_BET/SaveData/trans_output')
-    parser.add_argument('--match_output',type=str,default='D:/Project/Formula_BET/SaveData/match_output')
+    # parser.add_argument('--prefix',type=str,default='D:/Project/Formula_BET/MatchData/not_')
+    # parser.add_argument('--date',type=str,required=True)
+    # parser.add_argument('--suffix',type=str,default='.csv')
+    # parser.add_argument('--name1',type=str,default='D:/Project/Formula_BET/MatchData/match_league_sport')
+    # parser.add_argument('--name2',type=str,default='D:/Project/Formula_BET/MatchData/major_league')
+    # parser.add_argument('--output1',type=str,default='D:/Project/Formula_BET/SaveData/output1')
+    # parser.add_argument('--output2',type=str,default='D:/Project/Formula_BET/SaveData/output2')
+    # parser.add_argument('--score_output',type=str,default='D:/Project/Formula_BET/SaveData/score_output')
+    # parser.add_argument('--trans_output',type=str,default='D:/Project/Formula_BET/SaveData/trans_output')
+    # parser.add_argument('--match_output',type=str,default='D:/Project/Formula_BET/SaveData/match_output')
 
-    args = parser.parse_args()
+    # args = parser.parse_args()
 
-    submit_job(args.prefix,args.date,args.suffix,args.name1,args.name2,args.output1,args.output2,args.score_output,args.trans_output,args.match_output)
+    submit_job(filecsv_name,name1,name2,output1,output2,score_output,trans_output,match_output)
 
     
     print("***********************************************************************************************************************************************************************************")

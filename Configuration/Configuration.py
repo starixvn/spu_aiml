@@ -33,6 +33,30 @@ class Configuration(object):
     def GetMajorLeagueName(self, config):
         config.config.sections()
         return config.config['DEFAULT']['NAME_LEAGUE']
+    
+    def GetMatchLeagueMapping(self, config):
+        config.config.sections()
+        return config.config['DEFAULT']['NAME_LEAGUESPORT']
+    
+    def GetTemp1(self, config):
+        config.config.sections()
+        return config.config['DEFAULT']['TEMP1']
+    
+    def GetTemp2(self, config):
+        config.config.sections()
+        return config.config['DEFAULT']['TEMP2']
+    
+    def GetMatchOuput(self, config):
+        config.config.sections()
+        return config.config['DEFAULT']['MATCH_OUTPUT']
+    
+    def GetScoreOuput(self, config):
+        config.config.sections()
+        return config.config['DEFAULT']['SCORE_OUTPUT']
+
+    def GetTransOuput(self, config):
+        config.config.sections()
+        return config.config['DEFAULT']['TRANS_OUTPUT']
 
     @classmethod
     def getServerName(self, config):
