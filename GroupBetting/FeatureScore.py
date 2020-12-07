@@ -1,16 +1,25 @@
 import pandas as pd
-import matplotlib.pyplot as plt
+import pickle
 import numpy as np
-import seaborn as sns
+import csv
 import datetime
 import time
-from sklearn.cluster import DBSCAN
+import os
 from tqdm import tqdm
 
-class FeatureScore():
+class Processing():
     """description of class"""
-    def __init__(self, *args):
-        pass
+    def __init__(self,df,match,bet_type,league,total_combination,order_of_combination,output1,output2,match_output):
+        self.MATCH = df
+        # self.major_league_list = major_league_list
+        self.match = match
+        self.bet_type = bet_type
+        self.league = league
+        self.total_combination = total_combination
+        self.order_of_combination = order_of_combination
+        self.output1 = output1
+        self.output2 = output2
+        self.match_output = match_output
 
     def compute_time_score(self, trans_arr, time_arr, cus_arr):
         """
@@ -33,74 +42,15 @@ class FeatureScore():
             time_score = 0
         else:
             time_score = (20 - np.mean(fil_time_tickets)) / 20
-        return time_score, list(set(eff_trans.flatten()))
-
-    def gini_score(self, lista):
-        """
-        >>> Input  : list of integer,each represents quantity of some class
-        >>> Output : gini score
-        ------------------------
-        Example
-
-        > Input  : [1,1]
-        > Output : .5
-        """
-        sum_match = sum(lista)
-
-        return 1 - sum(map(lambda x:(x/sum_match)**2,lista))
-
-    def compute_league_score(self, list_minor = None, list_major = None):
-        """"
-        >>> Input  : list_minor, list of number of match in minor league
-                    list_major, list of number of match in major league
-
-        >>> Output : league_score
-        """
-        gini_minor = self.gini_score(list_minor)
-        gini_major = self.gini_score(list_major)
-        if len(list_minor) == 0:
-            league_score = (gini_major + 3/2) * (2/5)
-        elif len(list_major) == 0:
-            league_score = (gini_minor + 5/2) * (2/7)
-        else:
-            minor_score = (gini_minor + 5/2) * (2/7)
-            major_score = (gini_major + 3/2) * (2/5)
-            league_score = (3 * (minor_score + 1) + (major_score + 2)) * (1/9)
-        return league_score
+        eff_trans = set(eff_trans.flatten())
+        if len(eff_trans) == 0:
+            eff_trans = ''
+        
+        return time_score,eff_trans
+        # return time_score, list(set(eff_trans.flatten()))
 
 
-    def separate(self, transdate):
-        """
-        >>> Input  : '2020-09-26 7:31:01.872'
-
-        >>> Output : (2020,9,26,7,31,1)
-        """
-        date,hms = transdate.split(' ')[0].split('-'),transdate.split(' ')[1].split('.')[0].split(':')
-        year,month,day = int(date[0]),int(date[1]),int(date[2])
-        hour,min,sec = int(hms[0]),int(hms[1]),int(hms[2])
-        return (year,month,day,hour,min,sec)
-
-    def distance_time(self, transdate1, transdate2):
-        """
-        >>> Input  : transdate 1 : (2020,9,26,7,28,1)
-
-                    transdate 2 : (2020,9,26,7,31,1)
-
-        >>> Output : 180 seconds
-        """
-  
-        a = datetime.datetime(*transdate1)
-        b = datetime.datetime(*transdate2)
-        c = b-a
-        return c.total_seconds()
-
-    def do_something(self, seconds):
-        print(f'Sleeping {seconds} second(s)...')
-        time.sleep(seconds)
-        return 'Done Sleeping...'
-    
-
-    def calculateTotalScore(self, args):
+    def processing_a_match(self):
         """
         >>> Input  : (match,bet_type)
         .
@@ -114,73 +64,81 @@ class FeatureScore():
                     their effective transaction)
         """
 
-        match = args[0][0]
-        bet_type = args[0][1]
-        matches_live = args[1]
-        result_of_the_match = []
-        eff_trans = set()
+        # match = args[0][0]
+        # bet_type = args[0][1]
+        # matches_live = args[1]
+        # result_of_the_match = []
+        # eff_trans = set()
 
-        league = matches_live.leagueid.unique()[0]
-        matches_data = matches_live[(matches_live.bettype == bet_type) & (matches_live.matchid == match)]
+        # league = matches_live.leagueid.unique()[0]
+        # matches_data = matches_live[(matches_live.bettype == bet_type) & (matches_live.matchid == match)]
+
+        # os.mkdir(os.path.join('match',f'M{self.match}B{self.bet_type}'))
+        eff_trans,couple_for_table_2 = set(),[]
+        # pick up customer list
+        self.cus_list = self.MATCH.custid.unique()
+
+        print('\n')
 
         # pick up customer list
-        cus_list = matches_data.custid.unique()
+        # cus_list = matches_data.custid.unique()
 
-        if len(cus_list) < 2:
-            print('\n')
-            print(f"BET TYPE {bet_type} MATCH {match} NOT ENOUGH !")
-            print('\n')
-        else:
-            print('\n')
-            print(f"BET TYPE {bet_type} MATCH {match} HAVING {len(cus_list)} CUSTOMERS STARTS RUNNING !")
-            print('\n')
+        # loop through 1st customer
+        for k in tqdm(range(len(self.cus_list)-1),desc=f"BET TYPE {self.bet_type} MATCH {self.match} {self.order_of_combination}/{self.total_combination}"):
+            cus_a = self.cus_list[k]
+            #transid_transdate_a = matches_data[matches_data.custid == cus_a][['transid','transdate']].values
 
-            # loop through 1st customer
-            for k in tqdm(range(len(cus_list) - 1),desc=f'BET TYPE {bet_type} MATCH {match}'):
-                cus_a = cus_list[k]
-                #transid_transdate_a = matches_data[matches_data.custid == cus_a][['transid','transdate']].values
+            # loop through 2st customer
+            for j in range(k+1, len(self.cus_list)):
+                cus_b = self.cus_list[j]
+                #transid_transdate_b = matches_data[matches_data.custid == cus_b][['transid','transdate']].values
+                df = self.MATCH[self.MATCH.custid.isin([cus_a, cus_b])][['transid', 'transdate', 'custid']]
 
-                # loop through 2st customer
-                for j in range(k+1, len(cus_list)):
-                    cus_b = cus_list[j]
-                    #transid_transdate_b = matches_data[matches_data.custid == cus_b][['transid','transdate']].values
-                    df = matches_data[matches_data.custid.isin([cus_a, cus_b])][['transid', 'transdate', 'custid']]
+                # compute time score, get labels, get valid clusters, get effective transid
+                #time_score, labels, valid_cluster_list, transid_string = compute_difference(transid_transdate_a, transid_transdate_b)
 
-                    # compute time score, get labels, get valid clusters, get effective transid
-                    #time_score, labels, valid_cluster_list, transid_string = compute_difference(transid_transdate_a, transid_transdate_b)
+                # add effective transid to set
+                # transid_list = transid_string.split(',')
+                # for transid in transid_list:
+                #     eff_trans.add(transid)
 
-                    # add effective transid to set
-                    # transid_list = transid_string.split(',')
-                    # for transid in transid_list:
-                    #     eff_trans.add(transid)
+                transid = df['transid'].values
+                time_serie = df['transdate'].values
+                custid = df['custid'].values
 
-                    transid = df['transid'].values
-                    time_serie = df['transdate'].values
-                    custid = df['custid'].values
+                time_score, transid_set = self.compute_time_score(transid, time_serie, custid)
+                eff_trans = eff_trans.union(transid_set)
 
-                    time_score, transid_set = self.compute_time_score(transid, time_serie, custid)
-                    eff_trans.union(transid_set)
+                # save a couple
+                couple_for_table_1 = [self.bet_type,time_score,self.league,len(transid)]
+                couple_for_table_2.append   ({
+                                            # 'bet_type':self.bet_type,
+                                            'CustID1':min(cus_a,cus_b),
+                                            'CustID2':max(cus_a,cus_b),                                                            
+                                            # 'TimeScore':time_score,
+                                            'MatchID':str(self.match),
+                                            'LeagueID':self.league,
+                                            # 'BETCount': len(transid),
+                                            'TransIdList': ','.join([str(trans) for trans in transid_set]),
+                                            'TotalSuspiciousTicktes':len(transid_set)          
+                                            })                  
+                # file_name = str(couple[0]['CustID1'])+'_'+str(couple[0]['CustID2'])
+                file_name = str(min(cus_a,cus_b))+'_'+str(max(cus_a,cus_b))
+                # if file_name in os.listdir(self.output):
+                with open(os.path.join(self.output1,file_name+'.csv'),'a') as csv_file:
+                    writer = csv.writer(csv_file)
+                    # if csv_file.shape[0] > 1:
+                    #     print("YAYYYY !")
+                    writer.writerow(couple_for_table_1)
+                
+                # print what makes you happy
+                if time_score >= .9 and len(transid_set) > 4:
+                    print(f"BETTYPE {bet_type} MATCH {match} | CUS {cus_a} & CUS {cus_b} | TIME SCORE {time_score} | TRANSID {','.join([str(trans) for trans in transid_set])}")
 
-                    # save a couple
-                    result_of_the_match.append(
-                        {
-                            'bet_type': bet_type,
-                            'couple': (min(cus_a,cus_b), max(cus_a,cus_b)),
-                            'time_score': time_score,
-                            'match':str(match),
-                            'league': league,
-                            'bet_count': len(transid),
-                            'transid': ','.join([str(trans) for trans in transid_set])
-                        }
-                        )
-                    
-                    # print what makes you happy
-                    if time_score >= .9 and len(transid_set) > 4:
-                        print(f"BETTYPE {bet_type} MATCH {match} | CUS {cus_a} & CUS {cus_b} | TIME SCORE {time_score} | TRANSID {','.join([str(trans) for trans in transid_set])}")
-
-            print('\n')
-            print(f"BETTYPE {bet_type} MATCH {match} DONE !")
-            print("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
-            print('\n')
-        return (result_of_the_match, eff_trans)
+        with open(os.path.join(self.output2,f'B{self.bet_type}M{self.match}_eff_trans.pkl'),'wb') as f:
+            pickle.dump(eff_trans,f)
+        # with open(os.path.join(self.output2,f'B{self.bet_type}M{self.match}_detailed.pkl'),'wb') as g:
+        #     pickle.dump(couple_for_table_2,g)
+        TABLE2 = pd.DataFrame(couple_for_table_2)
+        TABLE2.to_csv(os.path.join(self.match_output,f'B{self.bet_type}M{self.match}.csv'))
 
