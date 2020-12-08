@@ -9,7 +9,7 @@ using GetDataProduction.Services;
 
 namespace GetDataProduction.Controllers
 {
-    [Route("api/getdata")]
+    [Route("api/GetDataProduction")]
     [ApiController]
     public class DataPRODController : ControllerBase
     {
@@ -20,7 +20,7 @@ namespace GetDataProduction.Controllers
             _services = services;
         }
         [HttpPost]
-        [Route("GetData2")]
+        [Route("GetTransactionData")]
         public ActionResult<List<Transaction>> GetDataTransaction()
         {
             var inventoryItems = _services.GetDataTransaction();
