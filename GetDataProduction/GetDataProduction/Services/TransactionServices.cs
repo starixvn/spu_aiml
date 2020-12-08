@@ -1,0 +1,41 @@
+﻿using CsvHelper;
+using GetDataProduction.Mappers;
+using GetDataProduction.Model;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace GetDataProduction.Services
+{
+    public class TransactionServices : ITransactionServices
+    {
+        public List<Transaction> ReadCSVFile()
+        {
+            try
+            {
+                string location = @"D:\Note\test2.csv";
+                using (var reader = new StreamReader(location, Encoding.Default))
+                using (var csv = new CsvReader(reader, System.Globalization.CultureInfo.CurrentCulture))
+                {
+                    csv.Configuration.RegisterClassMap<TransactionMap>();
+                    var records = csv.GetRecords<Transaction>().ToList();
+                    return records;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        public List<Transaction> GetDataTransaction()
+        {
+            //_inventoryItems.Add(model.Name, model);
+            return ReadCSVFile();
+            //return model;
+        }
+    }
+}

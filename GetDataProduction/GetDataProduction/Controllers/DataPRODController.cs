@@ -2,19 +2,34 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using GetDataProduction.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+using GetDataProduction.Services;
 
 namespace GetDataProduction.Controllers
 {
-    [Produces("application/json")]
-    [Route("api/DataPROD")]
-    public class DataPRODController : Controller
+    [Route("api/getdata")]
+    [ApiController]
+    public class DataPRODController : ControllerBase
     {
-        private readonly string AppName = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("AppSettings")['APP_Name'];
-        private int _currentId;
-        private readonly string _folderName = ConfigurationManager.AppSettings["FileSystemFolder"];
-        private readonly string _basePath = HttpContext.Current.Server.MapPath(@"~\" + ConfigurationManager.AppSettings["FileSystemFolder"]);
+        private readonly ITransactionServices _services;
+
+        public DataPRODController(ITransactionServices services)
+        {
+            _services = services;
+        }
+        [HttpPost]
+        [Route("GetData2")]
+        public ActionResult<List<Transaction>> GetDataTransaction()
+        {
+            var inventoryItems = _services.GetDataTransaction();
+
+            if (inventoryItems == null)
+            {
+                return NotFound();
+            }
+            return inventoryItems;
+        }
     }
 }

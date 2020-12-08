@@ -1,11 +1,11 @@
 {
   "FilePath": "d:\\Project\\aiml\\GetDataProduction\\GetDataProduction\\GetDataProduction.csproj",
   "Configuration": {
-    "ConfigurationName": "MVC-2.0",
-    "LanguageVersion": "2.0",
+    "ConfigurationName": "MVC-2.1",
+    "LanguageVersion": "2.1",
     "Extensions": [
       {
-        "ExtensionName": "MVC-2.0"
+        "ExtensionName": "MVC-2.1"
       }
     ]
   },
@@ -1061,7 +1061,7 @@
         }
       },
       {
-        "HashCode": -1297647439,
+        "HashCode": 1984446477,
         "Kind": "ITagHelper",
         "Name": "Microsoft.AspNetCore.Mvc.TagHelpers.InputTagHelper",
         "AssemblyName": "Microsoft.AspNetCore.Mvc.TagHelpers",
@@ -1104,6 +1104,15 @@
             "Documentation": "\n            <summary>\n            The type of the &lt;input&gt; element.\n            </summary>\n            <remarks>\n            Passed through to the generated HTML in all cases. Also used to determine the <see cref=\"T:Microsoft.AspNetCore.Mvc.ViewFeatures.IHtmlGenerator\" />\n            helper to call and the default <see cref=\"P:Microsoft.AspNetCore.Mvc.TagHelpers.InputTagHelper.Format\" /> value. A default <see cref=\"P:Microsoft.AspNetCore.Mvc.TagHelpers.InputTagHelper.Format\" /> is not calculated\n            if the provided (see <see cref=\"P:Microsoft.AspNetCore.Mvc.TagHelpers.InputTagHelper.InputTypeName\" />) or calculated \"type\" attribute value is <c>checkbox</c>,\n            <c>hidden</c>, <c>password</c>, or <c>radio</c>.\n            </remarks>\n        ",
             "Metadata": {
               "Common.PropertyName": "InputTypeName"
+            }
+          },
+          {
+            "Kind": "ITagHelper",
+            "Name": "name",
+            "TypeName": "System.String",
+            "Documentation": "\n            <summary>\n            The name of the &lt;input&gt; element.\n            </summary>\n            <remarks>\n            Passed through to the generated HTML in all cases. Also used to determine whether <see cref=\"P:Microsoft.AspNetCore.Mvc.TagHelpers.InputTagHelper.For\" /> is\n            valid with an empty <see cref=\"P:Microsoft.AspNetCore.Mvc.ViewFeatures.ModelExpression.Name\" />.\n            </remarks>\n        ",
+            "Metadata": {
+              "Common.PropertyName": "Name"
             }
           },
           {
@@ -1370,6 +1379,69 @@
         }
       },
       {
+        "HashCode": -1523759610,
+        "Kind": "ITagHelper",
+        "Name": "Microsoft.AspNetCore.Mvc.TagHelpers.PartialTagHelper",
+        "AssemblyName": "Microsoft.AspNetCore.Mvc.TagHelpers",
+        "Documentation": "\n            <summary>\n            Renders a partial view.\n            </summary>\n        ",
+        "CaseSensitive": false,
+        "TagMatchingRules": [
+          {
+            "TagName": "partial",
+            "TagStructure": 2,
+            "Attributes": [
+              {
+                "Name": "name"
+              }
+            ]
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "ITagHelper",
+            "Name": "name",
+            "TypeName": "System.String",
+            "Documentation": "\n            <summary>\n            The name or path of the partial view that is rendered to the response.\n            </summary>\n        ",
+            "Metadata": {
+              "Common.PropertyName": "Name"
+            }
+          },
+          {
+            "Kind": "ITagHelper",
+            "Name": "for",
+            "TypeName": "Microsoft.AspNetCore.Mvc.ViewFeatures.ModelExpression",
+            "Documentation": "\n            <summary>\n            An expression to be evaluated against the current model. Cannot be used together with <see cref=\"P:Microsoft.AspNetCore.Mvc.TagHelpers.PartialTagHelper.Model\" />.\n            </summary>\n        ",
+            "Metadata": {
+              "Common.PropertyName": "For"
+            }
+          },
+          {
+            "Kind": "ITagHelper",
+            "Name": "model",
+            "TypeName": "System.Object",
+            "Documentation": "\n            <summary>\n            The model to pass into the partial view. Cannot be used together with <see cref=\"P:Microsoft.AspNetCore.Mvc.TagHelpers.PartialTagHelper.For\" />.\n            </summary>\n        ",
+            "Metadata": {
+              "Common.PropertyName": "Model"
+            }
+          },
+          {
+            "Kind": "ITagHelper",
+            "Name": "view-data",
+            "TypeName": "Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary",
+            "IndexerNamePrefix": "view-data-",
+            "IndexerTypeName": "System.Object",
+            "Documentation": "\n            <summary>\n            A <see cref=\"T:Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary\" /> to pass into the partial view.\n            </summary>\n        ",
+            "Metadata": {
+              "Common.PropertyName": "ViewData"
+            }
+          }
+        ],
+        "Metadata": {
+          "Runtime.Name": "ITagHelper",
+          "Common.TypeName": "Microsoft.AspNetCore.Mvc.TagHelpers.PartialTagHelper"
+        }
+      },
+      {
         "HashCode": -1448786079,
         "Kind": "ITagHelper",
         "Name": "Microsoft.AspNetCore.Mvc.TagHelpers.ScriptTagHelper",
@@ -1514,7 +1586,7 @@
         }
       },
       {
-        "HashCode": 626850418,
+        "HashCode": 479877022,
         "Kind": "ITagHelper",
         "Name": "Microsoft.AspNetCore.Mvc.TagHelpers.SelectTagHelper",
         "AssemblyName": "Microsoft.AspNetCore.Mvc.TagHelpers",
@@ -1556,6 +1628,15 @@
             "Metadata": {
               "Common.PropertyName": "Items"
             }
+          },
+          {
+            "Kind": "ITagHelper",
+            "Name": "name",
+            "TypeName": "System.String",
+            "Documentation": "\n            <summary>\n            The name of the &lt;input&gt; element.\n            </summary>\n            <remarks>\n            Passed through to the generated HTML in all cases. Also used to determine whether <see cref=\"P:Microsoft.AspNetCore.Mvc.TagHelpers.SelectTagHelper.For\" /> is\n            valid with an empty <see cref=\"P:Microsoft.AspNetCore.Mvc.ViewFeatures.ModelExpression.Name\" />.\n            </remarks>\n        ",
+            "Metadata": {
+              "Common.PropertyName": "Name"
+            }
           }
         ],
         "Metadata": {
@@ -1564,7 +1645,7 @@
         }
       },
       {
-        "HashCode": -444858348,
+        "HashCode": 142058432,
         "Kind": "ITagHelper",
         "Name": "Microsoft.AspNetCore.Mvc.TagHelpers.TextAreaTagHelper",
         "AssemblyName": "Microsoft.AspNetCore.Mvc.TagHelpers",
@@ -1588,6 +1669,15 @@
             "Documentation": "\n            <summary>\n            An expression to be evaluated against the current model.\n            </summary>\n        ",
             "Metadata": {
               "Common.PropertyName": "For"
+            }
+          },
+          {
+            "Kind": "ITagHelper",
+            "Name": "name",
+            "TypeName": "System.String",
+            "Documentation": "\n            <summary>\n            The name of the &lt;input&gt; element.\n            </summary>\n            <remarks>\n            Passed through to the generated HTML in all cases. Also used to determine whether <see cref=\"P:Microsoft.AspNetCore.Mvc.TagHelpers.TextAreaTagHelper.For\" /> is\n            valid with an empty <see cref=\"P:Microsoft.AspNetCore.Mvc.ViewFeatures.ModelExpression.Name\" />.\n            </remarks>\n        ",
+            "Metadata": {
+              "Common.PropertyName": "Name"
             }
           }
         ],
@@ -1618,7 +1708,6 @@
             "Kind": "ITagHelper",
             "Name": "asp-validation-for",
             "TypeName": "Microsoft.AspNetCore.Mvc.ViewFeatures.ModelExpression",
-            "Documentation": "\n            <summary>\n            Name to be validated on the current model.\n            </summary>\n        ",
             "Metadata": {
               "Common.PropertyName": "For"
             }
@@ -1726,7 +1815,7 @@
     ],
     "CSharpLanguageVersion": 703
   },
-  "RootNamespace": null,
+  "RootNamespace": "GetDataProduction",
   "Documents": [],
   "SerializationFormat": "0.2"
 }
