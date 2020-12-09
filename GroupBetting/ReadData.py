@@ -3,24 +3,25 @@ import argparse
 # from helpers import *
 import datetime
 
-class Read_data():
+class ReadData():
     def __init__(self):
         # self.date = date
         pass
     
     def read_data(self,filecsv_name,name1,name2):
-        self.data = pd.read_csv(filecsv_name)
+        self.data = pd.read_csv(filecsv_name,encoding='ISO-8859-1')
 
         getFristdate = self.data['transdate'][0]
         getDate = getFristdate.split()
         self.date = getDate[0]
-        print(f"DATE {self.date}")
+
         # name = 'match_league_sport'
-        match_league_map = pd.read_csv(name1).set_index('matchid').to_dict(orient='index')
-        self.data['leagueid'] = self.data['matchid'].apply(lambda z : match_league_map[z]['leagueid'])
+        # match_league_map = pd.read_csv(name1,error_bad_lines=False)[['matchid','leagueid']].set_index('matchid').to_dict(orient='index')
+        # self.data['leagueid'] = self.data['matchid'].apply(lambda z : match_league_map[z]['leagueid'])
 
         self.DATE = self.data[self.data.liveindicator==1]
         self.DATE = self.DATE[['custid','matchid','transid','transdate','leagueid','bettype']]
+        # self.DATE = self.DATE[['custid','matchid','transid','transdate','bettype']]
         # pick up match list
         # matches = DATE.matchid.unique()
         # print(f"number of matches {len(matches)}")
@@ -29,11 +30,15 @@ class Read_data():
         # for match in matches:
         #     for bet_type in bet_type_list:
         #         my_list.append((match,bet_type))
-        print(f"NUMBER COMBINATIONS {len(self.my_list)}")
+        # print(f"NUMBER COMBINATIONS {len(self.my_list)}")
 
         MAJOR_LEAGUE = pd.read_csv(name2)
         self.major_league_list = MAJOR_LEAGUE.LeagueId.unique()
-        print(f"NUMBER OF MAJOR LEAGUES {len(self.major_league_list)}")
+        print   (   f"NUMBER OF MAJOR LEAGUES {len(self.major_league_list)}",
+                    f"NUMBER COMBINATIONS {len(self.my_list)}",
+                    # f"NUMBER CUSTOMERS {len(self.candidat)}",
+                    sep='\n'
+                )
     
     def pre_process(self):
 

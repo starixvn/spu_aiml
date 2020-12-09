@@ -1,8 +1,6 @@
 from time import process_time
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 import datetime
 import time
 import os
@@ -19,12 +17,11 @@ password = config.getPassword(config)
 server = config.getServerName(config)
 database_name = config.getDatabaseName(config)
 class Aggregate():
-    """description of class"""
     def __init__(self,file_name,score_output,output1):
         self.file_name = file_name
         self.score_output = score_output
         self.output1 = output1
-       
+    
     def compute_league_score(self,list_minor = None, list_major = None):
         """"
         >>> Input  : list_minor, list of number of match in minor league
@@ -59,7 +56,6 @@ class Aggregate():
         return league_score
 
     
-
     def aggregate(self,MAJOR_LEAGUE_LIST):
 
         # print("START AGGREGATE !")

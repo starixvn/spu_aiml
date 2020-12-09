@@ -84,24 +84,6 @@ def submit_job(filecsv_name,name1,name2,output1,output2,score_output,trans_outpu
                                             output1=output1,output2 = output2,match_output = match_output)
 
         objlv2.processing_a_match()
-    print('\n')
-    # print(f"START AGGREGATE")
-    # for idx,file_name in enumerate(os.listdir(output1)):
-    #   if (idx+1) % 5e2 == 0:
-    #     print(f"{idx+1} files DONE !")
-    for file_name in tqdm(os.listdir(output1),desc='AGGREGATING . . .'):
-        objlv3 = Aggregate(file_name,score_output,output1)
-        objlv3.aggregate(objlv1.major_league_list)
-    print('\n')
-    # print(f"START INSERT")
-    for file_name in tqdm(os.listdir(output2),desc='INSERTING . . .'):
-        if 'eff_trans' in file_name:
-            with open(os.path.join(output2,file_name),'rb') as f:
-                eff_trans = pickle.load(f)
-                # print(f"EFF TRANS {eff_trans} | TYPE {type(eff_trans)}")
-                trans = trans.union(eff_trans)
-    objlv4 = Insert(trans)
-    objlv4.insert_transactions(objlv1.data,trans_output)
 
 
 

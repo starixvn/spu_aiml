@@ -1,7 +1,7 @@
 
 import os
 import pandas as pd
-class Insert():
+class InsertDataBase():
     def __init__(self,trans):
         self.trans = trans
     
@@ -10,7 +10,7 @@ class Insert():
 
     def insert_transactions(self,data,output):
         # print("START INSERT !")
-        cols = [
+        cols =  [
                 'transid','matchid','leagueid','custid','transdate','liveindicator','bettype',
                 'stake','odds','oddsspread','hdp1','hdp2','betfrom','liveawayscore','livehomescore'
                 ]
