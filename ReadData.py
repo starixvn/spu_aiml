@@ -20,9 +20,9 @@ class ReadData():
         pass
     
     def read_data(self,filecsv_name,name1,name2):
-        # self.data = pd.read_csv(filecsv_name,encoding='ISO-8859-1')
+        self.data = pd.read_csv(filecsv_name,encoding='ISO-8859-1')
 
-        self.data = pd.read_csv(filecsv_name)
+        # self.data = pd.read_csv(filecsv_name)
 
         
         
@@ -78,14 +78,15 @@ class ReadData():
         self.DATE = self.data[self.data.liveindicator==1]
         self.DATE = self.DATE[['custid','matchid','transid','transdate','bettype']]
         
-        self.DATE.sort_values('transdate',inplace=True)
+        self.DATE.sort_values('transdate',ignore_index=True,inplace=True)
+        print("SORTED DF",self.DATE.head(),sep='\n')
 
-        getFristdate = self.data['transdate'][0]
-        getDate = getFristdate.split()
-        self.date = getDate[0]
+        self.date = self.DATE['transdate'][0]
+        # getDate = getFristdate.split()
+        # self.date = getDate[0]
 
         self.DATE['transdate'] = self.DATE['transdate'].apply   (lambda z: distance_time    (
-                                                                                            separate(self.date+' '+'0:0:0.0'),
+                                                                                            separate(self.date),
                                                                                             separate(z)
                                                                                             )
                                                                 )
