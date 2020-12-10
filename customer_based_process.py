@@ -187,11 +187,11 @@ if __name__ == "__main__":
     #     process.join()
     # q.put(objlv1,cus_list)
     # objlv1 = q.get()
-    pool = mp.Pool(8)
-    pool.map(submit_job,[(ns,k) for k in range(K-1)])
-    # with concurrent.futures.ProcessPoolExecutor() as executor:
+    # pool = mp.Pool(8)
+    # pool.map(submit_job,[(ns,k) for k in range(K-1)])
+    with concurrent.futures.ProcessPoolExecutor() as executor:
             # results = [executor.submit(self.process_a_couple,*couple) for couple in couples]
-        # executor.map(submit_job,[(cus_list[k],cus_list[k+1:]) for k in range(len(cus_list)-1)])
+        executor.map(submit_job,[(ns,k) for k in range(K-1)])
     # submit_job((cus_list[0],cus_list[1:]))
     # pool = mp.Pool(processes=8)
   #     # for _ in tqdm(range(20000),desc=f"B {self.bet_type} M {self.match} {self.order_of_combination}/{self.total_combination} {len(self.cus_list)} CUSTOMERS"):
