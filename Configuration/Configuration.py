@@ -19,6 +19,16 @@ class Configuration(object):
     def GetNameFile(self,config):
         config.config.sections()
         return config.config['DEFAULT']['NAME_MATCH']
+    
+    @classmethod
+    def GetFileOutput(self,config):
+        config.config.sections()
+        return config.config['DEFAULT']['FILE_OUTPUT']
+    
+    @classmethod
+    def GetDictName(self,config):
+        config.config.sections()
+        return config.config['DEFAULT']['DICT_NAME']
 
     @classmethod
     def GetPathCsvFile(self,config):
@@ -38,9 +48,13 @@ class Configuration(object):
         config.config.sections()
         return config.config['DEFAULT']['NAME_LEAGUESPORT']
     
-    def GetTemp1(self, config):
+    def GetTemp1A(self, config):
         config.config.sections()
-        return config.config['DEFAULT']['TEMP1']
+        return config.config['DEFAULT']['TEMP1A']
+    
+    def GetTemp1B(self, config):
+        config.config.sections()
+        return config.config['DEFAULT']['TEMP1B']
     
     def GetTemp2(self, config):
         config.config.sections()

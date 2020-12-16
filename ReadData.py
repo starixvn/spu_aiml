@@ -4,9 +4,11 @@ import warnings
 import os
 warnings.filterwarnings("ignore")
 import datetime
+import time
+import concurrent.futures
 from Configuration.Configuration import Configuration
-from multiprocessing import Value
-
+import multiprocessing as mp
+from tqdm import tqdm
 config = Configuration()
 path_csv = config.GetPathCsvFile(config)
 # print(f"path csv {path_csv}")
@@ -14,6 +16,8 @@ filecsv_name = os.path.join(path_csv,config.GetNameFile(config))
 name2 = os.path.join(path_csv,config.GetMajorLeagueName(config))
 # log_name = config.GetLogName(config)
 name1 = os.path.join(path_csv,config.GetMatchLeagueMapping(config))
+file_output = config.GetFileOutput(config)
+
 class ReadData():
     def __init__(self):
         # self.date = date
@@ -23,29 +27,30 @@ class ReadData():
         self.data = pd.read_csv(filecsv_name,encoding='ISO-8859-1')
 
         # self.data = pd.read_csv(filecsv_name)
-
-        
         
         # name = 'match_league_sport'
-        self.match_league_map = pd.read_csv(name1,error_bad_lines=False)[['matchid','leagueid']].set_index('matchid').to_dict(orient='index')
+        # self.match_league_map = pd.read_csv(name1,error_bad_lines=False)[['matchid','leagueid']].set_index('matchid').to_dict(orient='index')
         # self.DATE['leagueid'] = self.DATE['matchid'].apply(lambda z : match_league_map[z]['leagueid'])
-        print(f'NUM MATCHES {len(self.match_league_map)}')
+        # print(f'NUM MATCHES {len(self.match_league_map)}')
 
         # self.DATE = self.DATE[['custid','matchid','transid','transdate','leagueid','bettype']]
-        
+        self.DATE = self.data[self.data.liveindicator==1]
+        self.DATE = self.DATE[['custid','matchid','transid','transdate','bettype']]
         # pick up match list
-        # matches = DATE.matchid.unique()
-        # print(f"number of matches {len(matches)}")
+        self.matches = self.DATE.matchid.value_counts().sort_values(ascending=False).index.to_list()
+        print(f"number of matches {len(self.matches)}",f"MAX MATCH {self.matches[0]}")
 
         # self.candidat = self.DATE.groupby(['matchid','bettype']).custid.nunique()
         # self.my_list = self.candidat[self.candidat>1].index.values
-        # for match in matches:
-        #     for bet_type in bet_type_list:
-        #         my_list.append((match,bet_type))
+        # self.bet_type_list = [1,3,7,8]
+        # self.my_list = []
+        # for match in self.matches:
+        #     for bet_type in self.bet_type_list:
+        #         self.my_list.append((match,bet_type))
         # print(f"NUMBER COMBINATIONS {len(self.my_list)}")
 
-        MAJOR_LEAGUE = pd.read_csv(name2)
-        self.major_league_list = MAJOR_LEAGUE.LeagueId.unique()
+        # MAJOR_LEAGUE = pd.read_csv(name2)
+        # self.major_league_list = MAJOR_LEAGUE.LeagueId.unique()
         
 
     def pre_process(self):
@@ -75,8 +80,7 @@ class ReadData():
             c = b-a
             return int(c.total_seconds())
 
-        self.DATE = self.data[self.data.liveindicator==1]
-        self.DATE = self.DATE[['custid','matchid','transid','transdate','bettype']]
+        
         
         self.DATE.sort_values('transdate',ignore_index=True,inplace=True)
         print("SORTED DF",self.DATE.head(),sep='\n')
@@ -96,22 +100,36 @@ class ReadData():
                     # sep='\n'
                 )
         print   ("READ DATA & PREPROCESS SUCCESSFULLY !",self.DATE.head(),sep='\n')
+    
+# def break_into_multi_files(args):
+#     ns,match = args[0],args[1]
+#     DF = ns.df
+#     # DF = DF[(DF.matchid==comb[0])&(DF.bettype==comb[1])]
+#     DF = DF[DF.matchid==match]
+#     if DF.custid.nunique() > 1:
+#         DF.to_csv(os.path.join(file_output,f"M{match}.csv"),index=False)
 
 if __name__ == "__main__":
 
-    # parser = argparse.ArgumentParser()
-
-    # parser.add_argument('--prefix',type=str,required=True)
-    # parser.add_argument('--date',type=str,required=True)
-    # parser.add_argument('--suffix',type=str,default='.csv')
-    # parser.add_argument('--name1',type=str,required=True)
-    # parser.add_argument('--name2',type=str,required=True)
-
-    # args = parser.parse_args()
+    start_time = time.time()
 
     objlv1 = ReadData()
     objlv1.read_data(filecsv_name,name1,name2)
     objlv1.pre_process()
+    # mgr = mp.Manager()
+    # ns = mgr.Namespace()
+    # ns.df = objlv1.DATE
+    # with concurrent.futures.ProcessPoolExecutor() as executor:
+            
+    #     executor.map(break_into_multi_files,[(ns,match) for match in objlv1.matches])
+    for idx in tqdm(range(len(objlv1.matches))):
+        match = objlv1.matches[idx]
+        M = objlv1.DATE[objlv1.DATE.matchid==match]
+        for bt in [1,3,7,8]:
+            B = M[M.bettype==bt]
+            if B.custid.nunique() > 2:
 
-    # shared_df  = Value(pd.DataFrame,objlv1.DATE)
-    print("READ DATA & PREPROCESS SUCCESSFULLY !",objlv1.DATE.head(),sep='\n')
+                B.to_csv(os.path.join(file_output,f"{match}_{bt}.csv"),index=False)
+        objlv1.DATE = objlv1.DATE.drop(objlv1.DATE[objlv1.DATE.matchid==match].index)
+    
+    print("***********************************","BROKEN SUCCESSFULLY !","%.0f SECONDS" % (time.time() - start_time),sep='\n')
