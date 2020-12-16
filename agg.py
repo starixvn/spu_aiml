@@ -10,11 +10,11 @@ import os
 import pickle
 import pandas as pd
 from GroupBetting.ProcessCusBased import ProcessCusBased
-from GroupBetting.ReadData import ReadData
+#from GroupBetting import ReadData
 from GroupBetting.Aggregate import Aggregate
 from GroupBetting.InsertDataBase import InsertDataBase
 from Configuration.Configuration import Configuration
-from customer_based_process import objlv1
+#from customer_based_process import objlv1
 
 config = Configuration()
 # algorithmScore = FeatureScore()

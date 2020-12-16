@@ -1,7 +1,8 @@
 from time import process_time
+from mysql.connector import MySQLConnection
 import pandas as pd
 import numpy as np
-import datetime
+from datetime import date
 import time
 import os
 from tqdm import tqdm
@@ -54,6 +55,19 @@ class Aggregate():
             major_score = (gini_major + 3/2) * (2/5)
             league_score = (3 * (minor_score + 1) + (major_score + 2)) * (1/9)
         return league_score
+    
+    def getScoreFromDatabase(self):
+        
+        try:
+            conn = MySQLConnection(user = username, password = password, host = '10.18.200.70', port = server, database = database_name)
+            cursor = conn.cursor()
+            cursor.callproc('SPU_AIML_UpdateScanStatus',[date.today(),None])
+            conn.commit()
+        except Exception as e:
+            print(e)
+        finally:
+            cursor.close()
+            conn.close()
 
     
     def aggregate(self,MAJOR_LEAGUE_LIST):
