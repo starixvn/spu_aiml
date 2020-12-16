@@ -14,6 +14,7 @@ namespace GetDataProduction.Services
     {
         public List<Transaction> ReadCSVFile()
         {
+            string Error = string.Empty;
             try
             {
                 string location = @"D:\Note\test2.csv";
@@ -27,7 +28,10 @@ namespace GetDataProduction.Services
             }
             catch (Exception e)
             {
+                //Error = e.Message;
+                //return Error;
                 throw new Exception(e.Message);
+
             }
         }
 

@@ -19,7 +19,7 @@ namespace GetDataProduction.Controllers
         {
             _services = services;
         }
-        [HttpPost]
+        [HttpGet]
         [Route("GetTransactionData")]
         public ActionResult<List<Transaction>> GetDataTransaction()
         {
