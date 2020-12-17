@@ -18,6 +18,7 @@ from Configuration.Configuration import Configuration
 import itertools
 from scipy.special import binom
 config = Configuration()
+from mysql.connector import MySQLConnection
 # algorithmScore = FeatureScore()
 # aggregate = AggregateDatabase()
 
@@ -154,10 +155,10 @@ def processing(args):
         bet_count=0
         mil,mal,my_dict={},{},{}
         d = {}
-        # my_dict['C1']=str(a)
-        # my_dict['C2']=str(b)
+        my_dict['C1']=str(a)
+        my_dict['C2']=str(b)
         for comb in intersec:
-        
+            
             (match,bettype)=comb
             arr = np.concatenate((info_a[comb],info_b[comb]),axis=0)
             bet_count += arr.shape[0]
@@ -182,23 +183,41 @@ def processing(args):
         
         ts_arr=ts_result.apply(lambda z : z[0]).values
         
-        my_dict['num_eff_comb']=len(ts_arr[ts_arr>0])
+    my_dict['TJSM']=len(ts_arr[ts_arr>0])
 
-        my_dict['eff_trans']=ts_result.apply(lambda z : z[1]).to_dict()
+    #my_dict['eff_trans']=ts_result.apply(lambda z : z[1]).to_dict()
         
-        my_dict['num_joing_comb']=len(intersec)
-        my_dict['comb_score']=len(ts_arr[ts_arr>0]) / len(ts_arr)
+    
+    my_dict['TJM']=len(intersec)
+    my_dict['MS']=len(ts_arr[ts_arr>0]) / len(ts_arr)
         # print(f"MIL {mil.values()}",f"MAL {mal.values()}")
-        my_dict['league_score']=support.compute_league_score(list(mil.values()),list(mal.values()))
+    my_dict['LS']=support.compute_league_score(list(mil.values()),list(mal.values()))
         
         # S['time_score']=S['time_score'].apply(lambda z: np.mean(np.array(z)[np.array(z) >0] if np.sum(z)>0 else 0))
-        my_dict['time_score']= np.mean(ts_arr[ts_arr>0]) if len(ts_arr[ts_arr>0]) > 0 else 0
-        my_dict['bet_count']=bet_count
+    my_dict['TS']= np.mean(ts_arr[ts_arr>0]) if len(ts_arr[ts_arr>0]) > 0 else 0
+    my_dict['BC']=bet_count
+    my_dict['TJD'] = 1
         
-        with open(os.path.join(output1a,f'{a}_{b}.json'), 'w') as g:
-        # with open(os.path.join(root,save_folder,"folder %.0f" % (mod+1),f'{k}.pkl'), 'wb') as handle:  ,"folder %.0f" % (mod+1)
-            json.dump(my_dict, g)
-
+    jsonstr = json.dumps([my_dict])
+    
+    # with open(os.path.join(output1a,f'{a}_{b}.json'), 'w') as g:
+    # # with open(os.path.join(root,save_folder,"folder %.0f" % (mod+1),f'{k}.pkl'), 'wb') as handle:  ,"folder %.0f" % (mod+1)
+    #     json.dump(my_dict, g)
+    # del d,my_dict
+    # gc.collect()
+    # dump to database
+    conn = MySQLConnection(user = 'darius.vn', password = '1qaz@Wsx3edc', host = '10.18.200.70', port = '3307', database = 'SPU_AIML')
+    try:
+        if conn.is_connected():
+            cursor = conn.cursor()
+            cursor.callproc('SPU_AIML_InsertAssociationStats',[jsonstr,None])
+            conn.commit()
+            conn.close()
+            cursor.close()
+            
+    except Exception as err:
+        print(err)
+        
     # break
         # del d,DF,S,my_dict
         del d,my_dict
@@ -210,22 +229,22 @@ def myfunc():
     total_couples=int(binom(len(ls),2))
     print(f"TOTAL COUPELS {total_couples}")
     tasks=itertools.combinations([k for k in range(len(ls))],2)
-
     pool = mp.Pool(processes=4)
-
     for _ in tqdm(pool.imap_unordered(processing, itertools.islice(tasks,total_couples)), total=total_couples):
         pass
 if __name__ == "__main__":
 
     start_time = time.time()
 
+    # print(f"NUM CUS {len(ls)} | CUS 0 {ls[0]}")
     
     # match_league_map = pd.read_csv(name1,error_bad_lines=False)[['matchid','leagueid']].set_index('matchid').to_dict(orient='index')
     # MAJOR_LEAGUE = pd.read_csv(name2)
     # major = MAJOR_LEAGUE.LeagueId.unique()
     # # # save_dict="dict_output"
+    #processing((ns,1))
 
-    # with open(os.path.join(path_csv,dict_name), 'rb') as f:
+    pool = mp.Pool(processes=5)
     #     big_data=pickle.load(f)
     # print(f"NUM CUS {len(big_data)}","*****************************",sep='\n')
 
