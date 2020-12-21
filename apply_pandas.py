@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics import pairwise_distances
 import multiprocessing as mp
+from mysql.connector import MySQLConnection
 # from tqdm.notebook import tqdm
 from tqdm import tqdm
 import csv
@@ -154,8 +155,8 @@ def processing(args):
         bet_count=0
         mil,mal,my_dict={},{},{}
         d = {}
-        # my_dict['C1']=str(a)
-        # my_dict['C2']=str(b)
+        my_dict['C1']=str(a)
+        my_dict['C2']=str(b)
         for comb in intersec:
         
             (match,bettype)=comb
@@ -182,18 +183,19 @@ def processing(args):
         
         ts_arr=ts_result.apply(lambda z : z[0]).values
         
-        my_dict['num_eff_comb']=len(ts_arr[ts_arr>0])
+        my_dict['TJSM']=len(ts_arr[ts_arr>0])
 
-        my_dict['eff_trans']=ts_result.apply(lambda z : z[1]).to_dict()
+        #my_dict['eff_trans']=ts_result.apply(lambda z : z[1]).to_dict()
         
-        my_dict['num_joing_comb']=len(intersec)
-        my_dict['comb_score']=len(ts_arr[ts_arr>0]) / len(ts_arr)
+        my_dict['TJM']=len(intersec)
+        my_dict['MS']=len(ts_arr[ts_arr>0]) / len(ts_arr)
         # print(f"MIL {mil.values()}",f"MAL {mal.values()}")
-        my_dict['league_score']=support.compute_league_score(list(mil.values()),list(mal.values()))
+        my_dict['LS']=support.compute_league_score(list(mil.values()),list(mal.values()))
         
         # S['time_score']=S['time_score'].apply(lambda z: np.mean(np.array(z)[np.array(z) >0] if np.sum(z)>0 else 0))
-        my_dict['time_score']= np.mean(ts_arr[ts_arr>0]) if len(ts_arr[ts_arr>0]) > 0 else 0
-        my_dict['bet_count']=bet_count
+        my_dict['TS']= np.mean(ts_arr[ts_arr>0]) if len(ts_arr[ts_arr>0]) > 0 else 0
+        my_dict['BC']=bet_count
+        my_dict['TJD'] = 1
         return my_dict
         # with open(os.path.join(output1a,f'{a}_{b}.json'), 'w') as g:
         # with open(os.path.join(root,save_folder,"folder %.0f" % (mod+1),f'{k}.pkl'), 'wb') as handle:  ,"folder %.0f" % (mod+1)
@@ -233,8 +235,26 @@ if __name__ == "__main__":
                 mylady=mysr.progress_apply(processing)
                 filtered=mylady[mylady != '']
                 list_of_dict=filtered.to_list()
+                jsonstr = json.dumps(list_of_dict)
+                print(type(jsonstr))
+                conn = MySQLConnection(user = 'darius.vn', password = '1qaz@Wsx3edc', host = '10.18.200.70', port = '3307', database = 'SPU_AIML')
+                try:
+                    if conn.is_connected():
+                        cursor = conn.cursor()
+                        cursor.callproc('SPU_AIML_InsertAssociationStats',[jsonstr,None])
+                        conn.commit()
+                        conn.close()
+                        cursor.close()
+                        
+                except Exception as err:
+                    print(err)
                 print("APPLY TIME %.0f seconds" % (time.time()-start))
+                del mysr,mylady
                 i=0
+                myls = []
+                
+    
+    
         # break
 
 
