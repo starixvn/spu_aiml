@@ -24,18 +24,18 @@ config = Configuration()
 # aggregate = AggregateDatabase()
 
 # get information all ticket of each match
-# save_dir =config.GetSaveDirectoryModel(config)
+save_dir =config.GetSaveDirectoryModel(config)
 path_csv = config.GetPathCsvFile(config)
-# print(f"path csv {path_csv}")
 filecsv_name = os.path.join(path_csv,config.GetNameFile(config))
 name2 = os.path.join(path_csv,config.GetMajorLeagueName(config))
 # log_name = config.GetLogName(config)
 name1 = os.path.join(path_csv,config.GetMatchLeagueMapping(config))
+output1a = os.path.join(save_dir,config.GetTemp1A(config))
 # output1 = config.GetTemp1(config)
-output2 = config.GetTemp2(config)
-match_output = config.GetMatchOuput(config)
-score_output = config.GetScoreOuput(config)
-trans_output = config.GetTransOuput(config)
+output2 = os.path.join(save_dir,config.GetTemp2(config))
+match_output = os.path.join(save_dir,config.GetMatchOuput(config))
+# score_output = config.GetScoreOuput(config)
+# trans_output = config.GetTransOuput(config)
 # process_start_time = time.time()
 # objlv1 = ReadData()
 # objlv1.read_data(filecsv_name,name1,name2)
@@ -80,7 +80,7 @@ def submit_job(args):
             file_name = str(min(cus_a,cus_b))+'_'+str(max(cus_a,cus_b))
             # if file_name in os.listdir(self.output):
             # with open(os.path.join(output1,file_name+'.csv'),'a') as csv_file:
-            f = open(os.path.join(output1,file_name+'.csv'),'a')
+            f = open(os.path.join(output1a,file_name+'.csv'),'a')
             # writer = csv.writer(csv_file)
             writer = csv.writer(f)
     

@@ -27,14 +27,15 @@ class ReadData():
         self.data = pd.read_csv(filecsv_name,encoding='ISO-8859-1')
 
         # self.data = pd.read_csv(filecsv_name)
-        
+        self.DATE = self.data[(self.data.bettype.isin([1,3,7,8]))&(self.data.liveindicator)]
         # name = 'match_league_sport'
-        # self.match_league_map = pd.read_csv(name1,error_bad_lines=False)[['matchid','leagueid']].set_index('matchid').to_dict(orient='index')
-        # self.DATE['leagueid'] = self.DATE['matchid'].apply(lambda z : match_league_map[z]['leagueid'])
+        del self.data
+        self.match_league_map = pd.read_csv(name1,error_bad_lines=False)[['matchid','leagueid']].set_index('matchid').to_dict(orient='index')
+        self.DATE['leagueid'] = self.DATE['matchid'].apply(lambda z : self.match_league_map[z]['leagueid'])
         # print(f'NUM MATCHES {len(self.match_league_map)}')
-
+        
         # self.DATE = self.DATE[['custid','matchid','transid','transdate','leagueid','bettype']]
-        self.DATE = self.data[self.data.liveindicator==1]
+        # self.DATE = self.DATE[self.DATE.liveindicator==1]
         self.DATE = self.DATE[['custid','matchid','transid','transdate','bettype']]
         # pick up match list
         self.matches = self.DATE.matchid.value_counts().sort_values(ascending=False).index.to_list()
@@ -49,8 +50,8 @@ class ReadData():
         #         self.my_list.append((match,bet_type))
         # print(f"NUMBER COMBINATIONS {len(self.my_list)}")
 
-        # MAJOR_LEAGUE = pd.read_csv(name2)
-        # self.major_league_list = MAJOR_LEAGUE.LeagueId.unique()
+        MAJOR_LEAGUE = pd.read_csv(name2)
+        self.major_league_list = MAJOR_LEAGUE.LeagueId.unique()
         
 
     def pre_process(self):
@@ -81,25 +82,26 @@ class ReadData():
             return int(c.total_seconds())
 
         
-        
+        self.date1=self.DATE.transdate.min()
         self.DATE.sort_values('transdate',ignore_index=True,inplace=True)
-        print("SORTED DF",self.DATE.head(),sep='\n')
+        #print("SORTED DF",self.DATE.head(),sep='\n')
 
         self.date = self.DATE['transdate'][0]
         # getDate = getFristdate.split()
         # self.date = getDate[0]
-
+        print(f'DATE FOUND BY SORT {self.date}')
         self.DATE['transdate'] = self.DATE['transdate'].apply   (lambda z: distance_time    (
                                                                                             separate(self.date),
                                                                                             separate(z)
                                                                                             )
                                                                 )
-        print   (   f"DAY {self.date}"
+        
+        print   (   f"DATE FOUND BY MIN {self.date1}"
                     # f"NUMBER COMBINATIONS {len(self.my_list)}",
                     # # f"NUMBER CUSTOMERS {len(self.candidat)}",
                     # sep='\n'
                 )
-        print   ("READ DATA & PREPROCESS SUCCESSFULLY !",self.DATE.head(),sep='\n')
+        #print   ("READ DATA & PREPROCESS SUCCESSFULLY !",self.DATE.head(),sep='\n')
     
 # def break_into_multi_files(args):
 #     ns,match = args[0],args[1]
@@ -122,14 +124,14 @@ if __name__ == "__main__":
     # with concurrent.futures.ProcessPoolExecutor() as executor:
             
     #     executor.map(break_into_multi_files,[(ns,match) for match in objlv1.matches])
-    for idx in tqdm(range(len(objlv1.matches))):
-        match = objlv1.matches[idx]
-        M = objlv1.DATE[objlv1.DATE.matchid==match]
-        for bt in [1,3,7,8]:
-            B = M[M.bettype==bt]
-            if B.custid.nunique() > 2:
+    # for idx in tqdm(range(len(objlv1.matches))):
+    #     match = objlv1.matches[idx]
+    #     M = objlv1.DATE[objlv1.DATE.matchid==match]
+    #     for bt in [1,3,7,8]:
+    #         B = M[M.bettype==bt]
+    #         if B.custid.nunique() > 2:
 
-                B.to_csv(os.path.join(file_output,f"{match}_{bt}.csv"),index=False)
-        objlv1.DATE = objlv1.DATE.drop(objlv1.DATE[objlv1.DATE.matchid==match].index)
+    #             B.to_csv(os.path.join(file_output,f"{match}_{bt}.csv"),index=False)
+    #     objlv1.DATE = objlv1.DATE.drop(objlv1.DATE[objlv1.DATE.matchid==match].index)
     
-    print("***********************************","BROKEN SUCCESSFULLY !","%.0f SECONDS" % (time.time() - start_time),sep='\n')
+    # print("***********************************","BROKEN SUCCESSFULLY !","%.0f SECONDS" % (time.time() - start_time),sep='\n')

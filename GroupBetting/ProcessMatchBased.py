@@ -31,14 +31,15 @@ match_output = config.GetMatchOuput(config)
 score_output = config.GetScoreOuput(config)
 trans_output = config.GetTransOuput(config)
 class ProcessMatchBased():
-    def __init__(self,df,match,bet_type,league,total_combination,order_of_combination):
+    def __init__(self,df,match,bet_type,league):
+    # total_combination,order_of_combination):
         self.MATCH = df
         # self.major_league_list = major_league_list
         self.match = match
         self.bet_type = bet_type
         self.league = league
-        self.total_combination = total_combination
-        self.order_of_combination = order_of_combination
+        # self.total_combination = total_combination
+        # self.order_of_combination = order_of_combination
         # self.output1 = output1
         # self.output2 = output2
         # self.match_output = match_output
@@ -92,7 +93,7 @@ class ProcessMatchBased():
         print('\n')
         
         # loop through 1st customer
-        for k in tqdm(range(len(self.cus_list)-1),desc=f"BET TYPE {self.bet_type} MATCH {self.match} {self.order_of_combination}/{self.total_combination}"):
+        for k in tqdm(range(len(self.cus_list)-1),desc=f"BET TYPE {self.bet_type} MATCH {self.match}"):
             cus_a = self.cus_list[k]
         
             # loop through 2nd customer
@@ -117,37 +118,37 @@ class ProcessMatchBased():
                 # save a couple
                 # if time_score > 0 : 
                 # or self.league not in self.major_league_list:
-                couple_for_table_1 =    {
-                                        'bet_type':self.bet_type,
-                                        'CustID1':min(cus_a,cus_b),
-                                        'CustID2':max(cus_a,cus_b),                                                            
-                                        'TimeScore':time_score,
-                                        # 'MatchID':str(self.match),
-                                        'LeagueID':self.league,
-                                        'BETCount': len(transid),
-                                        # 'TransIdList': ','.join([str(trans) for trans in transid_set]),
-                                        # 'TotalSuspiciousTicktes':len(transid_set)                                                         
-                                        }
-                couple_for_table_1 = [self.bet_type,time_score,self.league,len(transid)]
+                # couple_for_table_1 =    {
+                #                         'bet_type':self.bet_type,
+                #                         'CustID1':min(cus_a,cus_b),
+                #                         'CustID2':max(cus_a,cus_b),                                                            
+                #                         'TimeScore':time_score,
+                #                         # 'MatchID':str(self.match),
+                #                         'LeagueID':self.league,
+                #                         'BETCount': len(transid),
+                #                         # 'TransIdList': ','.join([str(trans) for trans in transid_set]),
+                #                         # 'TotalSuspiciousTicktes':len(transid_set)                                                         
+                #                         }
+                # couple_for_table_1 = [self.bet_type,time_score,self.league,len(transid)]
                 couple_for_table_2.append   ({
-                                            # 'bet_type':self.bet_type,
+                                            'bet_type':self.bet_type,
                                             'CustID1':min(cus_a,cus_b),
                                             'CustID2':max(cus_a,cus_b),                                                            
-                                            # 'TimeScore':time_score,
+                                            'TimeScore':time_score,
                                             'MatchID':str(self.match),
                                             'LeagueID':self.league,
-                                            # 'BETCount': len(transid),
+                                            'BETCount': len(transid),
                                             'TransIdList': ','.join([str(trans) for trans in transid_set]),
                                             'TotalSuspiciousTicktes':len(transid_set)          
                                             })                  
                 # file_name = str(couple[0]['CustID1'])+'_'+str(couple[0]['CustID2'])
-                file_name = str(min(cus_a,cus_b))+'_'+str(max(cus_a,cus_b))
+                # file_name = str(min(cus_a,cus_b))+'_'+str(max(cus_a,cus_b))
                 # if file_name in os.listdir(self.output):
-                with open(os.path.join(output1,file_name+'.csv'),'a') as csv_file:
-                    writer = csv.writer(csv_file)
-                    # if csv_file.shape[0] > 1:
-                    #     print("YAYYYY !")
-                    writer.writerow(couple_for_table_1)
+                # with open(os.path.join(output1,file_name+'.csv'),'a') as csv_file:
+                #     writer = csv.writer(csv_file)
+                #     # if csv_file.shape[0] > 1:
+                #     #     print("YAYYYY !")
+                #     writer.writerow(couple_for_table_1)
                     # writer.writerow(couple_for_table_1.values())
                 # else:
         #         print what makes you happy :)           
@@ -210,7 +211,7 @@ class ProcessMatchBased():
                     
     
     # def process_a_match_with_parallelism(self):
-    #     print("\n")
+    #     # print("\n")
     #     # print(f"BETTYPE {self.bet_type} MATCH {self.match}","*********************************",sep='\n')
     #     eff_trans,couple_for_table_2 = set(),[]
     #     # pick up customer list
@@ -225,19 +226,19 @@ class ProcessMatchBased():
     #     for _ in tqdm(  pool.imap_unordered(self.process_a_couple,couples[:100000]),total=len(couples[:100000]),
     #                     desc=f"B {self.bet_type} M {self.match} {self.order_of_combination}/{self.total_combination} {len(self.cus_list)} CUSTOMERS"):
     #         pass
-        # print(f"B {self.bet_type} M {self.match} {self.order_of_combination}/{self.total_combination} {len(self.cus_list)} CUSTOMERS","*********************************",sep='\n')
-        # with concurrent.futures.ProcessPoolExecutor() as executor:
-            # results = [executor.submit(self.process_a_couple,*couple) for couple in couples]
-            # executor.map(self.process_a_couple,couples)
+    #     print(f"B {self.bet_type} M {self.match} {self.order_of_combination}/{self.total_combination} {len(self.cus_list)} CUSTOMERS","*********************************",sep='\n')
+    #     with concurrent.futures.ProcessPoolExecutor() as executor:
+    #         results = [executor.submit(self.process_a_couple,*couple) for couple in couples]
+    #         executor.map(self.process_a_couple,couples)
 
-        #     for f in concurrent.futures.as_completed(results):
-        #         info_of_couple = f.result()[0]
-        #         trans = f.result()[1]
-        #         eff_trans = eff_trans.union(trans)
-        #         couple_for_table_2.append(info_of_couple)
+    #         for f in concurrent.futures.as_completed(results):
+    #             info_of_couple = f.result()[0]
+    #             trans = f.result()[1]
+    #             eff_trans = eff_trans.union(trans)
+    #             couple_for_table_2.append(info_of_couple)
 
-        # with open(os.path.join(self.output2,f'B{self.bet_type}M{self.match}_eff_trans.pkl'),'wb') as f:
-        #     pickle.dump(eff_trans,f)
+    #     with open(os.path.join(self.output2,f'B{self.bet_type}M{self.match}_eff_trans.pkl'),'wb') as f:
+    #         pickle.dump(eff_trans,f)
         
-        # TABLE2 = pd.DataFrame(couple_for_table_2)
-        # TABLE2.to_csv(os.path.join(self.match_output,f'B{self.bet_type}M{self.match}.csv'))
+    #     TABLE2 = pd.DataFrame(couple_for_table_2)
+    #     TABLE2.to_csv(os.path.join(self.match_output,f'B{self.bet_type}M{self.match}.csv'))

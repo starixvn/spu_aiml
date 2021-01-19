@@ -6,13 +6,13 @@ import csv
 import json
 import warnings
 import helper
-import torch
 import datetime
 import time
 import pickle
 import itertools
 import gc
 import os
+import torch
 
 from tqdm import tqdm
 from pandarallel import pandarallel
@@ -29,12 +29,14 @@ mlm_fn="match20201129.csv"
 output1a="/home/vnteam/Data/SaveData/output1a/"
 output1b="/home/vnteam/Data/SaveData/output1b/"
 result_fn="baseline_results.csv"
-cus_dict_directory="cus_dict_directory"
-cus_dict_fn="cus_dict.pkl"
 match_breaking='match_breaking'
 
 # define chunk_size for DB saving
 chunk_size=10000
+
+# define number of workers for parallelism
+num_workers=8
+
 
 def separate(transdate):
     """
@@ -66,56 +68,6 @@ def count_joining_combs(cus1,cus2):
     """
     comb_a,comb_b=set(cus_dict[cus1]),set(cus_dict[cus2])
     return len(comb_a.intersection(comb_b))
-    #return sum(data[data.custid.isin([cus1,cus2])].groupby(['matchid','bettype']).custid.nunique()>1)
-    
-# print what time it is now !
-t = time.localtime()
-current_time = time.strftime("%H:%M:%S", t)
-print("CURRENT TIME :",current_time)
-
-
-# read - filter - preprocess data
-#data = pd.read_csv(os.path.join(root,orig_fn),encoding='ISO-8859-1')
-#data = pd.read_csv(r"/home/vnteam/Data/MatchData/not_2020-07-18.csv")
-#DATE = data[(data.bettype.isin([1,3,7,8]))&(data.liveindicator)]
-#DATE = DATE[['custid','matchid','transdate','bettype']]
-#DATE.sort_values('transdate',ignore_index=True,inplace=True)
-#date = DATE['transdate'][0]
-#DATE['transdate'] = DATE['transdate'].apply(lambda z: distance_time(separate(date),separate(z)))
-
-match_league_map = pd.read_csv(os.path.join(root,mlm_fn),error_bad_lines=False)[['matchid','leagueid']].set_index('matchid').to_dict(orient='index')
-MAJOR_LEAGUE = pd.read_csv(os.path.join(root,mjl_fn))
-MAJOR_LEAGUE_LIST = MAJOR_LEAGUE.LeagueId.unique()
-
-#matches=DATE.matchid.unique()
-#start_match_breaking = time.time()
-
-#for n in tqdm(range(len(matches)),desc="MATCH BREAKING . . ."):
-    #match=matches[n]
-    #m = DATE[DATE.matchid==match]
-    #for bt in [1,3,7,8]:
-        #f = m[m.bettype==bt]
-        #if f.custid.nunique() > 1:
-            #f.to_csv(os.path.join(root,match_breaking,f"{match}_{bt}.csv"),index=False)
-#print(f"MATCH BREAKING TAKES {(time.time()-start_match_breaking)} seconds")
-
-cus_dict={}
-ls_mat=os.listdir(os.path.join(root,match_breaking))
-for k in tqdm(range(len(ls_mat)),desc="BREAKING INTO ARRAY . . ."):    
-    fn=ls_mat[k]
-    match,bt=int(fn.split('.')[0].split('_')[0]),int(fn.split('.')[0].split('_')[1])
-    df = pd.read_csv(os.path.join(root,match_breaking,fn))
-    
-    ls = df.custid.unique()
-    for cus in ls:
-        if cus not in cus_dict:
-            cus_dict[cus]=[(match,bt)]
-        else:
-            cus_dict[cus].append((match,bt))
-print('\n',f"LEN OF CUS DICT {len(cus_dict)}")
-#print('\n',f"MATCH BREAKING TAKES {(time.time()-start_match_breaking)} seconds")
-
-#del data,DATE
 
 def process_a_combination(filepath):
 
@@ -137,7 +89,7 @@ def process_a_combination(filepath):
     # read data of a (match,bettype) - combination    
     MATCH=pd.read_csv(os.path.join(root,match_breaking,filepath))
     
-    # pick up customer list
+    # pick up customer list and sort it
     CUST_LIST = np.sort(MATCH.custid.unique())
     
     # get the maximum of number of tickets
@@ -154,10 +106,10 @@ def process_a_combination(filepath):
     X=np.asarray(X)
 
     # compute pairwise-time-score matrix
-    #start_compute=time.time()
+    start_compute=time.time()
     m=helper.compute_pairwise_cus(X)    
-    #print("\n","PAIRWISE MATRIX HAVING SHAPE %s OF MATCH %.0f BETTYPE %.0f :" % (m.shape,match,bettype),m,sep='\n')  
-    #print("\n","MATCH %.0f BETTYPE %.0f COMPUTING TIME SCORE TAKES %.0f SECONDS" % (match,bettype,time.time() - start_compute))
+    print("\n","PAIRWISE MATRIX HAVING SHAPE %s OF MATCH %.0f BETTYPE %.0f :" % (m.shape,match,bettype),m,sep='\n')  
+    print("\n","MATCH %.0f BETTYPE %.0f COMPUTING TIME SCORE TAKES %.0f SECONDS" % (match,bettype,time.time() - start_compute))
     del X,MATCH
     gc.collect()
     
@@ -165,52 +117,110 @@ def process_a_combination(filepath):
     start_transform=time.time()
         
     obj=[   
-            {"C1":int(CUST_LIST[i]),"C2":int(CUST_LIST[j]),"TS": m[i,j], "M":match,"B":bettype,"L":league,"TJC":count_joining_combs(int(CUST_LIST[i]),int(CUST_LIST[j])),"IML":is_major} 
+            #{"C1":int(CUST_LIST[i]),"C2":int(CUST_LIST[j]),"TS": m[i,j], "M":match,"B":bettype,"L":league,"TJC":count_joining_combs(int(CUST_LIST[i]),int(CUST_LIST[j])),"IML":is_major}
+            
+            #{"C1":int(CUST_LIST[i]),"C2":int(CUST_LIST[j]),"TS": m[i,j], "M":match,"B":bettype,"L":league,"TJC":type(count_joining_combs(CUST_LIST[i],CUST_LIST[j])),"IML":is_major} 
+            
+            {"C1":int(CUST_LIST[i]),"C2":int(CUST_LIST[j]),"TS": m[i,j], "M":match,"B":bettype,"L":league,"TJC":count_joining_combs(CUST_LIST[i],CUST_LIST[j]),"IML":is_major}
             
             for (i,j) in itertools.combinations([x for x in range(len(CUST_LIST))],2) if m[i,j] > 0   
         ]
-    #print(f"JSON OBJ 1th {obj[0]}")  
+    print(f"JSON OBJ 1th {obj[0]}",f"JSON OBJ 2nd {obj[1]}",f"JSON OBJ 3rd {obj[2]}",sep='\n')
+      
     #start_save = time.time()
     # build chunks for DB saving
-    chunks = [obj[x:x+chunk_size] for x in range(0, len(obj), chunk_size)]
+    #chunks = [obj[x:x+chunk_size] for x in range(0, len(obj), chunk_size)]
+    #del m,obj
     #print("JSON OBJECT :",obj,sep="\n")
     #print("\n","MATCH %.0f BETTYPE %.0f TRANSFROMING TAKES %.0f SECONDS" % (match,bettype,time.time() - start_transform))
-    #for chunk in chunks:
-      #jsonList = json.dumps(chunk)
+    
     
     # filter json obj
-    if len(obj) > 0:
-      try:
-        conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
-        cursor = conn.cursor()
-        for chunk in chunks:
-          jsonList = json.dumps(chunk)
-          cursor.callproc('SPU_AIML_InsertAssociationStatsStaging',[jsonList,None])
-          conn.commit()
-        cursor.close()
-        conn.close()
-      except Exception as err:
-          print(err)
+    #if len(obj) > 0:
+      #try:
+        #conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
+        #cursor = conn.cursor()
+        #for chunk in chunks:
+          #jsonList = json.dumps(chunk)
+          #cursor.callproc('SPU_AIML_InsertAssociationStatsStaging',[jsonList,None])
+          #conn.commit()
+        #cursor.close()
+        #conn.close()
+      #except Exception as err:
+          #print(err)
     #print("\n","MATCH %.0f BETTYPE %.0f SAVING TAKES %.0f SECONDS" % (match,bettype,time.time() - start_save))
-    del m,obj
-    gc.collect()
+    #del chunks
+    #gc.collect()
 
 
 if __name__ == "__main__":
     
+    # START PHASE 1
+    # *****************************************************************************************************************************************************************************
+    # print what time it is now !
+    t = time.localtime()
+    current_time = time.strftime("%H:%M:%S", t)
+    print("CURRENT TIME :",current_time,'\n')
+    
+    
+    # read - filter - preprocess data
+    data = pd.read_csv(os.path.join(root,orig_fn),encoding='ISO-8859-1')
+    DATE = data[(data.bettype.isin([1,3,7,8]))&(data.liveindicator)]
+    del data
+    DATE = DATE[['custid','matchid','transdate','bettype']]
+    date = DATE['transdate'].min()
+    DATE['transdate'] = DATE['transdate'].apply(lambda z: distance_time(separate(date),separate(z)))
+    
+    # get list of matches
+    matches=DATE.matchid.unique()
+    
+    # match breaking
+    for n in tqdm(range(len(matches)),desc="MATCH BREAKING"):
+        match=matches[n]
+        m = DATE[DATE.matchid==match]
+        for bt in [1,3,7,8]:
+            f = m[m.bettype==bt]
+            if f.custid.nunique() > 1:
+                f.to_csv(os.path.join(root,match_breaking,f"{match}_{bt}.csv"),index=False)
+    
+    del DATE
+    print('\n')
+    
+    # build cus_dict for count joining combinations
+    cus_dict={}
+    ls_mat=os.listdir(os.path.join(root,match_breaking))
+    for k in tqdm(range(len(ls_mat)),desc="BUILD CUS DICT"):    
+        fn=ls_mat[k]
+        match,bt=int(fn.split('.')[0].split('_')[0]),int(fn.split('.')[0].split('_')[1])
+        df = pd.read_csv(os.path.join(root,match_breaking,fn))
+        
+        ls = df.custid.unique()
+        for cus in ls:
+            if cus not in cus_dict:
+                cus_dict[cus]=[(match,bt)]
+            else:
+                cus_dict[cus].append((match,bt))
+    print('\n',f"LEN OF CUS DICT {len(cus_dict)}")
+    #print('\n',f"MATCH BREAKING TAKES {(time.time()-start_match_breaking)} seconds")
+    
+    # read match_league_map file and major_league list file
+    match_league_map = pd.read_csv(os.path.join(root,mlm_fn),error_bad_lines=False)[['matchid','leagueid']].set_index('matchid').to_dict(orient='index')
+    MAJOR_LEAGUE = pd.read_csv(os.path.join(root,mjl_fn))
+    MAJOR_LEAGUE_LIST = MAJOR_LEAGUE.LeagueId.unique()
+        
     start_processing=time.time()   
     
-    candidates= os.listdir(os.path.join(root,match_breaking))
-    pool=mp.Pool(6)
+    #candidates= os.listdir(os.path.join(root,match_breaking))
+    #pool=mp.Pool(num_workers)
     #pool.map(process_a_combination,candidates)
-    #process_a_combination('39960404_3.csv')
-    for _ in tqdm(pool.imap_unordered(process_a_combination,candidates),total=len(candidates)):
-      pass
+    process_a_combination('39960404_3.csv')
+    #for _ in tqdm(pool.imap_unordered(process_a_combination,candidates),total=len(candidates),desc='MAIN PROCESS'):
+      #pass
     print('\n','********************************************************************************************************************************************')
     print("\n","PROCESSING TIME %.0f SECONDS" % (time.time() - start_processing))
     
     
-    
+    # END PHASE 1 - START PHASE 2
     # **************************************************************************************************************************************************************************************************************
     #try:
       #conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
@@ -290,11 +300,13 @@ if __name__ == "__main__":
     #chunks2 = [myls2[x:x+chunk_size] for x in range(0, len(myls2), chunk_size)]
     #print(f"Chunks2 1 {chunks2[0]}")
     #print(f"TYPE CHUNKS2 {type(chunks2)}")
+    
+    
+    
     #try:
       #conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
       #cursor = conn.cursor()
       #for (chunk1,chunk2) in zip(chunks1,chunks2):
-      #for chunk1 in chunks1[33:36]:
         #json_obj1 = json.dumps(chunk1)
         #print(f"json_obj1 {json_obj1}")
         #print(f"TYPE JSON OBJ1 {type(json_obj1)}")
@@ -309,4 +321,17 @@ if __name__ == "__main__":
     #except Exception as err:
       #print(err)
     #print("SAVE TO DB %.0f seconds" % (time.time()-start))
+    
+    
+    # PHASE 2 WITH PROCESSING IN DB
+    # ********************************************************************************************************************************************************************************    
+    #try:
+      #conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
+      #cursor = conn.cursor()
+      #cursor.callproc('SPU_AIML_ComputeDailyScore',[None])
+      #conn.commit()
+      #cursor.close()
+      #conn.close()
+    #except Exception as err:
+      #print(err)
     
