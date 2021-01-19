@@ -1,12 +1,7 @@
-﻿using CsvHelper.Configuration;
-using AIML_DataRepository.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace AIML_DataRepository.Mappers
+﻿namespace AIML_DataRepository.Mappers
 {
+    using CsvHelper.Configuration;
+    using AIML_DataRepository.Model;
     public sealed class TransactionMap: ClassMap<Transaction>
     {
         public TransactionMap()
