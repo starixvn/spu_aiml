@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace AIML_DataRepository.Model
+﻿namespace AIML_DataRepository.Model
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
     public class Transaction
     {
         //public int transid { get; set; }
