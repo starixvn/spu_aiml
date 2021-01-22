@@ -138,14 +138,14 @@ def process_league(list_of_matches):
     #print(f'LS {league_score}')
     return league_score
 
-def process_a_combination(filepath):
+def process_a_combination(args):
 
     """
     >>> Input    :  filepath
     >>> Output   :  pairwise-time-score matrix
     """
     #global RESULTS,HISTORY
-    #RESULTS,HISTORY,filepath=args[0],args[1],args[2]
+    RESULTS,filepath=args[0],args[1]
     STAT_TEMP,INFO_TEMP = [],[]
 
     
@@ -153,7 +153,7 @@ def process_a_combination(filepath):
     # get match - bettype - league
     match=int(filepath.split('.')[0].split('_')[0])
     bettype=int(filepath.split('.')[0].split('_')[1])
-    HISTORY.add((match,bettype))
+    # HISTORY.add((match,bettype))
 
     #print(f"LENGTH HISTORY {len(HISTORY)}")
     # read data of a (match,bettype) - combination    
@@ -207,36 +207,25 @@ def process_a_combination(filepath):
                     print(err)
                 STAT_TEMP,INFO_TEMP = [],[]
             if current_ts>0:                
-                # still in RAM
-                if (C1,C2) not in RESULTS:
-                    RESULTS[(C1,C2)]={'TS':current_ts,'ML':[match],'BL':[bettype],'TJSC':1}
-                else:
-                    RESULTS[(C1,C2)]['TS']+=current_ts
-                    RESULTS[(C1,C2)]['ML'].append(match)
-                    if len(RESULTS[(C1,C2)]['ML']) > 1:
-                        print("Ahihi !")
-                    RESULTS[(C1,C2)]['BL'].append(bettype)
-                    if len(RESULTS[(C1,C2)]['BL']) > 1:
-                        print("Ahuhu !")
-                    RESULTS[(C1,C2)]['TJSC']+=1
+                
 
                 TJC=set(cus_dict[C1]).intersection(set(cus_dict[C2]))
 
                 # prepare to push to DB
-                if TJC.issubset(HISTORY):
+                if len(TJC)==1:
 
-                    DICTIONARY=RESULTS.pop((C1,C2))
+                    # DICTIONARY=RESULTS.pop((C1,C2))
 
                     stat_dict,info_dict={},{}
 
                     # build stat_dict
                     stat_dict['C1']=C1
                     stat_dict['C2']=C2
-                    stat_dict['TJSC']=DICTIONARY['TJSC']
-                    stat_dict['TS']=DICTIONARY['TS'] / stat_dict['TJSC']
-                    stat_dict['TJC']=len(TJC)
-                    stat_dict['MS']=DICTIONARY['TJSC'] /  stat_dict['TJC']
-                    stat_dict['LS']=process_league(DICTIONARY['ML'])
+                    stat_dict['TJSC']=1
+                    stat_dict['TS']=current_ts
+                    stat_dict['TJC']=1
+                    stat_dict['MS']=1.
+                    stat_dict['LS']=process_league([match])
                     stat_dict['TJD']=1
                     stat_dict['BC']=1
                     # print(f"C1 {type(stat_dict['C1'])} | C2 {type(stat_dict['C2'])}   | TJSC {type(stat_dict['TJSC'])} | \
@@ -245,13 +234,26 @@ def process_a_combination(filepath):
                     # buid info_dict
                     info_dict['C1']=C1
                     info_dict['C2']=C2
-                    info_dict['ML']=','.join([str(x) for x in DICTIONARY['ML']])
-                    info_dict['BL']=','.join([str(x) for x in DICTIONARY['BL']])
+                    info_dict['ML']=str(match)
+                    info_dict['BL']=str(bettype)
 
                     # append dicts to TEMP
                     STAT_TEMP.append(stat_dict)
                     INFO_TEMP.append(info_dict)
-    del m,CUST_LIST
+
+                # still in RAM
+                if (C1,C2) not in RESULTS:
+                    RESULTS[(C1,C2)]={'TS':current_ts,'ML':[match],'BL':[bettype],'TJSC':1}
+                else:
+                    RESULTS[(C1,C2)]['TS']+=current_ts
+                    RESULTS[(C1,C2)]['ML'].append(match)
+                    # if len(RESULTS[(C1,C2)]['ML']) > 1:
+                    #     print("Ahihi !")
+                    RESULTS[(C1,C2)]['BL'].append(bettype)
+                    # if len(RESULTS[(C1,C2)]['BL']) > 1:
+                    #     print("Ahuhu !")
+                    RESULTS[(C1,C2)]['TJSC']+=1
+    del m
     gc.collect()
     # print("\n","MATCH %.0f BETTYPE %.0f APPEND DICTIONARY %.0f SECONDS" % (match,bettype,time.time() - start_transform))
     # print(f"LENGTH OF RESULTS {len(RESULTS)}")
@@ -269,7 +271,10 @@ def process_a_combination(filepath):
         conn.close()
     except Exception as err:
         print(err)
-    print('\n',f"LENGTH RESULTS {len(RESULTS)}")
+    print('\n',f"LENGTH RESULTS {len(RESULTS)} | {len(CUST_LIST)} CUSTOMERS")
+
+    del CUST_LIST,STAT_TEMP,INFO_TEMP
+    gc.collect()
 
 
 
@@ -330,23 +335,23 @@ if __name__ == "__main__":
                 cus_dict[cus].append((match,bt))
     print('\n',f"LEN OF CUS DICT {len(cus_dict)}")
     start_processing=time.time()
-    # with Manager() as manager:
+    with Manager() as manager:
     # mgr = Manager()
     # ns = mgr.Namespace()
     # ns.RESULTS={}
     # ns.HISTORY={}  
-    candidates= os.listdir(os.path.join(root,match_breaking))
-    RESULTS,HISTORY={},set()
-    for i in tqdm(range(len(candidates)),desc='MAIN PROCESS'):   
-        # RESULTS=manager.dict()
+        candidates= os.listdir(os.path.join(root,match_breaking))
+    # RESULTS={}
+    #for i in tqdm(range(len(candidates)),desc='MAIN PROCESS'):   
+        RESULTS=manager.dict()
         # HISTORY=manager.dict()
         
-        candidate=candidates[i]
-        # pool=mp.Pool(nb_workers_phase_1)
+        # candidate=candidates[i]
+        pool=mp.Pool(nb_workers_phase_1)
         #pool.map(process_a_combination,candidates)
-        process_a_combination(candidate)
-        # for _ in tqdm(pool.imap_unordered(process_a_combination,[(RESULTS,HISTORY,candidate) for candidate in candidates]),total=len(candidates),desc='MAIN PROCESS'):
-        #     pass
+        # process_a_combination(candidate)
+        for _ in tqdm(pool.imap_unordered(process_a_combination,[(RESULTS,candidate) for candidate in candidates]),total=len(candidates),desc='MAIN PROCESS'):
+            pass
         print('\n','********************************************************************************************************************************************')
         print("\n","PROCESSING TIME %.0f SECONDS" % (time.time() - start_processing))
     
