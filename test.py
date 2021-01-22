@@ -34,7 +34,7 @@ result_fn="baseline_results.csv"
 match_breaking='match_breaking'
 
 # define chunk_size for DB saving
-chunk_size=10000
+chunk_size=1000
 
 # define nb_workers_phase_1
 nb_workers_phase_1=8
@@ -138,14 +138,14 @@ def process_league(list_of_matches):
     #print(f'LS {league_score}')
     return league_score
 
-def process_a_combination(args):
+def process_a_combination(filepath):
 
     """
     >>> Input    :  filepath
     >>> Output   :  pairwise-time-score matrix
     """
     #global RESULTS,HISTORY
-    RESULTS,HISTORY,filepath=args[0],args[1],args[2]
+    #RESULTS,HISTORY,filepath=args[0],args[1],args[2]
     STAT_TEMP,INFO_TEMP = [],[]
 
     
@@ -153,7 +153,8 @@ def process_a_combination(args):
     # get match - bettype - league
     match=int(filepath.split('.')[0].split('_')[0])
     bettype=int(filepath.split('.')[0].split('_')[1])
-    HISTORY[(match,bettype)]=time.time()
+    HISTORY.add((match,bettype))
+
     #print(f"LENGTH HISTORY {len(HISTORY)}")
     # read data of a (match,bettype) - combination    
     MATCH=pd.read_csv(os.path.join(root,match_breaking,filepath))
@@ -207,49 +208,49 @@ def process_a_combination(args):
                 STAT_TEMP,INFO_TEMP = [],[]
             if current_ts>0:                
                 # still in RAM
-                    if (C1,C2) not in RESULTS:
-                        RESULTS[(C1,C2)]={'TS':current_ts,'ML':[match],'BL':[bettype],'TJSC':1}
-                    else:
-                        RESULTS[(C1,C2)]['TS']+=current_ts
-                        RESULTS[(C1,C2)]['ML'].append(match)
-                        if len(RESULTS[(C1,C2)]['ML']) > 1:
-                            print("Ahihi !")
-                        RESULTS[(C1,C2)]['BL'].append(bettype)
-                        if len(RESULTS[(C1,C2)]['BL']) > 1:
-                            print("Ahuhu !")
-                        RESULTS[(C1,C2)]['TJSC']+=1
+                if (C1,C2) not in RESULTS:
+                    RESULTS[(C1,C2)]={'TS':current_ts,'ML':[match],'BL':[bettype],'TJSC':1}
+                else:
+                    RESULTS[(C1,C2)]['TS']+=current_ts
+                    RESULTS[(C1,C2)]['ML'].append(match)
+                    # if len(RESULTS[(C1,C2)]['ML']) > 1:
+                    #     print("Ahihi !")
+                    RESULTS[(C1,C2)]['BL'].append(bettype)
+                    # if len(RESULTS[(C1,C2)]['BL']) > 1:
+                    #     print("Ahuhu !")
+                    RESULTS[(C1,C2)]['TJSC']+=1
 
-                    TJC=set(cus_dict[C1]).intersection(set(cus_dict[C2]))
+                TJC=set(cus_dict[C1]).intersection(set(cus_dict[C2]))
 
-                    # prepare to push to DB
-                    if TJC.issubset(set(HISTORY.keys())):
+                # prepare to push to DB
+                if TJC.issubset(HISTORY):
 
-                        DICTIONARY=RESULTS.pop((C1,C2))
+                    DICTIONARY=RESULTS.pop((C1,C2))
 
-                        stat_dict,info_dict={},{}
+                    stat_dict,info_dict={},{}
 
-                        # build stat_dict
-                        stat_dict['C1']=C1
-                        stat_dict['C2']=C2
-                        stat_dict['TJSC']=DICTIONARY['TJSC']
-                        stat_dict['TS']=DICTIONARY['TS'] / stat_dict['TJSC']
-                        stat_dict['TJC']=len(TJC)
-                        stat_dict['MS']=DICTIONARY['TJSC'] /  stat_dict['TJC']
-                        stat_dict['LS']=process_league(DICTIONARY['ML'])
-                        stat_dict['TJD']=1
-                        stat_dict['BC']=1
-                        # print(f"C1 {type(stat_dict['C1'])} | C2 {type(stat_dict['C2'])}   | TJSC {type(stat_dict['TJSC'])} | \
-                        #         TS {type(stat_dict['TS'])} | TJC {type(stat_dict['TJC'])} | MS {type(stat_dict['MS'])}     | \
-                        #         LS {type(stat_dict['LS'])} | TJD {type(stat_dict['TJD'])} | BC {type(stat_dict['BC'])}     |")
-                        # buid info_dict
-                        info_dict['C1']=C1
-                        info_dict['C2']=C2
-                        info_dict['ML']=','.join([str(x) for x in DICTIONARY['ML']])
-                        info_dict['BL']=','.join([str(x) for x in DICTIONARY['BL']])
+                    # build stat_dict
+                    stat_dict['C1']=C1
+                    stat_dict['C2']=C2
+                    stat_dict['TJSC']=DICTIONARY['TJSC']
+                    stat_dict['TS']=DICTIONARY['TS'] / stat_dict['TJSC']
+                    stat_dict['TJC']=len(TJC)
+                    stat_dict['MS']=DICTIONARY['TJSC'] /  stat_dict['TJC']
+                    stat_dict['LS']=process_league(DICTIONARY['ML'])
+                    stat_dict['TJD']=1
+                    stat_dict['BC']=1
+                    # print(f"C1 {type(stat_dict['C1'])} | C2 {type(stat_dict['C2'])}   | TJSC {type(stat_dict['TJSC'])} | \
+                    #         TS {type(stat_dict['TS'])} | TJC {type(stat_dict['TJC'])} | MS {type(stat_dict['MS'])}     | \
+                    #         LS {type(stat_dict['LS'])} | TJD {type(stat_dict['TJD'])} | BC {type(stat_dict['BC'])}     |")
+                    # buid info_dict
+                    info_dict['C1']=C1
+                    info_dict['C2']=C2
+                    info_dict['ML']=','.join([str(x) for x in DICTIONARY['ML']])
+                    info_dict['BL']=','.join([str(x) for x in DICTIONARY['BL']])
 
-                        # append dicts to TEMP
-                        STAT_TEMP.append(stat_dict)
-                        INFO_TEMP.append(info_dict)
+                    # append dicts to TEMP
+                    STAT_TEMP.append(stat_dict)
+                    INFO_TEMP.append(info_dict)
     del m,CUST_LIST
     gc.collect()
     # print("\n","MATCH %.0f BETTYPE %.0f APPEND DICTIONARY %.0f SECONDS" % (match,bettype,time.time() - start_transform))
@@ -334,18 +335,20 @@ if __name__ == "__main__":
     # ns = mgr.Namespace()
     # ns.RESULTS={}
     # ns.HISTORY={}  
-       
-        RESULTS=manager.dict()
-        HISTORY=manager.dict()
-        #COUPLE_LIST,INFO_LIST=[],[]
-        candidates= os.listdir(os.path.join(root,match_breaking))
-        pool=mp.Pool(nb_workers_phase_1)
+    candidates= os.listdir(os.path.join(root,match_breaking))
+    RESULTS,HISTORY={},set()
+    for i in tqdm(range(len(candidates)),desc='MAIN PROCESS'):   
+        # RESULTS=manager.dict()
+        # HISTORY=manager.dict()
+        
+        candidate=candidates[i]
+        # pool=mp.Pool(nb_workers_phase_1)
         #pool.map(process_a_combination,candidates)
-        #process_a_combination('39937965_3.csv')
-        for _ in tqdm(pool.imap_unordered(process_a_combination,[(RESULTS,HISTORY,candidate) for candidate in candidates]),total=len(candidates),desc='MAIN PROCESS'):
-            pass
-        print('\n','********************************************************************************************************************************************')
-        print("\n","PROCESSING TIME %.0f SECONDS" % (time.time() - start_processing))
+        process_a_combination(candidate)
+        # for _ in tqdm(pool.imap_unordered(process_a_combination,[(RESULTS,HISTORY,candidate) for candidate in candidates]),total=len(candidates),desc='MAIN PROCESS'):
+        #     pass
+    print('\n','********************************************************************************************************************************************')
+    print("\n","PROCESSING TIME %.0f SECONDS" % (time.time() - start_processing))
     
     # print(f"LENGTH OF RESULTS {len(RESULTS)}")
     #print(f"LENGTH OF RESULTS {len(COUPLE_LIST)}")

@@ -34,7 +34,7 @@ result_fn="baseline_results.csv"
 match_breaking='match_breaking'
 
 # define chunk_size for DB saving
-chunk_size=10000
+chunk_size=1000
 
 # define nb_workers_phase_1
 nb_workers_phase_1=8
@@ -138,14 +138,14 @@ def process_league(list_of_matches):
     #print(f'LS {league_score}')
     return league_score
 
-def process_a_combination(args):
+def process_a_combination(filepath):
 
     """
     >>> Input    :  filepath
     >>> Output   :  pairwise-time-score matrix
     """
     #global RESULTS,HISTORY
-    RESULTS,HISTORY,filepath=args[0],args[1],args[2]
+    #RESULTS,HISTORY,filepath=args[0],args[1],args[2]
     STAT_TEMP,INFO_TEMP = [],[]
 
     
@@ -153,7 +153,8 @@ def process_a_combination(args):
     # get match - bettype - league
     match=int(filepath.split('.')[0].split('_')[0])
     bettype=int(filepath.split('.')[0].split('_')[1])
-    HISTORY[(match,bettype)]=time.time()
+    HISTORY.add((match,bettype))
+
     #print(f"LENGTH HISTORY {len(HISTORY)}")
     # read data of a (match,bettype) - combination    
     MATCH=pd.read_csv(os.path.join(root,match_breaking,filepath))
@@ -222,7 +223,7 @@ def process_a_combination(args):
                 TJC=set(cus_dict[C1]).intersection(set(cus_dict[C2]))
 
                 # prepare to push to DB
-                if TJC.issubset(set(HISTORY.keys())):
+                if TJC.issubset(HISTORY):
 
                     DICTIONARY=RESULTS.pop((C1,C2))
 
@@ -329,21 +330,23 @@ if __name__ == "__main__":
                 cus_dict[cus].append((match,bt))
     print('\n',f"LEN OF CUS DICT {len(cus_dict)}")
     start_processing=time.time()
-    with Manager() as manager:
+    # with Manager() as manager:
     # mgr = Manager()
     # ns = mgr.Namespace()
     # ns.RESULTS={}
     # ns.HISTORY={}  
-       
-        RESULTS=manager.dict()
-        HISTORY=manager.dict()
-        #COUPLE_LIST,INFO_LIST=[],[]
-        candidates= os.listdir(os.path.join(root,match_breaking))
-        pool=mp.Pool(nb_workers_phase_1)
+    candidates= os.listdir(os.path.join(root,match_breaking))
+    RESULTS,HISTORY={},set()
+    for i in tqdm(range(len(candidates)),desc='MAIN PROCESS'):   
+        # RESULTS=manager.dict()
+        # HISTORY=manager.dict()
+        
+        candidate=candidates[i]
+        # pool=mp.Pool(nb_workers_phase_1)
         #pool.map(process_a_combination,candidates)
-        #process_a_combination('39937965_3.csv')
-        for _ in tqdm(pool.imap_unordered(process_a_combination,[(RESULTS,HISTORY,candidate) for candidate in candidates]),total=len(candidates),desc='MAIN PROCESS'):
-            pass
+        process_a_combination(candidate)
+        # for _ in tqdm(pool.imap_unordered(process_a_combination,[(RESULTS,HISTORY,candidate) for candidate in candidates]),total=len(candidates),desc='MAIN PROCESS'):
+        #     pass
         print('\n','********************************************************************************************************************************************')
         print("\n","PROCESSING TIME %.0f SECONDS" % (time.time() - start_processing))
     
