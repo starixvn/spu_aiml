@@ -19,6 +19,7 @@ from pandarallel import pandarallel
 from sklearn.metrics import pairwise_distances
 from mysql.connector import MySQLConnection
 from itertools import islice
+from multiprocessing import Manager
 
 warnings.filterwarnings("ignore")
 
@@ -36,7 +37,7 @@ match_breaking='match_breaking'
 chunk_size=10000
 
 # define nb_workers_phase_1
-nb_workers_phase_1=4
+nb_workers_phase_1=8
 
 # define batch_size
 batch_size=1000000
@@ -76,18 +77,84 @@ def count_joining_combs(cus1,cus2):
     comb_a,comb_b=set(cus_dict[cus1]),set(cus_dict[cus2])
     return len(comb_a.intersection(comb_b))
 
-def process_a_combination(filepath):
+def process_league(list_of_matches):
+    """
+    >>> Input  : list of matches
+    >>> Output : league_score
+    """
+
+    def compute_league_score(list_minor = None, list_major = None):
+        """"
+        >>> Input  :    list_minor, list of number of match in minor league
+                        list_major, list of number of match in major league
+
+        >>> Output :    league_score
+        """
+        def gini_score(lista):
+            """
+            >>> Input  : list of integer,each represents quantity of some class
+            >>> Output : gini score
+            ------------------------
+            Example
+
+            > Input  : [1,1]
+            > Output : .5
+            """
+            sum_match = sum(lista)
+
+            return 1 - sum(map(lambda x:(x/sum_match)**2,lista))
+
+        gini_minor = gini_score(list_minor)
+        gini_major = gini_score(list_major)
+        if len(list_minor) == 0:
+            league_score = (gini_major + 3/2) * (2/5)
+        elif len(list_major) == 0:
+            league_score = (gini_minor + 5/2) * (2/7)
+        else:
+            minor_score = (gini_minor + 5/2) * (2/7)
+            major_score = (gini_major + 3/2) * (2/5)
+            league_score = (3 * (minor_score + 1) + (major_score + 2)) * (1/9)
+        return league_score
+      
+    # list_of_matches=string_of_matches.split[',']
+    matches=set(list_of_matches)
+    #print(f"matches {matches}")
+    #major,minor = [],[]
+    major_dict,minor_dict = {},{}
+    for match in matches:
+        # list_league.add(str(league))
+        league=match_league_map[int(match)]['leagueid']
+        if league in MAJOR_LEAGUE_LIST:
+            if league not in major_dict:
+                major_dict[league] = 1
+            else:
+                major_dict[league] += 1
+        else:
+            if league not in minor_dict:
+                minor_dict[league] = 1
+            else:
+                minor_dict[league] += 1
+    league_score = compute_league_score(list_minor=list(minor_dict.values()),list_major=list(major_dict.values()))
+    #print(f'LS {league_score}')
+    return league_score
+
+def process_a_combination(args):
 
     """
     >>> Input    :  filepath
     >>> Output   :  pairwise-time-score matrix
     """
+    #global RESULTS,HISTORY
+    RESULTS,HISTORY,filepath=args[0],args[1],args[2]
+    STAT_TEMP,INFO_TEMP = [],[]
+
+    
 
     # get match - bettype - league
     match=int(filepath.split('.')[0].split('_')[0])
     bettype=int(filepath.split('.')[0].split('_')[1])
-
-    
+    HISTORY[(match,bettype)]=time.time()
+    #print(f"LENGTH HISTORY {len(HISTORY)}")
     # read data of a (match,bettype) - combination    
     MATCH=pd.read_csv(os.path.join(root,match_breaking,filepath))
     
@@ -117,101 +184,93 @@ def process_a_combination(filepath):
     
     # build up result object which is a list of dictionaries whose values are positive time score
     start_transform=time.time()
-        
-    #obj=[   
-            #{"C1":int(CUST_LIST[i]),"C2":int(CUST_LIST[j]),"TS": m[i,j], "M":match,"B":bettype,"L":league,"TJC":count_joining_combs(int(CUST_LIST[i]),int(CUST_LIST[j])),"IML":is_major}
-            
-            #{"C1":int(CUST_LIST[i]),"C2":int(CUST_LIST[j]),"TS": m[i,j], "M":match,"B":bettype,"L":league,"TJC":type(count_joining_combs(CUST_LIST[i],CUST_LIST[j])),"IML":is_major} 
-            
-    #         {"C1":int(CUST_LIST[i]),"C2":int(CUST_LIST[j]),"TS": m[i,j], "M":match,"B":bettype,"L":league,"TJC":count_joining_combs(CUST_LIST[i],CUST_LIST[j]),"IML":is_major}
-            
-    #         for (i,j) in itertools.combinations([x for x in range(len(CUST_LIST))],2) if m[i,j] > 0   
-    #     ]
-    # print(f"JSON OBJ 1th {obj[0]}",f"JSON OBJ 2nd {obj[1]}",f"JSON OBJ 3rd {obj[2]}",sep='\n')
       
     for i in range(len(CUST_LIST)-1):
         for j in range(i,len(CUST_LIST)):
-            C1=CUST_LIST[i]
-            C2=CUST_LIST[j]
-            if m[i,j]>0:
-                if (C1,C2) not in COUPLE_DICT:
-                    COUPLE_DICT[(C1,C2)]=RUN
-                    RUN+=1
-                    INFO_LIST.append([m[i,j],[str(match)],[str(bettype)],1])
+            C1=int(CUST_LIST[i])
+            C2=int(CUST_LIST[j])
+            current_ts=m[i,j]
+            if len(STAT_TEMP)==chunk_size:
+                try:
+                    conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
+                    cursor = conn.cursor()
+                    json_obj1 = json.dumps(STAT_TEMP)
+                    cursor.callproc('SPU_AIML_InsertAssociationStats',[json_obj1,None])
+                    conn.commit()
+                    json_obj2 = json.dumps(INFO_TEMP)       
+                    cursor.callproc('SPU_AIML_InsertAssociationSuspiciousInfo',[json_obj2,None])
+                    conn.commit()
+                    cursor.close()
+                    conn.close()
+                except Exception as err:
+                    print(err)
+                STAT_TEMP,INFO_TEMP = [],[]
+            if current_ts>0:                
+                # still in RAM
+                if (C1,C2) not in RESULTS:
+                    RESULTS[(C1,C2)]={'TS':current_ts,'ML':[match],'BL':[bettype],'TJSC':1}
                 else:
-                    #idx=COUPLE_LIST.index((C1,C2))
-                    info_element=INFO_LIST[COUPLE_DICT[(C1,C2)]]
-                    info_element[0]+=m[i,j]
-                    info_element[1].append(str(match))
-                    info_element[2].append(str(bettype))
-                    info_element[3]+=1
+                    RESULTS[(C1,C2)]['TS']+=current_ts
+                    RESULTS[(C1,C2)]['ML'].append(match)
+                    if len(RESULTS[(C1,C2)]['ML']) > 1:
+                        print("Ahihi !")
+                    RESULTS[(C1,C2)]['BL'].append(bettype)
+                    if len(RESULTS[(C1,C2)]['BL']) > 1:
+                        print("Ahuhu !")
+                    RESULTS[(C1,C2)]['TJSC']+=1
 
+                TJC=set(cus_dict[C1]).intersection(set(cus_dict[C2]))
+
+                # prepare to push to DB
+                if TJC.issubset(set(HISTORY.keys())):
+
+                    DICTIONARY=RESULTS.pop((C1,C2))
+
+                    stat_dict,info_dict={},{}
+
+                    # build stat_dict
+                    stat_dict['C1']=C1
+                    stat_dict['C2']=C2
+                    stat_dict['TJSC']=DICTIONARY['TJSC']
+                    stat_dict['TS']=DICTIONARY['TS'] / stat_dict['TJSC']
+                    stat_dict['TJC']=len(TJC)
+                    stat_dict['MS']=DICTIONARY['TJSC'] /  stat_dict['TJC']
+                    stat_dict['LS']=process_league(DICTIONARY['ML'])
+                    stat_dict['TJD']=1
+                    stat_dict['BC']=1
+                    # print(f"C1 {type(stat_dict['C1'])} | C2 {type(stat_dict['C2'])}   | TJSC {type(stat_dict['TJSC'])} | \
+                    #         TS {type(stat_dict['TS'])} | TJC {type(stat_dict['TJC'])} | MS {type(stat_dict['MS'])}     | \
+                    #         LS {type(stat_dict['LS'])} | TJD {type(stat_dict['TJD'])} | BC {type(stat_dict['BC'])}     |")
+                    # buid info_dict
+                    info_dict['C1']=C1
+                    info_dict['C2']=C2
+                    info_dict['ML']=','.join([str(x) for x in DICTIONARY['ML']])
+                    info_dict['BL']=','.join([str(x) for x in DICTIONARY['BL']])
+
+                    # append dicts to TEMP
+                    STAT_TEMP.append(stat_dict)
+                    INFO_TEMP.append(info_dict)
+    del m,CUST_LIST
+    gc.collect()
     # print("\n","MATCH %.0f BETTYPE %.0f APPEND DICTIONARY %.0f SECONDS" % (match,bettype,time.time() - start_transform))
     # print(f"LENGTH OF RESULTS {len(RESULTS)}")
 
-def process_league(string_of_matches):
-    """
-    >>> Input  : list of matches
-    >>> Output : league_score
-    """
+    try:
+        conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
+        cursor = conn.cursor()
+        json_obj1 = json.dumps(STAT_TEMP)
+        cursor.callproc('SPU_AIML_InsertAssociationStats',[json_obj1,None])
+        conn.commit()
+        json_obj2 = json.dumps(INFO_TEMP)       
+        cursor.callproc('SPU_AIML_InsertAssociationSuspiciousInfo',[json_obj2,None])
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as err:
+        print(err)
+    print('\n',f"LENGTH RESULTS {len(RESULTS)}")
 
-    def compute_league_score(list_minor = None, list_major = None):
-        """"
-        >>> Input  :    list_minor, list of number of match in minor league
-                        list_major, list of number of match in major league
 
-        >>> Output :    league_score
-        """
-        def gini_score(lista):
-            """
-            >>> Input  : list of integer,each represents quantity of some class
-            >>> Output : gini score
-            ------------------------
-            Example
-
-            > Input  : [1,1]
-            > Output : .5
-            """
-            sum_match = sum(lista)
-
-            return 1 - sum(map(lambda x:(x/sum_match)**2,lista))
-
-            gini_minor = gini_score(list_minor)
-            gini_major = gini_score(list_major)
-            if len(list_minor) == 0:
-                league_score = (gini_major + 3/2) * (2/5)
-            elif len(list_major) == 0:
-                league_score = (gini_minor + 5/2) * (2/7)
-            else:
-                minor_score = (gini_minor + 5/2) * (2/7)
-                major_score = (gini_major + 3/2) * (2/5)
-                league_score = (3 * (minor_score + 1) + (major_score + 2)) * (1/9)
-            return league_score
-      
-        list_of_matches=string_of_matches.split[',']
-        matches=set(list_of_matches)
-        #major,minor = [],[]
-        major_dict,minor_dict = {},{}
-        for match in matches:
-            # list_league.add(str(league))
-            league=match_league_map[int(match)]['leagueid']
-            if league in MAJOR_LEAGUE_LIST:
-                if league not in major_dict:
-                    major_dict[league] = 1
-                else:
-                    major_dict[league] += 1
-            else:
-                if league not in minor_dict:
-                    minor_dict[league] = 1
-                else:
-                    minor_dict[league] += 1
-        league_score = compute_league_score(list_minor=list(minor_dict.values()),list_major=list(major_dict.values()))
-        return league_score
-
-def chunks(dictionaries, SIZE=10000):
-    it = iter(dictionaries)
-    for i in xrange(0, len(dictionaries), SIZE):
-        yield {k:data[k] for k in islice(it, SIZE)}
 
 if __name__ == "__main__":
     
@@ -250,43 +309,49 @@ if __name__ == "__main__":
     # print('\n',f"MATCH BREAKING TAKES {(time.time()-start_match_breaking)} seconds")
     
     # read match_league_map file and major_league list file
-    # match_league_map = pd.read_csv(os.path.join(root,mlm_fn),error_bad_lines=False)[['matchid','leagueid']].set_index('matchid').to_dict(orient='index')
-    # MAJOR_LEAGUE = pd.read_csv(os.path.join(root,mjl_fn))
-    # MAJOR_LEAGUE_LIST = MAJOR_LEAGUE.LeagueId.unique()
+    match_league_map = pd.read_csv(os.path.join(root,mlm_fn),error_bad_lines=False)[['matchid','leagueid']].set_index('matchid').to_dict(orient='index')
+    MAJOR_LEAGUE = pd.read_csv(os.path.join(root,mjl_fn))
+    MAJOR_LEAGUE_LIST = MAJOR_LEAGUE.LeagueId.unique()
+
+    #build cus_dict for count joining combinations
+    cus_dict={}
+    ls_mat=os.listdir(os.path.join(root,match_breaking))
+    for k in tqdm(range(len(ls_mat)),desc="BUILD CUS DICT"):    
+        fn=ls_mat[k]
+        match,bt=int(fn.split('.')[0].split('_')[0]),int(fn.split('.')[0].split('_')[1])
+        df = pd.read_csv(os.path.join(root,match_breaking,fn))
         
-    start_processing=time.time()   
-    #RESULTS={}
-    COUPLE_DICT,INFO_LIST,RUN={},[],0
-    candidates= os.listdir(os.path.join(root,match_breaking))
-    pool=mp.Pool(nb_workers_phase_1)
-    #pool.map(process_a_combination,candidates)
-    # process_a_combination('39960404_3.csv')
-    for _ in tqdm(pool.imap_unordered(process_a_combination,candidates),total=len(candidates),desc='MAIN PROCESS'):
-      pass
-    print('\n','********************************************************************************************************************************************')
-    print("\n","PROCESSING TIME %.0f SECONDS" % (time.time() - start_processing))
+        ls = df.custid.unique()
+        for cus in ls:
+            if cus not in cus_dict:
+                cus_dict[cus]=[(match,bt)]
+            else:
+                cus_dict[cus].append((match,bt))
+    print('\n',f"LEN OF CUS DICT {len(cus_dict)}")
+    start_processing=time.time()
+    with Manager() as manager:
+    # mgr = Manager()
+    # ns = mgr.Namespace()
+    # ns.RESULTS={}
+    # ns.HISTORY={}  
+       
+        RESULTS=manager.dict()
+        HISTORY=manager.dict()
+        #COUPLE_LIST,INFO_LIST=[],[]
+        candidates= os.listdir(os.path.join(root,match_breaking))
+        pool=mp.Pool(nb_workers_phase_1)
+        #pool.map(process_a_combination,candidates)
+        #process_a_combination('39937965_3.csv')
+        for _ in tqdm(pool.imap_unordered(process_a_combination,[(RESULTS,HISTORY,candidate) for candidate in candidates]),total=len(candidates),desc='MAIN PROCESS'):
+            pass
+        print('\n','********************************************************************************************************************************************')
+        print("\n","PROCESSING TIME %.0f SECONDS" % (time.time() - start_processing))
     
     # print(f"LENGTH OF RESULTS {len(RESULTS)}")
-    print(f"LENGTH OF RESULTS {len(COUPLE_LIST)}")
+    #print(f"LENGTH OF RESULTS {len(COUPLE_LIST)}")
     # END PHASE 1 - START PHASE 2
     # **************************************************************************************************************************************************************************************************************
     
-
-    # build cus_dict for count joining combinations
-    # cus_dict={}
-    # ls_mat=os.listdir(os.path.join(root,match_breaking))
-    # for k in tqdm(range(len(ls_mat)),desc="BUILD CUS DICT"):    
-    #     fn=ls_mat[k]
-    #     match,bt=int(fn.split('.')[0].split('_')[0]),int(fn.split('.')[0].split('_')[1])
-    #     df = pd.read_csv(os.path.join(root,match_breaking,fn))
-        
-    #     ls = df.custid.unique()
-    #     for cus in ls:
-    #         if cus not in cus_dict:
-    #             cus_dict[cus]=[(match,bt)]
-    #         else:
-    #             cus_dict[cus].append((match,bt))
-    # print('\n',f"LEN OF CUS DICT {len(cus_dict)}")
     # i=0
     # for item in chunks(RESULTS,chunk_size):
     #     #print item
@@ -341,39 +406,6 @@ if __name__ == "__main__":
     #     #print(f"Chunks2 1 {chunks2[0]}")
     #     #print(f"TYPE CHUNKS2 {type(chunks2)}")
 
-
-
-    #     try:
-    #         conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
-    #         cursor = conn.cursor()
-    #         def save_to_db(args):
-    #             json_obj1 = json.dumps(args[0])
-    #             cursor.callproc('SPU_AIML_InsertAssociationStats',[json_obj1,None])
-    #             conn.commit()
-    #             json_obj2 = json.dumps(args[1])
-    #             cursor.callproc('SPU_AIML_InsertAssociationSuspiciousInfo',[json_obj2,None])
-    #             conn.commit()
-    #         pool=mp.Pool(nb_workers_phase_2)
-    #         # for (chunk1,chunk2) in zip(chunks1,chunks2):
-    #         #     json_obj1 = json.dumps(chunk1)
-    #         #     print(f"json_obj1 {json_obj1}")
-    #         #     print(f"TYPE JSON OBJ1 {type(json_obj1)}")
-                
-    #         #     cursor.callproc('SPU_AIML_InsertAssociationStats',[json_obj1,None])
-    #         #     conn.commit()
-    #         #     json_obj2 = json.dumps(chunk2)       
-    #         #     cursor.callproc('SPU_AIML_InsertAssociationSuspiciousInfo',[json_obj2,None])
-    #         #     conn.commit()
-    #         pool.map(save_to_db,[x for x in zip (
-    #                                             [myls1[x:x+chunk_size] for x in range(0, len(myls1), chunk_size)],
-    #                                             [myls2[x:x+chunk_size] for x in range(0, len(myls2), chunk_size)]
-    #                                             )
-    #                             ]
-    #                 )
-    #         cursor.close()
-    #         conn.close()
-    #     except Exception as err:
-    #         print(err)
     #     print('\n',"SAVE BATCH %.0f  TO DB %.0f seconds" % (i,time.time()-start_saving_to_db))
 
     #     i += 1
