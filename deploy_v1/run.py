@@ -22,12 +22,12 @@ from mysql.connector import MySQLConnection
 warnings.filterwarnings("ignore")
 
 # define paths
-root="/home/vnteam/Data/MatchData/"
+root="D:\Project\Formula_BET\MatchData"
 orig_fn="bettrans20201129.csv"
 mjl_fn="major_league.csv"
 mlm_fn="match20201129.csv"
-output1a="/home/vnteam/Data/SaveData/output1a/"
-output1b="/home/vnteam/Data/SaveData/output1b/"
+output1a="D:\Project\Formula_BET\SaveData\output1a"
+output1b="D:\Project\Formula_BET\SaveData\output1b"
 result_fn="baseline_results.csv"
 cus_dict_directory="cus_dict_directory"
 cus_dict_fn="cus_dict.pkl"

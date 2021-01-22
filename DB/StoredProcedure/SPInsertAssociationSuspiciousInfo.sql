@@ -29,23 +29,23 @@ BEGIN
 			CustID1					BIGINT UNSIGNED	NOT NULL
 		, 	CustID2					BIGINT UNSIGNED NOT NULL
         , 	MatchIDList				VARCHAR(2000) DEFAULT NULL
-		, 	TransIdList				VARCHAR(2000) DEFAULT NULL
+		, 	BettypeList				VARCHAR(2000) DEFAULT NULL
         ,	IsNewCouple	 			BIT DEFAULT 1
         , 	PRIMARY KEY	    		PK_Temp_SuspiciousInfo_CustID1_CustID2(CustID1,CustID2) 
         , 	INDEX	    			IX_Temp_SuspiciousInfo_IsNewCouple(IsNewCouple) 
     );      
             
-    INSERT INTO Temp_SuspiciousInfo(CustID1, CustID2, MatchIDList, TransIDList)
+    INSERT INTO Temp_SuspiciousInfo(CustID1, CustID2, MatchIDList, BettypeList)
 	SELECT 	tmpTable.CustID1
 		, 	tmpTable.CustID2
 		, 	tmpTable.MatchIDList
-        , 	tmpTable.TransIDList
+        , 	tmpTable.BettypeList
 	FROM JSON_TABLE(ip_SuspiciousInfo,
 		 "$[*]" COLUMNS(
 			  CustID1 						BIGINT UNSIGNED		PATH "$.C1"
 			, CustID2						BIGINT UNSIGNED		PATH "$.C2"
 			, MatchIDList					VARCHAR(2000)		PATH "$.ML"
-            , TransIDList					VARCHAR(2000)		PATH "$.TL"
+            , BettypeList					VARCHAR(2000)		PATH "$.BL"
 		 )) AS tmpTable;      
     
     UPDATE Temp_SuspiciousInfo AS t
@@ -54,18 +54,18 @@ BEGIN
     WHERE a.CustID1 IS NOT NULL
 		AND a.CustID2 IS NOT NULL;
     
-	INSERT INTO SPU_AIML.AssociationSuspiciousInfo(CustID1, CustID2, MatchIDList, TransIDList)
+	INSERT INTO SPU_AIML.AssociationSuspiciousInfo(CustID1, CustID2, MatchIDList, BettypeList)
 	SELECT 	t.CustID1
 		, 	t.CustID2
         , 	t.MatchIDList
-        , 	t.TransIDList
+        , 	t.BettypeList
     FROM Temp_SuspiciousInfo AS t
     WHERE IsNewCouple = 1;
     
     UPDATE SPU_AIML.AssociationSuspiciousInfo AS a
 		INNER JOIN Temp_SuspiciousInfo AS t ON t.CustID1 = a.CustID1 AND t.CustID2 = a.CustID2
     SET 	a.MatchIDList = CONCAT(a.MatchIDList,',', t.MatchIDList)
-        ,	a.TransIDList = CONCAT(a.TransIDList,',', t.TransIDList)
+        ,	a.BettypeList = CONCAT(a.BettypeList,',', t.BettypeList)
     WHERE t.IsNewCouple = 0;
     
     DROP TEMPORARY TABLE IF EXISTS Temp_SuspiciousInfo;
