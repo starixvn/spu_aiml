@@ -34,10 +34,10 @@ result_fn="baseline_results.csv"
 match_breaking='match_breaking'
 
 # define chunk_size for DB saving
-chunk_size=1000
+chunk_size=10000
 
 # define nb_workers_phase_1
-nb_workers_phase_1=8
+nb_workers_phase_1=6
 
 # define batch_size
 batch_size=1000000
@@ -45,6 +45,7 @@ batch_size=1000000
 # define nb_workers_phase_2
 nb_workers_phase_2=24
 
+# pandarallel.initialize(nb_workers=4)
 
 def separate(transdate):
     """
@@ -117,8 +118,9 @@ def process_league(list_of_matches):
         return league_score
       
     # list_of_matches=string_of_matches.split[',']
+    # print(f"list_of_matches {list_of_matches}")
     matches=set(list_of_matches)
-    #print(f"matches {matches}")
+    # print(f"matches {matches}")
     #major,minor = [],[]
     major_dict,minor_dict = {},{}
     for match in matches:
@@ -135,8 +137,41 @@ def process_league(list_of_matches):
             else:
                 minor_dict[league] += 1
     league_score = compute_league_score(list_minor=list(minor_dict.values()),list_major=list(major_dict.values()))
-    #print(f'LS {league_score}')
+    # print(f'LS {league_score}')
     return league_score
+
+def process_stat_dict(stat_dict):
+
+    # stat_dict=args[0],args[1],args[2],args[3]
+
+    # build stat_dict
+    # stat_dict['C1']=C1
+    # stat_dict['C2']=C2
+    # stat_dict['TJSC']=stat_dict['TJSC']+1
+    stat_dict['TS']=stat_dict['TS'] / stat_dict['TJSC']
+    # stat_dict['TJC']=stat_dict['TJC']+1
+    stat_dict['MS']=stat_dict['TJSC'] / stat_dict['TJC']
+    # stat_dict['ML'].append(match)
+    stat_dict['LS']=process_league(stat_dict['ML'])
+    # stat_dict['TJD']=1
+    # stat_dict['BC']=1
+    # print(f"C1 {type(stat_dict['C1'])} | C2 {type(stat_dict['C2'])}   | TJSC {type(stat_dict['TJSC'])} | \
+    #         TS {type(stat_dict['TS'])} | TJC {type(stat_dict['TJC'])} | MS {type(stat_dict['MS'])}     | \
+    #         LS {type(stat_dict['LS'])} | TJD {type(stat_dict['TJD'])} | BC {type(stat_dict['BC'])}     |")
+
+    return stat_dict
+
+def process_info_dict(stat_dict):
+
+    # stat_dict=args[0],args[1],args[2],args[3]
+    # buid info_dict
+    info_dict={}
+    info_dict['C1']=stat_dict['C1']
+    info_dict['C2']=stat_dict['C2']
+    info_dict['ML']=','.join([str(x) for x in stat_dict['ML']])
+    info_dict['BL']=','.join([str(x) for x in stat_dict['BL']])
+
+    return info_dict
 
 def process_a_combination(args):
 
@@ -145,8 +180,9 @@ def process_a_combination(args):
     >>> Output   :  pairwise-time-score matrix
     """
     #global RESULTS,HISTORY
-    RESULTS,filepath=args[0],args[1]
-    STAT_TEMP,INFO_TEMP = [],[]
+    RESULTS,CUS_DICT,filepath=args[0],args[1],args[2]
+    # STAT_TEMP,INFO_TEMP = [],[]
+    TEMP=[]
 
     
 
@@ -191,7 +227,12 @@ def process_a_combination(args):
             C1=int(CUST_LIST[i])
             C2=int(CUST_LIST[j])
             current_ts=m[i,j]
-            if len(STAT_TEMP)==chunk_size:
+            if len(TEMP)==chunk_size:
+
+                MY_SERIES=pd.Series(TEMP)
+                # pandarallel.initialize(nb_workers=4)
+                STAT_TEMP=MY_SERIES.apply(process_stat_dict).to_list()
+                INFO_TEMP=MY_SERIES.apply(process_info_dict).to_list()
                 try:
                     conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
                     cursor = conn.cursor()
@@ -205,45 +246,15 @@ def process_a_combination(args):
                     conn.close()
                 except Exception as err:
                     print(err)
-                STAT_TEMP,INFO_TEMP = [],[]
+                TEMP = []
             if current_ts>0:                
-                
-
-                TJC=set(cus_dict[C1]).intersection(set(cus_dict[C2]))
-
-                # prepare to push to DB
-                if len(TJC)==1:
-
-                    # DICTIONARY=RESULTS.pop((C1,C2))
-
-                    stat_dict,info_dict={},{}
-
-                    # build stat_dict
-                    stat_dict['C1']=C1
-                    stat_dict['C2']=C2
-                    stat_dict['TJSC']=1
-                    stat_dict['TS']=current_ts
-                    stat_dict['TJC']=1
-                    stat_dict['MS']=1.
-                    stat_dict['LS']=process_league([match])
-                    stat_dict['TJD']=1
-                    stat_dict['BC']=1
-                    # print(f"C1 {type(stat_dict['C1'])} | C2 {type(stat_dict['C2'])}   | TJSC {type(stat_dict['TJSC'])} | \
-                    #         TS {type(stat_dict['TS'])} | TJC {type(stat_dict['TJC'])} | MS {type(stat_dict['MS'])}     | \
-                    #         LS {type(stat_dict['LS'])} | TJD {type(stat_dict['TJD'])} | BC {type(stat_dict['BC'])}     |")
-                    # buid info_dict
-                    info_dict['C1']=C1
-                    info_dict['C2']=C2
-                    info_dict['ML']=str(match)
-                    info_dict['BL']=str(bettype)
-
-                    # append dicts to TEMP
-                    STAT_TEMP.append(stat_dict)
-                    INFO_TEMP.append(info_dict)
 
                 # still in RAM
                 if (C1,C2) not in RESULTS:
-                    RESULTS[(C1,C2)]={'TS':current_ts,'ML':[match],'BL':[bettype],'TJSC':1}
+                    RESULTS[(C1,C2)]=   {  'TS':current_ts,'ML':[match],'BL':[bettype],'TJSC':1,
+                                            'TJC':len(set(cus_dict[C1]).intersection(set(cus_dict[C2]))),
+                                            'TJD':1,'BC':1,'C1':C1,'C2':C2
+                                        }
                 else:
                     RESULTS[(C1,C2)]['TS']+=current_ts
                     RESULTS[(C1,C2)]['ML'].append(match)
@@ -253,11 +264,24 @@ def process_a_combination(args):
                     # if len(RESULTS[(C1,C2)]['BL']) > 1:
                     #     print("Ahuhu !")
                     RESULTS[(C1,C2)]['TJSC']+=1
+
+                TJC=set(CUS_DICT[C1]).intersection(set(CUS_DICT[C2]))
+                # prepare to push to DB
+                if len(TJC)==1:       
+
+                    # append dicts to TEMP
+                    TEMP.append((RESULTS.pop((C1,C2))))
+                    # INFO_TEMP.append(info_dict)
+
+                
     del m
     gc.collect()
     # print("\n","MATCH %.0f BETTYPE %.0f APPEND DICTIONARY %.0f SECONDS" % (match,bettype,time.time() - start_transform))
     # print(f"LENGTH OF RESULTS {len(RESULTS)}")
-
+    MY_SERIES=pd.Series(TEMP)
+    # pandarallel.initialize(nb_workers=4)
+    STAT_TEMP=MY_SERIES.apply(process_stat_dict).to_list()
+    INFO_TEMP=MY_SERIES.apply(process_info_dict).to_list()
     try:
         conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
         cursor = conn.cursor()
@@ -272,6 +296,9 @@ def process_a_combination(args):
     except Exception as err:
         print(err)
     print('\n',f"LENGTH RESULTS {len(RESULTS)} | {len(CUST_LIST)} CUSTOMERS")
+
+    for cus in CUST_LIST:
+        CUS_DICT[cus].pop(CUS_DICT[cus].index((match,bettype)))
 
     del CUST_LIST,STAT_TEMP,INFO_TEMP
     gc.collect()
@@ -344,13 +371,14 @@ if __name__ == "__main__":
     # RESULTS={}
     #for i in tqdm(range(len(candidates)),desc='MAIN PROCESS'):   
         RESULTS=manager.dict()
-        # HISTORY=manager.dict()
+        CUS_DICT=manager.dict(cus_dict)
+        # print(f"CUS_DICT {CUS_DICT}")
         
         # candidate=candidates[i]
         pool=mp.Pool(nb_workers_phase_1)
         #pool.map(process_a_combination,candidates)
         # process_a_combination(candidate)
-        for _ in tqdm(pool.imap_unordered(process_a_combination,[(RESULTS,candidate) for candidate in candidates]),total=len(candidates),desc='MAIN PROCESS'):
+        for _ in tqdm(pool.imap_unordered(process_a_combination,[(RESULTS,CUS_DICT,candidate) for candidate in candidates]),total=len(candidates),desc='MAIN PROCESS'):
             pass
         print('\n','********************************************************************************************************************************************')
         print("\n","PROCESSING TIME %.0f SECONDS" % (time.time() - start_processing))
