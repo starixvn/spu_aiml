@@ -34,18 +34,18 @@ result_fn="baseline_results.csv"
 match_breaking='match_breaking'
 
 # define chunk_size for DB saving
-chunk_size=10000
+chunk_size=100000
 
 # define nb_workers_phase_1
-nb_workers_phase_1=6
+# nb_workers_phase_1=6
 
 # define batch_size
-batch_size=1000000
+batch_size=100000
 
 # define nb_workers_phase_2
 nb_workers_phase_2=24
 
-# pandarallel.initialize(nb_workers=4)
+pandarallel.initialize()
 
 def separate(transdate):
     """
@@ -173,16 +173,16 @@ def process_info_dict(stat_dict):
 
     return info_dict
 
-def process_a_combination(args):
+def process_a_combination(filepath):
 
     """
     >>> Input    :  filepath
     >>> Output   :  pairwise-time-score matrix
     """
     #global RESULTS,HISTORY
-    RESULTS,CUS_DICT,filepath=args[0],args[1],args[2]
+    # RESULTS,CUS_DICT,filepath=args[0],args[1],args[2]
     # STAT_TEMP,INFO_TEMP = [],[]
-    TEMP=[]
+    TEMP,num_save_db=[],0
 
     
 
@@ -231,8 +231,8 @@ def process_a_combination(args):
 
                 MY_SERIES=pd.Series(TEMP)
                 # pandarallel.initialize(nb_workers=4)
-                STAT_TEMP=MY_SERIES.apply(process_stat_dict).to_list()
-                INFO_TEMP=MY_SERIES.apply(process_info_dict).to_list()
+                STAT_TEMP=MY_SERIES.parallel_apply(process_stat_dict).to_list()
+                INFO_TEMP=MY_SERIES.parallel_apply(process_info_dict).to_list()
                 try:
                     conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
                     cursor = conn.cursor()
@@ -246,6 +246,7 @@ def process_a_combination(args):
                     conn.close()
                 except Exception as err:
                     print(err)
+                num_save_db+=chunk_size
                 TEMP = []
             if current_ts>0:                
 
@@ -265,42 +266,50 @@ def process_a_combination(args):
                     #     print("Ahuhu !")
                     RESULTS[(C1,C2)]['TJSC']+=1
 
-                TJC=set(CUS_DICT[C1]).intersection(set(CUS_DICT[C2]))
+                TJC=set(cus_dict[C1]).intersection(set(cus_dict[C2]))
                 # prepare to push to DB
                 if len(TJC)==1:       
 
                     # append dicts to TEMP
                     TEMP.append((RESULTS.pop((C1,C2))))
                     # INFO_TEMP.append(info_dict)
+                # if (match,bettype) in CUS_DICT[C1]:
+                #     CUS_DICT[C1].pop(CUS_DICT[C1].index((match,bettype)))
+                # if (match,bettype) in CUS_DICT[C2]:
+                #     CUS_DICT[C2].pop(CUS_DICT[C2].index((match,bettype)))
+
 
                 
     del m
     gc.collect()
     # print("\n","MATCH %.0f BETTYPE %.0f APPEND DICTIONARY %.0f SECONDS" % (match,bettype,time.time() - start_transform))
     # print(f"LENGTH OF RESULTS {len(RESULTS)}")
-    MY_SERIES=pd.Series(TEMP)
-    # pandarallel.initialize(nb_workers=4)
-    STAT_TEMP=MY_SERIES.apply(process_stat_dict).to_list()
-    INFO_TEMP=MY_SERIES.apply(process_info_dict).to_list()
-    try:
-        conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
-        cursor = conn.cursor()
-        json_obj1 = json.dumps(STAT_TEMP)
-        cursor.callproc('SPU_AIML_InsertAssociationStats',[json_obj1,None])
-        conn.commit()
-        json_obj2 = json.dumps(INFO_TEMP)       
-        cursor.callproc('SPU_AIML_InsertAssociationSuspiciousInfo',[json_obj2,None])
-        conn.commit()
-        cursor.close()
-        conn.close()
-    except Exception as err:
-        print(err)
-    print('\n',f"LENGTH RESULTS {len(RESULTS)} | {len(CUST_LIST)} CUSTOMERS")
-
+    if len(TEMP) > 0:
+        MY_SERIES=pd.Series(TEMP)
+        # pandarallel.initialize(nb_workers=4)
+        STAT_TEMP=MY_SERIES.parallel_apply(process_stat_dict).to_list()
+        INFO_TEMP=MY_SERIES.parallel_apply(process_info_dict).to_list()
+        num_save_db+=len(STAT_TEMP)
+        try:
+            conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
+            cursor = conn.cursor()
+            json_obj1 = json.dumps(STAT_TEMP)
+            cursor.callproc('SPU_AIML_InsertAssociationStats',[json_obj1,None])
+            conn.commit()
+            json_obj2 = json.dumps(INFO_TEMP)       
+            cursor.callproc('SPU_AIML_InsertAssociationSuspiciousInfo',[json_obj2,None])
+            conn.commit()
+            cursor.close()
+            conn.close()
+        except Exception as err:
+            print(err)
+        del STAT_TEMP,INFO_TEMP,MY_SERIES
+    print('\n',f"LENGTH RESULTS {len(RESULTS)} | {len(CUST_LIST)} CUSTOMERS | {num_save_db} SAVE DB !",'\n')
+    
     for cus in CUST_LIST:
-        CUS_DICT[cus].pop(CUS_DICT[cus].index((match,bettype)))
+        cus_dict[cus].pop(cus_dict[cus].index((match,bettype)))
 
-    del CUST_LIST,STAT_TEMP,INFO_TEMP
+    del CUST_LIST
     gc.collect()
 
 
@@ -362,26 +371,26 @@ if __name__ == "__main__":
                 cus_dict[cus].append((match,bt))
     print('\n',f"LEN OF CUS DICT {len(cus_dict)}")
     start_processing=time.time()
-    with Manager() as manager:
+    # with Manager() as manager:
     # mgr = Manager()
     # ns = mgr.Namespace()
     # ns.RESULTS={}
     # ns.HISTORY={}  
-        candidates= os.listdir(os.path.join(root,match_breaking))
-    # RESULTS={}
-    #for i in tqdm(range(len(candidates)),desc='MAIN PROCESS'):   
-        RESULTS=manager.dict()
-        CUS_DICT=manager.dict(cus_dict)
+    candidates= os.listdir(os.path.join(root,match_breaking))
+    RESULTS={}
+    for i in tqdm(range(len(candidates)),desc='MAIN PROCESS'):   
+        # RESULTS=manager.dict()
+        # CUS_DICT=manager.dict(cus_dict)
         # print(f"CUS_DICT {CUS_DICT}")
         
-        # candidate=candidates[i]
-        pool=mp.Pool(nb_workers_phase_1)
+        candidate=candidates[i]
+        # pool=mp.Pool(nb_workers_phase_1)
         #pool.map(process_a_combination,candidates)
-        # process_a_combination(candidate)
-        for _ in tqdm(pool.imap_unordered(process_a_combination,[(RESULTS,CUS_DICT,candidate) for candidate in candidates]),total=len(candidates),desc='MAIN PROCESS'):
-            pass
-        print('\n','********************************************************************************************************************************************')
-        print("\n","PROCESSING TIME %.0f SECONDS" % (time.time() - start_processing))
+        process_a_combination(candidate)
+        # for _ in tqdm(pool.imap_unordered(process_a_combination,[(RESULTS,CUS_DICT,candidate) for candidate in candidates]),total=len(candidates),desc='MAIN PROCESS'):
+        #     pass
+    print('\n','********************************************************************************************************************************************')
+    print("\n","PROCESSING TIME %.0f SECONDS" % (time.time() - start_processing))
     
     # print(f"LENGTH OF RESULTS {len(RESULTS)}")
     #print(f"LENGTH OF RESULTS {len(COUPLE_LIST)}")
