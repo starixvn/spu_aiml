@@ -13,6 +13,7 @@ import itertools
 import gc
 import os
 import torch
+import copy
 
 from tqdm import tqdm
 from pandarallel import pandarallel
@@ -232,7 +233,7 @@ if __name__ == "__main__":
             else:
                 fixed_cus_dict[cus].append((match,bt))
     print('\n',f"LEN OF CUS DICT {len(fixed_cus_dict)}")
-    popable_cus_dict=fixed_cus_dict.copy()
+    popable_cus_dict=copy.deepcopy(fixed_cus_dict)
     start_processing=time.time()
     # with Manager() as manager:
     # mgr = Manager()
@@ -255,6 +256,7 @@ if __name__ == "__main__":
         match=int(filepath.split('.')[0].split('_')[0])
         bettype=int(filepath.split('.')[0].split('_')[1])
         # HISTORY.add((match,bettype))
+        # if (match != 39960403) and (bettype != 1):
 
         #print(f"LENGTH HISTORY {len(HISTORY)}")
         # read data of a (match,bettype) - combination    
@@ -288,6 +290,7 @@ if __name__ == "__main__":
         start_transform=time.time()
       
         for i in range(len(CUST_LIST)-1):
+            
             for j in range(i,len(CUST_LIST)):
                 C1=int(CUST_LIST[i])
                 C2=int(CUST_LIST[j])
@@ -334,41 +337,51 @@ if __name__ == "__main__":
                                         )
                         else:
                             print(f"{C1} and {C2} WITH {CONSTANT_TJC} COMBS !")
-                            MY_DICT=RESULTS[CONSTANT_TJC].pop((C1,C2))
-                            MY_DICT['ML'].append(match)
-                            MY_DICT['BL'].append(bettype)
-                            TEMP.append(
-                                        {  
+                            if (C1,C2) not in RESULTS[CONSTANT_TJC]:
+                                TEMP.append(
+                                            {  
+                                                'TS':current_ts,'ML':[match],'BL':[bettype],'TJSC':1,
+                                                'TJC':CONSTANT_TJC,
+                                                'TJD':1,'BC':1,'C1':C1,'C2':C2
+                                            }
+                                            )
+                            else:
+                                MY_DICT=RESULTS[CONSTANT_TJC].pop((C1,C2))
+                                MY_DICT['ML'].append(match)
+                                MY_DICT['BL'].append(bettype)
+                                TEMP.append(
+                                            {  
                                             'TS':MY_DICT['TS']+current_ts,'ML':MY_DICT['ML'],'BL':MY_DICT['BL'],'TJSC':MY_DICT['TJSC']+1,
                                             'TJC':CONSTANT_TJC,
                                             'TJD':1,'BC':1,'C1':C1,'C2':C2
-                                        }
-                                        )
+                                            }
+                                            )
                     else:
+                        # if C1==23941413 and C2==31430267:
                         # still in RAM
                         if CONSTANT_TJC not in RESULTS:
+                            
                             RESULTS[CONSTANT_TJC]={}
-                        # else:
-                        PARTITION_DICT=RESULTS[CONSTANT_TJC]
-                        if (C1,C2) not in PARTITION_DICT:
-                            PARTITION_DICT[(C1,C2)]=    {  
-                                                        'TS':current_ts,'ML':[match],'BL':[bettype],'TJSC':1,
-                                                        'TJC':CONSTANT_TJC,
-                                                        'TJD':1,'BC':1,'C1':C1,'C2':C2
-                                                        }
-                        # else:
-                        PARTITION_DICT[(C1,C2)]['TS']+=current_ts
-                        PARTITION_DICT[(C1,C2)]['ML'].append(match)
-                        # if len(RESULTS[(C1,C2)]['ML']) > 1:
-                        #     print("Ahihi !")
-                        PARTITION_DICT[(C1,C2)]['BL'].append(bettype)
-                        # if len(RESULTS[(C1,C2)]['BL']) > 1:
-                        #     print("Ahuhu !")
-                        PARTITION_DICT[(C1,C2)]['TJSC']+=1
-                    
-
-
-                
+                            # print(f"CREATE KEY {CONSTANT_TJC}")
+                        else:
+                            PARTITION_DICT=RESULTS[CONSTANT_TJC]
+                            if (C1,C2) not in PARTITION_DICT:
+                                # if C1==23153293 and C2==46384035:
+                                    # print(f"CREATE COUPLES {(C1,C2)} in KEY {CONSTANT_TJC}")
+                                PARTITION_DICT[(C1,C2)]=    {  
+                                                            'TS':current_ts,'ML':[match],'BL':[bettype],'TJSC':1,
+                                                            'TJC':CONSTANT_TJC,
+                                                            'TJD':1,'BC':1,'C1':C1,'C2':C2
+                                                            }
+                            else:
+                                PARTITION_DICT[(C1,C2)]['TS']+=current_ts
+                                PARTITION_DICT[(C1,C2)]['ML'].append(match)
+                                # if len(RESULTS[(C1,C2)]['ML']) > 1:
+                                #     print("Ahihi !")
+                                PARTITION_DICT[(C1,C2)]['BL'].append(bettype)
+                                # if len(RESULTS[(C1,C2)]['BL']) > 1:
+                                #     print("Ahuhu !")
+                                PARTITION_DICT[(C1,C2)]['TJSC']+=1           
         del m
         gc.collect()
 
