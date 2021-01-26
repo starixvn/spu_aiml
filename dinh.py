@@ -173,144 +173,6 @@ def process_info_dict(stat_dict):
 
     return info_dict
 
-def process_a_combination(filepath):
-
-    """
-    >>> Input    :  filepath
-    >>> Output   :  pairwise-time-score matrix
-    """
-    #global RESULTS,HISTORY
-    # RESULTS,CUS_DICT,filepath=args[0],args[1],args[2]
-    # STAT_TEMP,INFO_TEMP = [],[]
-    TEMP,num_save_db=[],0
-
-    
-
-    # get match - bettype - league
-    match=int(filepath.split('.')[0].split('_')[0])
-    bettype=int(filepath.split('.')[0].split('_')[1])
-    # HISTORY.add((match,bettype))
-
-    #print(f"LENGTH HISTORY {len(HISTORY)}")
-    # read data of a (match,bettype) - combination    
-    MATCH=pd.read_csv(os.path.join(root,match_breaking,filepath))
-    
-    # pick up customer list and sort it
-    CUST_LIST = np.sort(MATCH.custid.unique())
-    
-    # get the maximum of number of tickets
-    maxlen = MATCH.groupby('custid').count()['transdate'].max()
-    
-    # build up framework for target matrix
-    # requirements : all row vectors must have the same length, here we pad -1 on the right side
-    X=[]
-    #for j in tqdm(range(len(CUST_LIST)),desc=f"M {match} B {bettype} | {len(CUST_LIST)} CUSTOMERS | TRASH ADDING. . ."): 
-    for j in range(len(CUST_LIST)): 
-        val = MATCH[MATCH['custid'] == CUST_LIST[j]][['transdate','custid']].values.flatten()       
-        val = np.pad(val,(0,maxlen*2-len(val)),'constant',constant_values=-1)      
-        X.append(val)
-    X=np.asarray(X)
-
-    # compute pairwise-time-score matrix
-    start_compute=time.time()
-    m=helper.compute_pairwise_cus(X)    
-    # print("\n","PAIRWISE MATRIX HAVING SHAPE %s OF MATCH %.0f BETTYPE %.0f :" % (m.shape,match,bettype),m,sep='\n')  
-    # print("\n","MATCH %.0f BETTYPE %.0f COMPUTING TIME SCORE TAKES %.0f SECONDS" % (match,bettype,time.time() - start_compute))
-    del X,MATCH
-    gc.collect()
-    
-    # build up result object which is a list of dictionaries whose values are positive time score
-    start_transform=time.time()
-      
-    for i in range(len(CUST_LIST)-1):
-        for j in range(i,len(CUST_LIST)):
-            C1=int(CUST_LIST[i])
-            C2=int(CUST_LIST[j])
-            current_ts=m[i,j]
-            if len(TEMP)==chunk_size:
-
-                MY_SERIES=pd.Series(TEMP)
-                # pandarallel.initialize(nb_workers=4)
-                STAT_TEMP=MY_SERIES.parallel_apply(process_stat_dict).to_list()
-                INFO_TEMP=MY_SERIES.parallel_apply(process_info_dict).to_list()
-                try:
-                    conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
-                    cursor = conn.cursor()
-                    json_obj1 = json.dumps(STAT_TEMP)
-                    cursor.callproc('SPU_AIML_InsertAssociationStats',[json_obj1,None])
-                    conn.commit()
-                    json_obj2 = json.dumps(INFO_TEMP)       
-                    cursor.callproc('SPU_AIML_InsertAssociationSuspiciousInfo',[json_obj2,None])
-                    conn.commit()
-                    cursor.close()
-                    conn.close()
-                except Exception as err:
-                    print(err)
-                num_save_db+=chunk_size
-                TEMP = []
-            if current_ts>0:                
-
-                # still in RAM
-                if (C1,C2) not in RESULTS:
-                    RESULTS[(C1,C2)]=   {  'TS':current_ts,'ML':[match],'BL':[bettype],'TJSC':1,
-                                            'TJC':len(set(cus_dict[C1]).intersection(set(cus_dict[C2]))),
-                                            'TJD':1,'BC':1,'C1':C1,'C2':C2
-                                        }
-                else:
-                    RESULTS[(C1,C2)]['TS']+=current_ts
-                    RESULTS[(C1,C2)]['ML'].append(match)
-                    # if len(RESULTS[(C1,C2)]['ML']) > 1:
-                    #     print("Ahihi !")
-                    RESULTS[(C1,C2)]['BL'].append(bettype)
-                    # if len(RESULTS[(C1,C2)]['BL']) > 1:
-                    #     print("Ahuhu !")
-                    RESULTS[(C1,C2)]['TJSC']+=1
-
-                TJC=set(cus_dict[C1]).intersection(set(cus_dict[C2]))
-                # prepare to push to DB
-                if len(TJC)==1:       
-
-                    # append dicts to TEMP
-                    TEMP.append((RESULTS.pop((C1,C2))))
-                    # INFO_TEMP.append(info_dict)
-                # if (match,bettype) in CUS_DICT[C1]:
-                #     CUS_DICT[C1].pop(CUS_DICT[C1].index((match,bettype)))
-                # if (match,bettype) in CUS_DICT[C2]:
-                #     CUS_DICT[C2].pop(CUS_DICT[C2].index((match,bettype)))
-
-
-                
-    del m
-    gc.collect()
-    # print("\n","MATCH %.0f BETTYPE %.0f APPEND DICTIONARY %.0f SECONDS" % (match,bettype,time.time() - start_transform))
-    # print(f"LENGTH OF RESULTS {len(RESULTS)}")
-    if len(TEMP) > 0:
-        MY_SERIES=pd.Series(TEMP)
-        # pandarallel.initialize(nb_workers=4)
-        STAT_TEMP=MY_SERIES.parallel_apply(process_stat_dict).to_list()
-        INFO_TEMP=MY_SERIES.parallel_apply(process_info_dict).to_list()
-        num_save_db+=len(STAT_TEMP)
-        try:
-            conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
-            cursor = conn.cursor()
-            json_obj1 = json.dumps(STAT_TEMP)
-            cursor.callproc('SPU_AIML_InsertAssociationStats',[json_obj1,None])
-            conn.commit()
-            json_obj2 = json.dumps(INFO_TEMP)       
-            cursor.callproc('SPU_AIML_InsertAssociationSuspiciousInfo',[json_obj2,None])
-            conn.commit()
-            cursor.close()
-            conn.close()
-        except Exception as err:
-            print(err)
-        del STAT_TEMP,INFO_TEMP,MY_SERIES
-    print('\n',f"LENGTH RESULTS {len(RESULTS)} | {len(CUST_LIST)} CUSTOMERS | {num_save_db} SAVE DB !",'\n')
-    
-    for cus in CUST_LIST:
-        cus_dict[cus].pop(cus_dict[cus].index((match,bettype)))
-
-    del CUST_LIST
-    gc.collect()
 
 
 
@@ -356,7 +218,7 @@ if __name__ == "__main__":
     MAJOR_LEAGUE_LIST = MAJOR_LEAGUE.LeagueId.unique()
 
     #build cus_dict for count joining combinations
-    cus_dict={}
+    fixed_cus_dict={}
     ls_mat=os.listdir(os.path.join(root,match_breaking))
     for k in tqdm(range(len(ls_mat)),desc="BUILD CUS DICT"):    
         fn=ls_mat[k]
@@ -365,11 +227,12 @@ if __name__ == "__main__":
         
         ls = df.custid.unique()
         for cus in ls:
-            if cus not in cus_dict:
-                cus_dict[cus]=[(match,bt)]
+            if cus not in fixed_cus_dict:
+                fixed_cus_dict[cus]=[(match,bt)]
             else:
-                cus_dict[cus].append((match,bt))
-    print('\n',f"LEN OF CUS DICT {len(cus_dict)}")
+                fixed_cus_dict[cus].append((match,bt))
+    print('\n',f"LEN OF CUS DICT {len(fixed_cus_dict)}")
+    popable_cus_dict=fixed_cus_dict.copy()
     start_processing=time.time()
     # with Manager() as manager:
     # mgr = Manager()
@@ -377,20 +240,166 @@ if __name__ == "__main__":
     # ns.RESULTS={}
     # ns.HISTORY={}  
     candidates= os.listdir(os.path.join(root,match_breaking))
-    RESULTS={}
+    RESULTS,TEMP={},[]
+    # for i in range(2,10):
+    #     RESULTS[i]={}
     for i in tqdm(range(len(candidates)),desc='MAIN PROCESS'):   
         # RESULTS=manager.dict()
         # CUS_DICT=manager.dict(cus_dict)
         # print(f"CUS_DICT {CUS_DICT}")
         
-        candidate=candidates[i]
+        filepath=candidates[i]
+        
+
+        # get match - bettype - league
+        match=int(filepath.split('.')[0].split('_')[0])
+        bettype=int(filepath.split('.')[0].split('_')[1])
+        # HISTORY.add((match,bettype))
+
+        #print(f"LENGTH HISTORY {len(HISTORY)}")
+        # read data of a (match,bettype) - combination    
+        MATCH=pd.read_csv(os.path.join(root,match_breaking,filepath))
+        
+        # pick up customer list and sort it
+        CUST_LIST = np.sort(MATCH.custid.unique())
+        
+        # get the maximum of number of tickets
+        maxlen = MATCH.groupby('custid').count()['transdate'].max()
+        
+        # build up framework for target matrix
+        # requirements : all row vectors must have the same length, here we pad -1 on the right side
+        X=[]
+        #for j in tqdm(range(len(CUST_LIST)),desc=f"M {match} B {bettype} | {len(CUST_LIST)} CUSTOMERS | TRASH ADDING. . ."): 
+        for j in range(len(CUST_LIST)): 
+            val = MATCH[MATCH['custid'] == CUST_LIST[j]][['transdate','custid']].values.flatten()       
+            val = np.pad(val,(0,maxlen*2-len(val)),'constant',constant_values=-1)      
+            X.append(val)
+        X=np.asarray(X)
+
+        # compute pairwise-time-score matrix
+        start_compute=time.time()
+        m=helper.compute_pairwise_cus(X)    
+        # print("\n","PAIRWISE MATRIX HAVING SHAPE %s OF MATCH %.0f BETTYPE %.0f :" % (m.shape,match,bettype),m,sep='\n')  
+        # print("\n","MATCH %.0f BETTYPE %.0f COMPUTING TIME SCORE TAKES %.0f SECONDS" % (match,bettype,time.time() - start_compute))
+        del X,MATCH
+        gc.collect()
+        
+        # build up result object which is a list of dictionaries whose values are positive time score
+        start_transform=time.time()
+      
+        for i in range(len(CUST_LIST)-1):
+            for j in range(i,len(CUST_LIST)):
+                C1=int(CUST_LIST[i])
+                C2=int(CUST_LIST[j])
+                current_ts=m[i,j]
+                if len(TEMP)==chunk_size:
+
+                    MY_SERIES=pd.Series(TEMP)
+                    # pandarallel.initialize(nb_workers=4)
+                    STAT_TEMP=MY_SERIES.parallel_apply(process_stat_dict).to_list()
+                    INFO_TEMP=MY_SERIES.parallel_apply(process_info_dict).to_list()
+                    try:
+                        conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
+                        cursor = conn.cursor()
+                        json_obj1 = json.dumps(STAT_TEMP)
+                        cursor.callproc('SPU_AIML_InsertAssociationStats',[json_obj1,None])
+                        conn.commit()
+                        json_obj2 = json.dumps(INFO_TEMP)       
+                        cursor.callproc('SPU_AIML_InsertAssociationSuspiciousInfo',[json_obj2,None])
+                        conn.commit()
+                        cursor.close()
+                        conn.close()
+                    except Exception as err:
+                        print(err)
+                    # num_save_db+=chunk_size
+                    TEMP = []
+                    del MY_SERIES,STAT_TEMP,INFO_TEMP
+                if current_ts>0:                
+
+                    CRITICAL_TJC=len(set(popable_cus_dict[C1]).intersection(set(popable_cus_dict[C2])))
+                    CONSTANT_TJC=len(set(fixed_cus_dict[C1]).intersection(set(fixed_cus_dict[C2])))
+                    # prepare to push to DB
+                    if CRITICAL_TJC==1:       
+
+                        # append dicts to TEMP
+                        # TEMP.append((RESULTS.pop((C1,C2))))
+                        if CONSTANT_TJC==1:
+                            TEMP.append(
+                                        {  
+                                            'TS':current_ts,'ML':[match],'BL':[bettype],'TJSC':1,
+                                            'TJC':CONSTANT_TJC,
+                                            'TJD':1,'BC':1,'C1':C1,'C2':C2
+                                        }
+                                        )
+                        else:
+                            MY_DICT=RESULTS[CONSTANT_TJC][(C1,C2)]
+                            TEMP.append(
+                                        {  
+                                            'TS':MY_DICT['TS']+current_ts,'ML':MY_DICT['ML'].append(match),'BL':MY_DICT['BL'].append(bettype),'TJSC':MY_DICT['TJSC']+1,
+                                            'TJC':CONSTANT_TJC,
+                                            'TJD':1,'BC':1,'C1':C1,'C2':C2
+                                        }
+                                        )
+                    else:
+                        # still in RAM
+                        if CONSTANT_TJC not in RESULTS:
+                            RESULTS[CONSTANT_TJC]={}
+                        # else:
+                        PARTITION_DICT=RESULTS[CONSTANT_TJC]
+                        if (C1,C2) not in PARTITION_DICT:
+                            PARTITION_DICT[(C1,C2)]=    {  
+                                                        'TS':current_ts,'ML':[match],'BL':[bettype],'TJSC':1,
+                                                        'TJC':CONSTANT_TJC,
+                                                        'TJD':1,'BC':1,'C1':C1,'C2':C2
+                                                        }
+                        # else:
+                        PARTITION_DICT[(C1,C2)]['TS']+=current_ts
+                        PARTITION_DICT[(C1,C2)]['ML'].append(match)
+                        # if len(RESULTS[(C1,C2)]['ML']) > 1:
+                        #     print("Ahihi !")
+                        PARTITION_DICT[(C1,C2)]['BL'].append(bettype)
+                        # if len(RESULTS[(C1,C2)]['BL']) > 1:
+                        #     print("Ahuhu !")
+                        PARTITION_DICT[(C1,C2)]['TJSC']+=1
+                    
+
+
+                
+        del m
+        gc.collect()
+
+        for cus in CUST_LIST:
+            popable_cus_dict[cus].pop(popable_cus_dict[cus].index((match,bettype)))
+
+        del CUST_LIST
+        gc.collect()
         # pool=mp.Pool(nb_workers_phase_1)
         #pool.map(process_a_combination,candidates)
-        process_a_combination(candidate)
+        # process_a_combination(candidate)
         # for _ in tqdm(pool.imap_unordered(process_a_combination,[(RESULTS,CUS_DICT,candidate) for candidate in candidates]),total=len(candidates),desc='MAIN PROCESS'):
         #     pass
     print('\n','********************************************************************************************************************************************')
     print("\n","PROCESSING TIME %.0f SECONDS" % (time.time() - start_processing))
+
+    if len(TEMP) > 0:
+        MY_SERIES=pd.Series(TEMP)
+        # pandarallel.initialize(nb_workers=4)
+        STAT_TEMP=MY_SERIES.parallel_apply(process_stat_dict).to_list()
+        INFO_TEMP=MY_SERIES.parallel_apply(process_info_dict).to_list()
+        # num_save_db+=len(STAT_TEMP)
+        try:
+            conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
+            cursor = conn.cursor()
+            json_obj1 = json.dumps(STAT_TEMP)
+            cursor.callproc('SPU_AIML_InsertAssociationStats',[json_obj1,None])
+            conn.commit()
+            json_obj2 = json.dumps(INFO_TEMP)       
+            cursor.callproc('SPU_AIML_InsertAssociationSuspiciousInfo',[json_obj2,None])
+            conn.commit()
+            cursor.close()
+            conn.close()
+        except Exception as err:
+            print(err)
     
     # print(f"LENGTH OF RESULTS {len(RESULTS)}")
     #print(f"LENGTH OF RESULTS {len(COUPLE_LIST)}")
