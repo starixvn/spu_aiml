@@ -240,7 +240,7 @@ if __name__ == "__main__":
     # ns.RESULTS={}
     # ns.HISTORY={}  
     candidates= os.listdir(os.path.join(root,match_breaking))
-    RESULTS,TEMP={},[]
+    RESULTS,TEMP,count={},[],0
     # for i in range(2,10):
     #     RESULTS[i]={}
     for i in tqdm(range(len(candidates)),desc='MAIN PROCESS'):   
@@ -293,7 +293,7 @@ if __name__ == "__main__":
                 C2=int(CUST_LIST[j])
                 current_ts=m[i,j]
                 if len(TEMP)==chunk_size:
-
+                    count+=1
                     MY_SERIES=pd.Series(TEMP)
                     # pandarallel.initialize(nb_workers=4)
                     STAT_TEMP=MY_SERIES.parallel_apply(process_stat_dict).to_list()
@@ -309,6 +309,7 @@ if __name__ == "__main__":
                         conn.commit()
                         cursor.close()
                         conn.close()
+                        print(f"SAVING DB SUCCESSFULLY {count}th time !")
                     except Exception as err:
                         print(err)
                     # num_save_db+=chunk_size
@@ -327,15 +328,18 @@ if __name__ == "__main__":
                             TEMP.append(
                                         {  
                                             'TS':current_ts,'ML':[match],'BL':[bettype],'TJSC':1,
-                                            'TJC':CONSTANT_TJC,
+                                            'TJC':1,
                                             'TJD':1,'BC':1,'C1':C1,'C2':C2
                                         }
                                         )
                         else:
-                            MY_DICT=RESULTS[CONSTANT_TJC][(C1,C2)]
+                            print(f"{C1} and {C2} WITH {CONSTANT_TJC} COMBS !")
+                            MY_DICT=RESULTS[CONSTANT_TJC].pop((C1,C2))
+                            MY_DICT['ML'].append(match)
+                            MY_DICT['BL'].append(bettype)
                             TEMP.append(
                                         {  
-                                            'TS':MY_DICT['TS']+current_ts,'ML':MY_DICT['ML'].append(match),'BL':MY_DICT['BL'].append(bettype),'TJSC':MY_DICT['TJSC']+1,
+                                            'TS':MY_DICT['TS']+current_ts,'ML':MY_DICT['ML'],'BL':MY_DICT['BL'],'TJSC':MY_DICT['TJSC']+1,
                                             'TJC':CONSTANT_TJC,
                                             'TJD':1,'BC':1,'C1':C1,'C2':C2
                                         }
@@ -370,9 +374,12 @@ if __name__ == "__main__":
 
         for cus in CUST_LIST:
             popable_cus_dict[cus].pop(popable_cus_dict[cus].index((match,bettype)))
-
+        print('\n',f"MATCH {match} | BETTYPE {bettype} | {len(CUST_LIST)} CUSTOMERS",'\n')
+        # for key,value in RESULTS.items():
+        #     print(f"{len(value.keys())} COUPLES WITH {key} TJCs")
         del CUST_LIST
         gc.collect()
+        
         # pool=mp.Pool(nb_workers_phase_1)
         #pool.map(process_a_combination,candidates)
         # process_a_combination(candidate)
