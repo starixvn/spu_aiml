@@ -7,7 +7,7 @@ CREATE TABLE `AssociationStatsStaging` (
   `Bettype` int unsigned NOT NULL,
   `LeagueID` bigint unsigned NOT NULL,
   `IsMajorLeague` bit(1) DEFAULT NULL,
-  `TotalJoinningCombs` int unsigned NOT NULL,
+  `TotalJoiningCombs` int unsigned NOT NULL,
   PRIMARY KEY (`ID`),
   INDEX `IX_AssociationStatsStaging_CustID1CustID2` (`CustID1`,`CustID2`),
   INDEX `IX_AssociationStatsStaging_MatchIDBettype` (`MatchID`,`Bettype`),
