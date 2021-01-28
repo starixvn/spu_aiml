@@ -65,8 +65,8 @@ def process_league(string_of_matches):
       major_score = (gini_major + 3/2) * (2/5)
       league_score = (3 * (minor_score + 1) + (major_score + 2)) * (1/9)
     return league_score
-      
-  list_of_matches=string_of_matches.split[',']
+  # print(f"STRING OF MATCHES {string_of_matches}")    
+  list_of_matches=string_of_matches.split(',')
   matches=set(list_of_matches)
   #major,minor = [],[]
   major_dict,minor_dict = {},{}
@@ -89,10 +89,10 @@ def process_league(string_of_matches):
 def aggregate(args):
   # for k in tqdm(range(len(CUST_LIST)),desc="MAIN AGG"):
   try:
-    # conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
-    # cursor = conn.cursor()
+    conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
+    cursor = conn.cursor()
     # cursor.callproc('SPU_AIML_GetAssociationStatsStaging',[int(CUST_LIST[k]),int(CUST_LIST[k]),None])
-    cursor.callproc('SPU_AIML_GetAssociationStatsStaging',[args[0],args[1],None])
+    cursor.callproc('SPU_AIML_GetAssociationStatsStaging',[int(args[0]),int(args[1]),None])
     conn.commit()
     results = [r.fetchall() for r in cursor.stored_results()]
     # results = cursor.stored_results().fetchall()      
@@ -107,6 +107,8 @@ def aggregate(args):
 
     RESULTS=RESULTS[['C1','C2','TS','ML','BL','TJC']]
 
+    RESULTS['TS']=RESULTS['TS'].astype('float')
+
     # print("BASELINE RESULTS",'********************',RESULTS.head(),f"RESULTS SHAPE {RESULTS.shape}",sep='\n')
     # print("START AGGREGATE !")
     # groupby vs cus1-cus2
@@ -114,12 +116,13 @@ def aggregate(args):
     # print("\n","START GROUPBY . . .")
     SCORE = RESULTS.groupby(['C1','C2']).agg({
                                               'TS':['mean','count'],'TJC':'max',
-                                              'M':lambda z:','.join([str(x) for x in list(z)]),
-                                              'B':lambda z:','.join([str(x) for x in list(z)])
+                                              'ML':lambda z:','.join([str(x) for x in list(z)]),
+                                              'BL':lambda z:','.join([str(x) for x in list(z)])
                                               }).reset_index()
     # print("\n","COMPLETED in %.0f seconds !" % (time.time()-begin))``
-
-    SCORE.columns=['C1','C2','TS','TJSC','ML','BL','TJC']
+    
+    SCORE.columns=['C1','C2','TS','TJSC','TJC','ML','BL']
+    # print("SCORE HEAD",SCORE.head(),sep='\n')
     # compute league score
     # begin=time.time()
     # print("\n","START COMPUTING LEAGUE SCORE . . .")
@@ -139,7 +142,7 @@ def aggregate(args):
     # print("\n","START COMPUTING MATCH SCORE  . . .")
     #SCORE['TJM'] = SCORE.parallel_apply(lambda z : count_joining_combs(z['C1'],z['C2']),axis=1)
     # SCORE['TJC'] = SCORE['TJC'].apply(lambda z : max(z))
-    SCORE['MS'] = SCORE['TJSC']/(SCORE['TJC']
+    SCORE['MS'] = SCORE['TJSC']/(SCORE['TJC'])
     # print("\n","COMPLETED in %.0f seconds !" % (time.time()-begin))
     #print("SCORE HEAD",SCORE.head(),sep='\n')
 
@@ -159,7 +162,7 @@ def aggregate(args):
     # print("TOTAL COUPLES :",len(myls1))
     #json_obj1=json.dumps(myls1)
     #json_obj2=json.dumps(myls2)
-    start_saving_to_db=time.time()
+    # start_saving_to_db=time.time()
     chunks1 = [myls1[x:x+chunk_size] for x in range(0, len(myls1), chunk_size)]
     #print(f"Chunks1 1 {chunks1[0]}")
     #print(f"TYPE CHUNKS1 {type(chunks1)}")
@@ -170,8 +173,8 @@ def aggregate(args):
   
   
     try:
-      # conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
-      # cursor = conn.cursor()
+      conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
+      cursor = conn.cursor()
       for (chunk1,chunk2) in zip(chunks1,chunks2):
         # print(f"json_obj1 {chunk1}")
         json_obj1 = json.dumps(chunk1)
@@ -208,18 +211,12 @@ if __name__ == "__main__":
   match_league_map = pd.read_csv(os.path.join(root,mlm_fn),error_bad_lines=False)[['matchid','leagueid']].set_index('matchid').to_dict(orient='index')
   MAJOR_LEAGUE = pd.read_csv(os.path.join(root,mjl_fn))
   MAJOR_LEAGUE_LIST = MAJOR_LEAGUE.LeagueId.unique()
-
-  # connect DBs
-  conn = MySQLConnection(user = 'aimlServiceAdmin', password = 'aimlServiceAdmin@AIML2209#', host = '10.40.40.78', port = '3306', database = 'SPU_AIML')
-  cursor = conn.cursor()
-
+  # BATCH=BATCHES[0]
+  # aggregate((np.min(BATCH),np.max(BATCH)))
   pool=mp.Pool(24)
   for _ in tqdm(pool.imap_unordered(aggregate,[(np.min(BATCH),np.max(BATCH)) for BATCH in BATCHES]),total=len(BATCHES),desc='AGG'):
       pass
   
-  # close DBs
-  cursor.close()
-  conn.close()
   
   print("***********************************************************************************************************************************************************************************")
   print("AGG & INSERT TIME %.0f SECONDS" % (time.time() - start_time))
