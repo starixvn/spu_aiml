@@ -1,5 +1,9 @@
+DELIMITER $$
+DROP PROCEDURE IF EXISTS `SPU_AIML_InsertAssociationStats`;
+
 CREATE PROCEDURE `SPU_AIML_InsertAssociationStats`(
 	IN 	ip_DailyStats 		JSON,
+	IN 	ip_ScanDate			DATETIME,
     
     OUT op_ErrorMessage 	VARCHAR(200)
 )
@@ -18,7 +22,6 @@ BEGIN
 			call SPU_AIML.SPU_AIML_InsertAssociationStats ('[{"C1": 43600693, "C2": 45, "TS": 1, "MS": 1, "LS": 0.8, "TJD": 1, "TJC": 3, "TJSC": 2, "BC": 20}]');    
 	*/ 
     
-    DECLARE lv_CurrentDate 		DATE DEFAULT NOW();
     DECLARE lv_CurrentDateTime 	DATETIME DEFAULT NOW();
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION 
@@ -35,8 +38,8 @@ BEGIN
 		, 	MatchScore						DECIMAL(10,4) NOT NULL
 		, 	LeagueScore						DECIMAL(10,4) NOT NULL
 		, 	TotalJoiningDays				SMALLINT NOT NULL
-		, 	TotalJoiningCombs			SMALLINT NOT NULL
-		, 	TotalJoiningSuspiciousCombs	SMALLINT NOT NULL
+		, 	TotalJoiningCombs				SMALLINT NOT NULL
+		, 	TotalJoiningSuspiciousCombs		SMALLINT NOT NULL
         , 	BetCount						BIGINT UNSIGNED NOT NULL
         ,	IsNewCouple						BIT DEFAULT 1
         , 	PRIMARY KEY	    PK_Temp_AssociationStats_CustID1_CustID2(CustID1,CustID2) 
@@ -82,7 +85,7 @@ BEGIN
         , 	t.TotalJoiningCombs
         , 	t.TotalJoiningSuspiciousCombs
         ,	t.BetCount
-        ,	lv_CurrentDate
+        ,	ip_ScanDate
         ,	lv_CurrentDateTime
     FROM Temp_AssociationStats AS t
 	WHERE IsNewCouple = 1;
@@ -96,10 +99,10 @@ BEGIN
         , 	a.TotalJoiningCombs = a.TotalJoiningCombs + t.TotalJoiningCombs
         , 	a.TotalJoiningSuspiciousCombs = a.TotalJoiningSuspiciousCombs + t.TotalJoiningSuspiciousCombs
         ,	a.BetCount = a.BetCount + t.BetCount
-        ,	a.LastModifiedDate = lv_CurrentDate
+        ,	a.LastModifiedDate = ip_ScanDate
         ,	a.LastModifiedTime = lv_CurrentDateTime
     WHERE t.IsNewCouple = 0;
     
     DROP TEMPORARY TABLE IF EXISTS Temp_AssociationStats;
      
-END
+END$$
