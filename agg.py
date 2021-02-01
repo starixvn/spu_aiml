@@ -94,7 +94,7 @@ def aggregate(cus):
     # cursor.callproc('SPU_AIML_GetAssociationStatsStaging',[int(CUST_LIST[k]),int(CUST_LIST[k]),None])
     cursor.callproc('SPU_AIML_GetAssociationStatsStaging',[int(cus),int(cus),None])
     conn.commit()
-    results = [r.fetchall() for r in cursor.stored_results()]
+    results = [r.fetchall() for r in cursor.stored_results()][0]
     # results = cursor.stored_results().fetchall()      
     cursor.close()
     conn.close()
@@ -102,60 +102,76 @@ def aggregate(cus):
     # print(f"type {type(results)}")
     # if len(SCORE)==0:
     #   break
-    RESULTS=pd.DataFrame(results[0],columns=['Index',"C1","C2","TS","M","B","L","IMJ","TJC"])
-    # RESULTS = pd.read_csv(os.path.join(root,result_fn),index_col=0,names=["C1","C2","TS","M","B","L","IMJ","TJC"],header=0)
 
-    RESULTS=RESULTS[['C1','C2','TS','M','B','TJC']]
+    if len(results)==1:
+      myls1,myls2={},{}
+      myls1['C1'],myls1['C2'],myls2['C1'],myls2['C2']=results[0],results[1],results[0],results[1]
+      myls1['TS'],myls1['TJC']=float(results[2]),results[-1]
+      myls2['ML'],myls2['BL']=str(results[3]),str(results[4])
+      myls1['TJSC']=1
+      myls1['MS']=myls1['TJSC'] / myls1['TJC']
+      league=match_league_map[results[3]]['leagueid']
+      if league in MAJOR_LEAGUE:
+        myls1['LS']=.6
+      else:
+        myls1['LS']=.71
+      myls1=[myls1]
+      myls2=[myls2]
+    else:
+      RESULTS=pd.DataFrame(results,columns=["C1","C2","TS","M","B","L","IMJ","TJC"])
+      # RESULTS = pd.read_csv(os.path.join(root,result_fn),index_col=0,names=["C1","C2","TS","M","B","L","IMJ","TJC"],header=0)
 
-    # print("BASELINE RESULTS",'********************',RESULTS.head(),f"RESULTS SHAPE {RESULTS.shape}",sep='\n')
-    # print("START AGGREGATE !")
-    # groupby vs cus1-cus2
-    begin=time.time()
-    # print("\n","START GROUPBY . . .")
-    SCORE = RESULTS.groupby(['C1','C2']).agg(lambda x: list(x)).reset_index()
-    # print("\n","COMPLETED in %.0f seconds !" % (time.time()-begin))``
+      RESULTS=RESULTS[['C1','C2','TS','M','B','TJC']]
 
-    
-    # compute league score
-    begin=time.time()
-    # print("\n","START COMPUTING LEAGUE SCORE . . .")
-    SCORE['LS'] = SCORE['M'].apply(process_league)
-    # print("\n","COMPLETED in %.0f seconds !" % (time.time()-begin))
-    #print("SCORE HEAD",SCORE.head(),sep='\n')
-    # compute num_effective_comb and time_score
-    begin=time.time()
-    # print("\n","START COMPUTING TIME SCORE | NUM EFFECTIVE COMBINATION . . .")   
-    SCORE['TJSC'] = SCORE['TS'].apply(lambda z : len(z))
-    SCORE['TS'] = SCORE['TS'].apply(lambda z : np.mean(z)).astype('float')
-    # print("\n","COMPLETED in %.0f seconds !" % (time.time()-begin))
-    #print("SCORE HEAD",SCORE.head(),sep='\n')
+      # print("BASELINE RESULTS",'********************',RESULTS.head(),f"RESULTS SHAPE {RESULTS.shape}",sep='\n')
+      # print("START AGGREGATE !")
+      # groupby vs cus1-cus2
+      begin=time.time()
+      # print("\n","START GROUPBY . . .")
+      SCORE = RESULTS.groupby(['C1','C2']).agg(lambda x: list(x)).reset_index()
+      # print("\n","COMPLETED in %.0f seconds !" % (time.time()-begin))``
 
-    # compute number of joining matches | match score
-    begin=time.time()
-    # print("\n","START COMPUTING MATCH SCORE  . . .")
-    #SCORE['TJM'] = SCORE.parallel_apply(lambda z : count_joining_combs(z['C1'],z['C2']),axis=1)
-    SCORE['TJC'] = SCORE['TJC'].apply(lambda z : max(z))
-    SCORE['MS'] = SCORE.apply(lambda z : z['TJSC']/(z['TJC']),axis=1)
-    # print("\n","COMPLETED in %.0f seconds !" % (time.time()-begin))
-    #print("SCORE HEAD",SCORE.head(),sep='\n')
+      
+      # compute league score
+      begin=time.time()
+      # print("\n","START COMPUTING LEAGUE SCORE . . .")
+      SCORE['LS'] = SCORE['M'].apply(process_league)
+      # print("\n","COMPLETED in %.0f seconds !" % (time.time()-begin))
+      #print("SCORE HEAD",SCORE.head(),sep='\n')
+      # compute num_effective_comb and time_score
+      begin=time.time()
+      # print("\n","START COMPUTING TIME SCORE | NUM EFFECTIVE COMBINATION . . .")   
+      SCORE['TJSC'] = SCORE['TS'].apply(lambda z : len(z))
+      SCORE['TS'] = SCORE['TS'].apply(lambda z : np.mean(z)).astype('float')
+      # print("\n","COMPLETED in %.0f seconds !" % (time.time()-begin))
+      #print("SCORE HEAD",SCORE.head(),sep='\n')
 
-    # merge effective matches and bettype
-    begin=time.time()
-    # print("\n","START MERGING MATCH LIST | BETTYPE LIST . . .")
-    SCORE['ML']=SCORE['M'].apply(lambda z : ','.join([str(x) for x in z]))
-    SCORE['BL']=SCORE['B'].apply(lambda z : ','.join([str(x) for x in z]))
-    #print("\n","COMPLETED in %.0f seconds !" % (time.time()-begin))
+      # compute number of joining matches | match score
+      begin=time.time()
+      # print("\n","START COMPUTING MATCH SCORE  . . .")
+      #SCORE['TJM'] = SCORE.parallel_apply(lambda z : count_joining_combs(z['C1'],z['C2']),axis=1)
+      SCORE['TJC'] = SCORE['TJC'].apply(lambda z : max(z))
+      SCORE['MS'] = SCORE.apply(lambda z : z['TJSC']/(z['TJC']),axis=1)
+      # print("\n","COMPLETED in %.0f seconds !" % (time.time()-begin))
+      #print("SCORE HEAD",SCORE.head(),sep='\n')
 
-    SCORE['TJD']=1
-    SCORE['BC']=1
-    #print("SCORE HEAD",SCORE.head(),sep='\n')
-    myls1=SCORE[['C1','C2','TS','MS','LS','TJC','TJSC','TJD','BC']].to_dict(orient='records')
-    myls2=SCORE[['C1','C2','ML','BL']].to_dict(orient='records')
+      # merge effective matches and bettype
+      begin=time.time()
+      # print("\n","START MERGING MATCH LIST | BETTYPE LIST . . .")
+      SCORE['ML']=SCORE['M'].apply(lambda z : ','.join([str(x) for x in z]))
+      SCORE['BL']=SCORE['B'].apply(lambda z : ','.join([str(x) for x in z]))
+      #print("\n","COMPLETED in %.0f seconds !" % (time.time()-begin))
+
+      SCORE['TJD']=1
+      SCORE['BC']=1
+      #print("SCORE HEAD",SCORE.head(),sep='\n')
+      myls1=SCORE[['C1','C2','TS','MS','LS','TJC','TJSC','TJD','BC']].to_dict(orient='records')
+      myls2=SCORE[['C1','C2','ML','BL']].to_dict(orient='records')
 
     # print("TOTAL COUPLES :",len(myls1))
     #json_obj1=json.dumps(myls1)
     #json_obj2=json.dumps(myls2)
-    start_saving_to_db=time.time()
+    # start_saving_to_db=time.time()
     chunks1 = [myls1[x:x+chunk_size] for x in range(0, len(myls1), chunk_size)]
     #print(f"Chunks1 1 {chunks1[0]}")
     #print(f"TYPE CHUNKS1 {type(chunks1)}")
