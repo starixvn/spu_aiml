@@ -102,7 +102,7 @@ def aggregate(args):
     # print(f"type {type(results)}")
     # if len(SCORE)==0:
     #   break
-<<<<<<< HEAD
+
 
     if len(results)==1:
       myls1,myls2={},{}
@@ -168,68 +168,10 @@ def aggregate(args):
       #print("SCORE HEAD",SCORE.head(),sep='\n')
       myls1=SCORE[['C1','C2','TS','MS','LS','TJC','TJSC','TJD','BC']].to_dict(orient='records')
       myls2=SCORE[['C1','C2','ML','BL']].to_dict(orient='records')
-=======
-<<<<<<< HEAD
-    RESULTS=pd.DataFrame(results[0],columns=["C1","C2","TS","M","B","L","IMJ","TJC"])
-=======
-    RESULTS=pd.DataFrame(results[0],columns=["C1","C2","TS","ML","BL","L","IMJ","TJC"])
->>>>>>> 67e322296b1b79ef0b7b155067f4eb105f839749
-    # RESULTS = pd.read_csv(os.path.join(root,result_fn),index_col=0,names=["C1","C2","TS","M","B","L","IMJ","TJC"],header=0)
 
-    RESULTS=RESULTS[['C1','C2','TS','ML','BL','TJC']]
-
-    RESULTS['TS']=RESULTS['TS'].astype('float')
-
-    # print("BASELINE RESULTS",'********************',RESULTS.head(),f"RESULTS SHAPE {RESULTS.shape}",sep='\n')
-    # print("START AGGREGATE !")
-    # groupby vs cus1-cus2
-    begin=time.time()
-    # print("\n","START GROUPBY . . .")
-    SCORE = RESULTS.groupby(['C1','C2']).agg({
-                                              'TS':['mean','count'],'TJC':'max',
-                                              'ML':lambda z:','.join([str(x) for x in list(z)]),
-                                              'BL':lambda z:','.join([str(x) for x in list(z)])
-                                              }).reset_index()
-    # print("\n","COMPLETED in %.0f seconds !" % (time.time()-begin))``
     
-    SCORE.columns=['C1','C2','TS','TJSC','TJC','ML','BL']
-    # print("SCORE HEAD",SCORE.head(),sep='\n')
-    # compute league score
-    # begin=time.time()
-    # print("\n","START COMPUTING LEAGUE SCORE . . .")
-    SCORE['LS'] = SCORE['ML'].apply(process_league)
-    # print("\n","COMPLETED in %.0f seconds !" % (time.time()-begin))
-    #print("SCORE HEAD",SCORE.head(),sep='\n')
-    # compute num_effective_comb and time_score
-    # begin=time.time()
-    # print("\n","START COMPUTING TIME SCORE | NUM EFFECTIVE COMBINATION . . .")   
-    # SCORE['TJSC'] = SCORE['TS'].apply(lambda z : len(z))
-    # SCORE['TS'] = SCORE['TS'].apply(lambda z : np.mean(z)).astype('float')
-    # print("\n","COMPLETED in %.0f seconds !" % (time.time()-begin))
-    #print("SCORE HEAD",SCORE.head(),sep='\n')
 
-    # compute number of joining matches | match score
-    # begin=time.time()
-    # print("\n","START COMPUTING MATCH SCORE  . . .")
-    #SCORE['TJM'] = SCORE.parallel_apply(lambda z : count_joining_combs(z['C1'],z['C2']),axis=1)
-    # SCORE['TJC'] = SCORE['TJC'].apply(lambda z : max(z))
-    SCORE['MS'] = SCORE['TJSC']/(SCORE['TJC'])
-    # print("\n","COMPLETED in %.0f seconds !" % (time.time()-begin))
-    #print("SCORE HEAD",SCORE.head(),sep='\n')
-
-    # merge effective matches and bettype
-    # begin=time.time()
-    # print("\n","START MERGING MATCH LIST | BETTYPE LIST . . .")
-    # SCORE['ML']=SCORE['M'].apply(lambda z : ','.join([str(x) for x in z]))
-    # SCORE['BL']=SCORE['B'].apply(lambda z : ','.join([str(x) for x in z]))
-    #print("\n","COMPLETED in %.0f seconds !" % (time.time()-begin))
-
-    SCORE['TJD']=1
-    SCORE['BC']=1
-    #print("SCORE HEAD",SCORE.head(),sep='\n')
-    myls1=SCORE[['C1','C2','TS','MS','LS','TJC','TJSC','TJD','BC']].to_dict(orient='records')
-    myls2=SCORE[['C1','C2','ML','BL']].to_dict(orient='records')
->>>>>>> 1977817a61b814ec207d850d71cd87600b51de1a
+  
 
     # print("TOTAL COUPLES :",len(myls1))
     #json_obj1=json.dumps(myls1)

@@ -102,11 +102,7 @@ def aggregate(args):
     # print(f"type {type(results)}")
     # if len(SCORE)==0:
     #   break
-<<<<<<< HEAD
     RESULTS=pd.DataFrame(results[0],columns=["C1","C2","TS","M","B","L","IMJ","TJC"])
-=======
-    RESULTS=pd.DataFrame(results[0],columns=["C1","C2","TS","ML","BL","L","IMJ","TJC"])
->>>>>>> 67e322296b1b79ef0b7b155067f4eb105f839749
     # RESULTS = pd.read_csv(os.path.join(root,result_fn),index_col=0,names=["C1","C2","TS","M","B","L","IMJ","TJC"],header=0)
 
     RESULTS=RESULTS[['C1','C2','TS','ML','BL','TJC']]
