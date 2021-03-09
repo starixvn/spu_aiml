@@ -13,7 +13,17 @@ class Configuration(object):
     @classmethod
     def GetSaveDirectoryModel(self,config):
         config.config.sections()
-        return config.config['DEFAULT']['SAVE_DIR_MODEL']
+        return config.config['DEFAULT']['SAVE_DIR_LOG']
+    
+    @classmethod
+    def GetTimeThreshold(self,config):
+        config.config.sections()
+        return config.config['GROUPBETTINGCONFIG']['TIME_THRESHOLD']
+    
+    @classmethod
+    def GetCombinationThreshold(self,config):
+        config.config.sections()
+        return config.config['GROUPBETTINGCONFIG']['COMBINATION_THRESHOLD']
 
     @classmethod
     def GetNameFile(self,config):
@@ -91,6 +101,21 @@ class Configuration(object):
     def getPassword(self, config):
         config.config.sections()
         return config.config['DATABASE']['PASSWORD']
+    
+    @classmethod
+    def getPercentScore(self, config):
+        config.config.sections()
+        return config.config['GROUPBETTINGCONFIG']['PERCENT_SCORE']
+    
+    @classmethod
+    def getTimeSleep(self, config):
+        config.config.sections()
+        return config.config['GROUPBETTINGCONFIG']['TIME_SLEEP']
+    
+    @classmethod
+    def getRetry(self, config):
+        config.config.sections()
+        return config.config['GROUPBETTINGCONFIG']['RETRY']
 
 
 
