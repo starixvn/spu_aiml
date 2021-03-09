@@ -1,22 +1,25 @@
+DELIMITER $$
+DROP PROCEDURE IF EXISTS `SPU_AIML_InsertAssociationSuspiciousInfo`;
 CREATE PROCEDURE `SPU_AIML_InsertAssociationSuspiciousInfo`(
 	IN 	ip_SuspiciousInfo 	JSON,
     
     OUT op_ErrorMessage 	VARCHAR(200)
 )
+    SQL SECURITY INVOKER
 BEGIN
 	/*
-		Created:	20200112@Darius.Nguyen
+		Created:	20201204@Long.Luu
 		Task:		Insert Association Suspicious Info [Redmine ID: #0000]
 		DB:			SPU_AIML
 		Original: 
 
 		Revisions:
-			- 20200112@Darius.Nguyen: Created [Redmine ID: #0000]
+			- 20201204@Long.Luu: Created [Redmine ID: #0000]
             
 		Example:
 			call SPU_AIML.SPU_AIML_InsertAssociationSuspiciousInfo
-				('[{"C1": 1572, "C2": 2572, "ML": "2222,45", "TL": "3,3"}]');    
-	*/
+				('[{"C1": 43600693, "C2": 45, "M": 1, "L": 1, "TST": 1, "TL": 1}');    
+	*/ 
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION 
     BEGIN         
@@ -70,4 +73,4 @@ BEGIN
     
     DROP TEMPORARY TABLE IF EXISTS Temp_SuspiciousInfo;
      
-END
+END$$

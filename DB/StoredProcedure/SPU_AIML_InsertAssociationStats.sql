@@ -92,10 +92,10 @@ BEGIN
 	
     UPDATE SPU_AIML.AssociationStats AS a
 		INNER JOIN Temp_AssociationStats AS t ON t.CustID1 = a.CustID1 AND t.CustID2 = a.CustID2
-    SET 	a.TimeScore = a.TimeScore + t.TimeScore
-		,	a.MatchScore = a.MatchScore + t.MatchScore
-        ,	a.LeagueScore = a.LeagueScore + t.LeagueScore
-        , 	a.TotalJoiningDays = a.TotalJoiningDays + t.TotalJoiningDays
+    SET 	a.TimeScore = t.TimeScore
+		,	a.MatchScore = t.MatchScore
+        ,	a.LeagueScore = t.LeagueScore
+        , 	a.TotalJoiningDays = t.TotalJoiningDays
         , 	a.TotalJoiningCombs = a.TotalJoiningCombs + t.TotalJoiningCombs
         , 	a.TotalJoiningSuspiciousCombs = a.TotalJoiningSuspiciousCombs + t.TotalJoiningSuspiciousCombs
         ,	a.BetCount = a.BetCount + t.BetCount
