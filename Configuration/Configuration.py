@@ -11,9 +11,9 @@ class Configuration(object):
         
        
     @classmethod
-    def GetSaveDirectoryModel(self,config):
+    def GetSaveDirectoryLog(self,config):
         config.config.sections()
-        return config.config['DEFAULT']['SAVE_DIR_MODEL']
+        return config.config['DEFAULT']['SAVE_DIR_Log']
 
     @classmethod
     def GetNameFile(self,config):
@@ -21,9 +21,9 @@ class Configuration(object):
         return config.config['DEFAULT']['NAME_MATCH']
     
     @classmethod
-    def GetFileOutput(self,config):
+    def GetListName(self,config):
         config.config.sections()
-        return config.config['DEFAULT']['FILE_OUTPUT']
+        return config.config['DEFAULT']['LIST_NAME']
     
     @classmethod
     def GetDictName(self,config):
@@ -48,21 +48,21 @@ class Configuration(object):
         config.config.sections()
         return config.config['DEFAULT']['NAME_LEAGUESPORT']
     
-    def GetTemp1A(self, config):
+    def GetSaveDataDir(self, config):
         config.config.sections()
-        return config.config['DEFAULT']['TEMP1A']
+        return config.config['DEFAULT']['SAVE_DATA_DIR']
     
-    def GetTemp1B(self, config):
+    def GetMatchLeagueMap(self, config):
         config.config.sections()
-        return config.config['DEFAULT']['TEMP1B']
+        return config.config['DEFAULT']['MATCH_LEAGUE_MAP']
     
     def GetTemp2(self, config):
         config.config.sections()
         return config.config['DEFAULT']['TEMP2']
     
-    def GetMatchOuput(self, config):
+    def GetMatchBreaking(self, config):
         config.config.sections()
-        return config.config['DEFAULT']['MATCH_OUTPUT']
+        return config.config['DEFAULT']['MATCH_BREAKING']
     
     def GetScoreOuput(self, config):
         config.config.sections()
@@ -71,6 +71,16 @@ class Configuration(object):
     def GetTransOuput(self, config):
         config.config.sections()
         return config.config['DEFAULT']['TRANS_OUTPUT']
+    
+    @classmethod
+    def GetTimeThreshold(self,config):
+        config.config.sections()
+        return config.config['GROUPBETTINGCONFIG']['TIME_THRESHOLD']
+    
+    @classmethod
+    def GetCombinationThreshold(self,config):
+        config.config.sections()
+        return config.config['GROUPBETTINGCONFIG']['COMBINATION_THRESHOLD']
 
     @classmethod
     def getServerName(self, config):
@@ -91,6 +101,21 @@ class Configuration(object):
     def getPassword(self, config):
         config.config.sections()
         return config.config['DATABASE']['PASSWORD']
+
+    @classmethod
+    def getPercentScore(self, config):
+        config.config.sections()
+        return config.config['GROUPBETTINGCONFIG']['PERCENT_SCORE']
+    
+    @classmethod
+    def getTimeSleep(self, config):
+        config.config.sections()
+        return config.config['GROUPBETTINGCONFIG']['TIME_SLEEP']
+    
+    @classmethod
+    def getRetry(self, config):
+        config.config.sections()
+        return config.config['GROUPBETTINGCONFIG']['RETRY']
 
 
 

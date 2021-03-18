@@ -1,4 +1,5 @@
-from numpy.core.fromnumeric import size
+from os import path
+from tqdm import tqdm
 import pandas as pd
 import os
 import pickle
@@ -9,8 +10,8 @@ from icecream import ic
 import argparse
 from mysql.connector import MySQLConnection
 import json
-root = "D:/Project/Formula_Bet/MatchData"
-fn = "bettrans20201129.csv"
+root = "C:/Users/diego.nguyen/Desktop/"
+fn = "batch_data.csv"
 save_folder="D:/Project/Formula_Bet/SaveData"
 save_fn='cus_list.pkl'
 
@@ -74,8 +75,14 @@ save_fn='cus_list.pkl'
 # def main(x):
 #     print(f'Chunk {x}')
 
-def foo(i):
-    return i+333
+# def compute_amount_of_winning(X,Y,Z,T,W,M=100):
+#     return 36*X+66*Y+54*Z+72*T+48*W-27*M
+
+def compute_amount_of_winning(X,Y,Z,M=100):
+    return 84*X+92*Y+120*Z-60*M
+
+# def compute_amount_of_winning(X,Y,Z,T,M=100):
+#     return 36*X+66*Y+54*Z+90*T-17*M
 
 def fibonaci(n):
     return fibonaci(n-1)+fibonaci(n-2) if n > 2 else 1
@@ -107,17 +114,45 @@ if __name__ == "__main__":
     # # ic(foo(args.integer))
     # print(f'{args.integer}th element of Fibonaci : {fibonaci(args.integer)}')
     # ls = [{"C1":1,"C2":1111},{"C1":1,"C2":2222},{"C1":2,"C2":3333},{"C1":2,"C2":4444},{"C1":3,"C2":5555}]
-    fulldatabyAI_dba = '[{"C1":13123123,"C2":13123111}]'
+    # fulldatabyAI_dba = '[{"C1":13123123,"C2":13123111}]'
     # fulldatabyAI_dba = json.dumps(ls)
-    print(f'fulldatabyAI_dba {fulldatabyAI_dba}')
-    print(f'type fulldatabyAI_dba {type(fulldatabyAI_dba)}')
-    date_insert = '2021-01-31'
-    conn = MySQLConnection(user = 'diego.vn', password = 'specialone1994', host = '10.18.200.70', port = '3307', database = 'SPU_AIML')
-    cur = conn.cursor()
-    cur.callproc('SPU_AIML_InsertAssociationByAI',[fulldatabyAI_dba,date_insert,None])
-    conn.commit()
+    # print(f'fulldatabyAI_dba {fulldatabyAI_dba}')
+    # print(f'type fulldatabyAI_dba {type(fulldatabyAI_dba)}')
+    # date_insert = '2021-01-31'
+    # conn = MySQLConnection(user = 'diego.vn', password = 'specialone1994', host = '10.18.200.70', port = '3307', database = 'SPU_AIML')
+    # cur = conn.cursor()
+    # cur.callproc('SPU_AIML_InsertAssociationByAI',[fulldatabyAI_dba,date_insert,None])
+    # conn.commit()
 
-    print('Insert AssociationByAI Successfully !')
+    # print('Insert AssociationByAI Successfully !')
     
-    cur.close()
-    conn.close()
+    # cur.close()
+    # conn.close()
+
+    # M = 100
+    # N = int(21*M/37)
+    # w = 0
+    # invest = 0
+    # ii = 0
+    # for xx in tqdm(range(N+1)):
+    #     for yy in range(N+1):
+    #         for zz in range(N+1):
+                # for tt in range(N+1):
+                #     for ww in range(N+1):
+                        # for uu in range(N+1):
+                # if xx+yy+zz==N:
+                        # if xx+yy+zz+tt+ww==N:
+                        # if xx+yy+zz+tt==N:
+    #                         my_dict[ii] = {'xx':xx,'yy':yy,'zz':zz,'tt':tt,'money':is_victory(xx,yy,zz,tt,ww,M)}
+                    # res = compute_amount_of_winning(xx,yy,zz,M)
+                    # res = compute_amount_of_winning(xx,yy,zz,tt,ww,M)
+                    # res = compute_amount_of_winning(xx,yy,zz,tt,M)
+#                         res = is_victory(xx,yy,zz,tt,M)
+    #                 if res > 0:
+    #                     w+=1
+    #                 invest+=1
+    
+    # print('Winning Proba %.0f percent' % (w/invest*100))
+    df = pd.read_csv(root+fn,encoding='ISO-8859-1')
+    print('HEAD DF',df.head(),sep='\n')
+    

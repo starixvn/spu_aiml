@@ -12,26 +12,50 @@ import os
 import pickle
 import pandas as pd
 import json
-
+from Configuration.Configuration import Configuration
+config = Configuration()
 
 
 # define paths
-root="D:\Project\Formula_BET\MatchData"
-orig_fn="bettrans20201129.csv"
-result_fn="datastaging.csv"
-mjl_fn="major_league.csv"
-mlm_fn="match20201129.csv"
-save_fn='cus_list.pkl'
+# root="D:\Project\Formula_BET\MatchData"
+# orig_fn="bettrans20201129.csv"
+# result_fn="datastaging.csv"
+# mjl_fn="major_league.csv"
+# mlm_fn="match20201129.csv"
+# save_fn='cus_list.pkl'
 
+root=config.GetSaveDataDir(config)
+# cus_list_fn='cus_list.pkl'
+# cus_dict_fn='cus_dict.pkl'
+# mlm_dict_fn='match_league_map.pkl'
 
-cus_list_fn='cus_list.pkl'
-cus_dict_fn='cus_dict.pkl'
-mlm_dict_fn='match_league_map.pkl'
+cus_list_fn=config.GetListName(config)
+# cus_dict_fn = 'cus_dict.pkl'
+cus_dict_fn=config.GetDictName(config)
+# mlm_dict_fn = 'match_league_map.pkl'
+mlm_dict_fn=config.GetMatchLeagueMap(config)
 
 # define batch_size
 chunk_size=100000
 
 # pandarallel.initialize()
+
+aimluser='aimlServiceAdmin'
+aimlpwd='aimlServiceAdmin@AIML2209#'
+aimlhost='10.18.200.70'
+aimlport='3307'
+aimldb='SPU_AIML'
+
+with open(os.path.join(root,mlm_dict_fn),'rb') as f:
+    match_league_map=pickle.load(f)
+
+# print('match_league_map',match_league_map,sep='\n')
+
+with open(os.path.join(root,cus_list_fn),'rb') as f:
+    CUST_LIST=pickle.load(f)
+
+with open(os.path.join(root,cus_dict_fn),'rb') as f:
+    cus_dict=pickle.load(f)
 
 def count_joining_combs(cus1,cus2):
     """
@@ -42,7 +66,7 @@ def count_joining_combs(cus1,cus2):
     return len(comb_a.intersection(comb_b))
 
 def is_major(x):
-    major_or_minor=match_league_map[x]
+    major_or_minor=match_league_map['category'][x]
     if 'major' in major_or_minor:
         return 1
     else:
@@ -97,7 +121,7 @@ def total_leaguescore(x,y):
 
 def aggregate(args):
     # try:
-        conn = MySQLConnection(user = 'diego.vn', password = 'specialone1994', host = '10.18.200.70', port = '3307', database = 'SPU_AIML')
+        conn = MySQLConnection(user = aimluser, password = aimlpwd, host = aimlhost, port = aimlport, database = aimldb)
         cur = conn.cursor()
         cur.callproc('SPU_AIML_GetAssociationStatsStaging',[int(args[0]),int(args[1]),None])
         dba_results = [r.fetchall() for r in cur.stored_results()]
@@ -121,7 +145,7 @@ def aggregate(args):
             "AccLS",
             "AccTJD"])
         #time_readfile = time.time()
-        print('Original df',df,sep='\n')
+        # print('Original df',df,sep='\n')
         first_time = time.time()
         df['sample_id'] = df['C1'].map(str) + df['C2'].map(str)
 
@@ -137,16 +161,17 @@ def aggregate(args):
         #print(df.info())
         #start_time = time.time()
         df['IsMajorLeague']=df['ML'].apply(lambda z : is_major(z))
+        df['LeagueID']=df['ML'].apply(lambda z : match_league_map['leagueid'][z])
         df['TJC']=df.apply(lambda z : count_joining_combs(z['C1'],z['C2']),axis=1)
         # print('Complete read file and clean data: ', time.time() - time_readfile)
         # print('-------------------------------------------------------')
-        print('Preprocessed df',df,sep='\n')
+        # print('Preprocessed df',df,sep='\n')
         # print('-------------------------------------------------------')
         
         df_custid = pd.DataFrame()
         df_custid = df.groupby('sample_id')[['C1','C2','TJC']].first()
         #df_custid.apply(pd.DataFrame)
-        print('df_custid',df_custid,sep='\n')
+        # print('df_custid',df_custid,sep='\n')
         #print('----------finish custid: ', time.time() - start_time)
         
         #start_time = time.time()
@@ -171,7 +196,8 @@ def aggregate(args):
         #print('------finish group league: ', time.time() - start_time)
         
         ## version 4
-        df_parameter = (df.groupby(['sample_id','IsMajorLeague','ML']).size().unstack('IsMajorLeague',fill_value=0))
+        df_parameter = (df.groupby(['sample_id','IsMajorLeague','LeagueID']).size().unstack('IsMajorLeague',fill_value=0))
+        # print('df_parameter',df_parameter,sep='\n')
         df_parameter= df_parameter.reset_index()
     
         df_parameter2 = (df.groupby(['sample_id','IsMajorLeague']).size().unstack('IsMajorLeague', fill_value=0))
@@ -193,16 +219,16 @@ def aggregate(args):
             '1_x': 'each_league_1',
             '1_y': 'total_league_1' 
         }, axis=1)
-        #print(df_parameter3)
+        # print('df_parameter3 BEFORE',df_parameter3,sep='\n')
         df_parameter3['score_eachleague_0'] = [(x/y)**2 if y !=0 else 0 for x,y in zip(df_parameter3['each_league_0'], df_parameter3['total_league_0'])]
         df_parameter3['score_eachleague_1'] = [(x/y)**2 if y !=0 else 0 for x,y in zip(df_parameter3['each_league_1'], df_parameter3['total_league_1'])]
         #df_parameter3 = df_parameter2.drop(columns=['total_league_0','total_league_1'])
-        #print(df_parameter3.head())
+        # print('df_parameter3 AFTER',df_parameter3,sep='\n')
         df_leaguescore = pd.DataFrame()
         df_leaguescore['minor'] = 1 - df_parameter3.groupby('sample_id')['score_eachleague_0'].sum()
         df_leaguescore['major'] = 1 - df_parameter3.groupby('sample_id')['score_eachleague_1'].sum()
         df_leaguescore['LS'] = df_leaguescore.apply(lambda x: total_leaguescore(x['minor'],x['major']), axis = 1)
-        print('df_leaguescore',df_leaguescore,sep='\n')
+        # print('df_leaguescore',df_leaguescore,sep='\n')
         
         #start_time = time.time()
         #print('------calculate league score')
@@ -212,14 +238,14 @@ def aggregate(args):
         
         #start_time = time.time()
         df_timescore = df.groupby('sample_id')[['TS']].mean()
-        print(f'df_timescore',df_timescore,sep='\n')
+        # print(f'df_timescore',df_timescore,sep='\n')
         #print('----------finish TS: ', time.time() - start_time)
         
         #start_time = time.time()
         df_matchscore = pd.DataFrame()
         df_matchscore['TJSC'] = df.groupby(['sample_id','ML'])['BL'].nunique().groupby('sample_id').sum()
         df_matchscore['MS'] = df_matchscore['TJSC'] / df_custid['TJC']
-        print('df_matchscore',df_matchscore,sep='\n')
+        # print('df_matchscore',df_matchscore,sep='\n')
         #print('----------finish matchscore: ', time.time() - start_time)
         
         #start_time = time.time()
@@ -278,44 +304,48 @@ def aggregate(args):
         df_DailyScore['S'] = 100 * (df_DailyScore['AccTS'] + df_DailyScore['AccMS'] * df_DailyScore['AccLS']) / (df_DailyScore['AccTJD'] * 2) 
         
         df_DailyScore = df_DailyScore.drop(columns=['AccTS','AccMS','AccLS','AccTJD'])
+        df_byAISample01 = df_result3['TJSC']
+        df_byAISample02 = df_DailyScore[['C1','C2','S']]
+        df_byAISample03 = pd.merge(df_byAISample02, df_byAISample01, left_index=True, right_index= True)
+        # print('df_byAISample03',df_byAISample03,sep='\n')
+        df_byAI = df_byAISample03[df_byAISample03['S'] > 50]
+        # print('df_byAI',df_byAI,sep='\n')
         
-        df_byAI = df_DailyScore[df_DailyScore['S'] > 50]
-        
-        print('df_result3',df_result3,sep='\n')
-        fulldata_dba = df_result3.to_json(orient="records")
-        print('df_resultinfo',df_resultinfo,sep='\n')
-        fulldatainfo_dba = df_resultinfo.to_json(orient="records")
-        print('df_DailyScore',df_DailyScore,sep='\n')
-        fulldataDailyScore_dba = df_DailyScore.to_json(orient="records")
-        print('df_DailyScore',fulldataDailyScore_dba,sep='\n')
-        print('df_byAI',df_byAI,sep='\n')
-        fulldatabyAI_dba = df_byAI.to_json(orient="records")
-        print('fulldatabyAI_dba',fulldatabyAI_dba,sep='\n')
+        # print('df_result3',df_result3,sep='\n')
+        # fulldata_dba = df_result3.to_json(orient="records")
+        # print('df_resultinfo',df_resultinfo,sep='\n')
+        # fulldatainfo_dba = df_resultinfo.to_json(orient="records")
+        # print('df_DailyScore',df_DailyScore,sep='\n')
+        # fulldataDailyScore_dba = df_DailyScore.to_json(orient="records")
+        # print('df_DailyScore',fulldataDailyScore_dba,sep='\n')
+        # print('df_byAI',df_byAI,sep='\n')
+        # fulldatabyAI_dba = df_byAI.to_json(orient="records")
+        # print('fulldatabyAI_dba',fulldatabyAI_dba,sep='\n')
         
         
         # try:
-        conn = MySQLConnection(user = 'diego.vn', password = 'specialone1994', host = '10.18.200.70', port = '3307', database = 'SPU_AIML')
-        cur = conn.cursor()
+        # conn = MySQLConnection(user = 'diego.vn', password = 'specialone1994', host = '10.18.200.70', port = '3307', database = 'SPU_AIML')
+        # cur = conn.cursor()
         
-        cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationStats',[fulldata_dba,date_insert,None])
-        conn.commit()
+        # cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationStats',[fulldata_dba,date_insert,None])
+        # conn.commit()
 
-        print('Insert AssocicationStats Successfully !')
+        # print('Insert AssocicationStats Successfully !')
         
-        cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationSuspiciousInfo',[fulldatainfo_dba,None])
-        conn.commit()
+        # cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationSuspiciousInfo',[fulldatainfo_dba,None])
+        # conn.commit()
 
-        print('Insert AssociationSuspiciousInfo Successfully !')
+        # print('Insert AssociationSuspiciousInfo Successfully !')
 
-        cur.callproc('SPU_AIML.SPU_AIML_InsertDailyScore',[fulldataDailyScore_dba,None])
-        conn.commit()
+        # cur.callproc('SPU_AIML.SPU_AIML_InsertDailyScore',[fulldataDailyScore_dba,None])
+        # conn.commit()
 
-        print('Insert DailyScore Successfully !')
+        # print('Insert DailyScore Successfully !')
         
-        cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationByAI',[fulldatabyAI_dba,date_insert,None])
-        conn.commit()
+        # cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationByAI',[fulldatabyAI_dba,date_insert,None])
+        # conn.commit()
 
-        print('Insert AssociationByAI Successfully !')
+        # print('Insert AssociationByAI Successfully !')
         
         # cur.close()
         # conn.close()
@@ -331,45 +361,47 @@ def aggregate(args):
 if __name__ == "__main__":
 
     start_time=time.time()
-    date_insert='2021-01-29'
+    date_insert='2021-03-16'
     # read customer list
     # with open(os.path.join(root,cus_list_fn),'rb') as f:
     #     CUST_LIST=pickle.load(f)
 
-    CUST_LIST = [1,2,3]
+    # CUST_LIST = [1,2,3,4]
 
     # with open(os.path.join(root,cus_dict_fn),'rb') as f:
     #     cus_dict=pickle.load(f)
 
-    cus_dict = {1:[(1,1),(3,3),(4,7)],
-                1111:[(1,1),(3,3)],
-                2222:[(4,7)],
-                2:[(5,8),(6,1)],
-                3333:[(5,8)],
-                4444:[(6,1)],
-                3:[(7,3)],
-                5555:[(7,3)]}
+    # cus_dict = {1:[(1,1),(3,3),(4,7)],
+    #             1111:[(1,1),(3,3)],
+    #             2222:[(4,7)],
+    #             2:[(5,8),(6,1)],
+    #             3333:[(5,8)],
+    #             4444:[(6,1)],
+    #             3:[(7,3),(10,3),(8,7)],
+    #             5555:[(7,3),(10,3),(8,7)],
+    #             4:[(2,8),(9,7)],
+    #             6666:[(2,8),(9,7)]}
 
     # with open(os.path.join(root,mlm_dict_fn),'rb') as f:
     #     match_league_map=pickle.load(f)
-    match_league_map = {1:'major',3:'major',4:'minor',5:'minor',6:'major',7:'minor'}
+    # match_league_map = {1:'major',2:'major',3:'major',10:'major',5:'minor',6:'minor',7:'major',9:'major',8:'major'}
     print('read files successfully !')
     # build batches
     CUST_LIST=np.sort(CUST_LIST)
-    BATCHES=[CUST_LIST[x:x+1] for x in range(0, len(CUST_LIST), 1)]
+    BATCHES=[CUST_LIST[x:x+10] for x in range(0, len(CUST_LIST), 1)]
 
     # read match-league map data and major league info data
-    aggregate((np.min(CUST_LIST),np.max(CUST_LIST)))
+    # aggregate((np.min(CUST_LIST),np.max(CUST_LIST)))
     # connect DBs
-    # pool=mp.Pool(2)
-    # for _ in tqdm(pool.imap_unordered(aggregate,[(np.min(BATCH),np.max(BATCH)) for BATCH in BATCHES]),total=len(BATCHES),desc='AGG'):
-    #     pass
+    pool=mp.Pool(2)
+    for _ in tqdm(pool.imap_unordered(aggregate,[(np.min(BATCH),np.max(BATCH)) for BATCH in BATCHES]),total=len(BATCHES),desc='AGG'):
+        pass
 
     # close DBs
     
     ## agg final table
     # try:
-    conn = MySQLConnection(user = 'diego.vn', password = 'specialone1994', host = '10.18.200.70', port = '3307', database = 'SPU_AIML')
+    conn = MySQLConnection(user = aimluser, password = aimlpwd, host = aimlhost, port = aimlport, database = aimldb)
     cur = conn.cursor()       
     ## update table SystemParameter
     cur.callproc('SPU_AIML.SPU_AIML_UpdateScanStatus',[date_insert,None])
