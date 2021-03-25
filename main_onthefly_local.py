@@ -859,9 +859,14 @@ if __name__ == "__main__":
                                 encoding='ISO-8859-1'
                                 , skiprows=[1], skipfooter=1
                                 )
-
+                if len(data.index)==0 or data.bettype.isnull().values.any():
+                    os.remove(os.path.join(root_orig, orig_fn))
+                    continue
                 DATE = data[(data.bettype.isin([1, 3, 7, 8]))
                             & (data.liveindicator)]
+                if len(DATE.index)==0:
+                    os.remove(os.path.join(root_orig, orig_fn))
+                    continue
 
                 date_winlost = DATE['winlostdate'].min()
                 DATE['category'] = DATE['category'].fillna(value='minor')
