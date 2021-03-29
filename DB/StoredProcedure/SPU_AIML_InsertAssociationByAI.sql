@@ -39,7 +39,7 @@ BEGIN
         , 	tmpTable.TotalJoiningSuspiciousCombs
         ,	NOW()
         ,	NOW()
-	FROM JSON_TABLE(ip_DailyStats,
+	FROM JSON_TABLE(ip_Association,
 		 "$[*]" COLUMNS(
 			  CustID1 							BIGINT UNSIGNED		PATH "$.C1"
 			, CustID2							BIGINT UNSIGNED		PATH "$.C2"

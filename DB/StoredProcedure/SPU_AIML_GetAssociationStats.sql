@@ -1,80 +1,64 @@
-CREATE DEFINER=`aimlOwner`@`%` PROCEDURE `SPU_AIML_GetAssociationStats`(
-	IN 	ip_IsFirstRunOfTheDay 		BIT,
-    IN	ip_BatchSize				INT UNSIGNED,
+USE SPU_AIML;
+DROP PROCEDURE IF EXISTS `SPU_AIML_GetAssociationStats`;
+
+DELIMITER $$
+CREATE DEFINER=`AIMLOwner`@`%` PROCEDURE `SPU_AIML_GetAssociationStats`(
+	IN 	ip_FromCustID1 		BIGINT UNSIGNED,
+    IN 	ip_ToCustID1 		BIGINT UNSIGNED,
     
-    OUT op_ErrorMessage 			VARCHAR(200)
+	OUT op_ErrorMessage 	VARCHAR(200)
 )
     SQL SECURITY INVOKER
 BEGIN
 	/*
-		Created:	20201204@Long.Luu
-		Task:		Get New Association Stats [Redmine ID: #0000]
+		Created:	20210126@Long.Luu
+		Task:		Get data from Association Stats Staging [Redmine ID: #0000]
 		DB:			SPU_AIML
 		Original: 
 
 		Revisions:
-			- 20201204@Long.Luu: Created [Redmine ID: #0000]
+			- 20210126@Long.Luu: Created [Redmine ID: #0000]
             
 		Example:
-			call SPU_AIML.SPU_AIML_GetAssociationStats(1, 5000);    
-	*/ 
-    
-    DECLARE lv_CurrentDate 		DATE DEFAULT NOW();
-    DECLARE lv_MinCustID1 		BIGINT UNSIGNED;
-
+			call SPU_AIML.SPU_AIML_GetAssociationStats(1,1000,@resultsMessage);    
+	*/
     DECLARE EXIT HANDLER FOR SQLEXCEPTION 
     BEGIN         
         GET DIAGNOSTICS CONDITION 1 op_ErrorMessage = MESSAGE_TEXT;
     END;
-    
-    DROP TEMPORARY TABLE IF EXISTS Temp_AssociationStats;    
+
+	DROP TEMPORARY TABLE IF EXISTS Temp_AssociationStats;    
 	CREATE TEMPORARY TABLE Temp_AssociationStats 
     (	 
-			CustID1							BIGINT UNSIGNED	NOT NULL
-		, 	CustID2							BIGINT UNSIGNED NOT NULL
-		, 	TimeScore						DECIMAL(10,4) NOT NULL
-		, 	MatchScore						DECIMAL(10,4) NOT NULL
-		, 	LeagueScore						DECIMAL(10,4) NOT NULL
-		, 	TotalJoinedDays					SMALLINT NOT NULL
-		, 	TotalJoinedMatches				SMALLINT NOT NULL
-		, 	TotalJoinedSuspiciousMatches	SMALLINT NOT NULL
-        , 	BetCount						BIGINT UNSIGNED NOT NULL
-        , 	PRIMARY KEY	    PK_Temp_AssociationStats_CustID1_CustID2(CustID1,CustID2) 
-        , 	INDEX	    	IX_Temp_AssociationStats_IsNewCouple(IsNewCouple) 
-    );      
+			CustID1					BIGINT UNSIGNED	NOT NULL
+		, 	CustID2					BIGINT UNSIGNED NOT NULL
+		, 	TimeScore				DECIMAL(10,4) NOT NULL
+		, 	MatchID					BIGINT UNSIGNED
+		, 	Bettype					INT UNSIGNED
+		, 	LeagueID				BIGINT UNSIGNED
+		, 	IsMajorLeague			BIT
+		, 	TotalJoiningCombs		INT UNSIGNED        
+        , 	IsNewData				BIT
+		, 	AccTimeScore			DECIMAL(10,4) DEFAULT 0
+		, 	AccMatchScore			DECIMAL(10,4) DEFAULT 0
+		, 	AccLeagueScore			DECIMAL(10,4) DEFAULT 0
+        ,	AccTotalJoiningDays		INT UNSIGNED  DEFAULT 0
+        , 	INDEX		    		IX_Temp_AssociationStats_CustID1_CustID2(CustID1,CustID2) 
+    );     
     
-    IF (ip_IsFirstRunOfTheDay = 1) THEN
-		SELECT lv_MinCustID1 = 0;
-    ELSE
-		SELECT ParameterValue #CAST(ParameterValue AS BIGINT UNSIGNED)
-        INTO lv_MinCustID1
-        FROM SPU_AIML.SystemParameter 
-        WHERE ParameterID = 2;
-    END IF;
+    INSERT INTO Temp_AssociationStats(CustID1, CustID2, TimeScore, MatchID, Bettype, LeagueID, IsMajorLeague, TotalJoiningCombs, IsNewData)
+	SELECT CustID1, CustID2, TimeScore, MatchID, Bettype, LeagueID, IsMajorLeague, TotalJoiningCombs, IsNewData
+    FROM SPU_AIML.AssociationStatsStaging
+    WHERE CustID1 BETWEEN ip_FromCustID1 AND ip_ToCustID1;
     
-    INSERT INTO Temp_AssociationStats(CustID1, CustID2, TimeScore, MatchScore, LeagueScore, TotalJoinedDays, TotalJoinedMatches, TotalJoinedSuspiciousMatches, BetCount)
-    SELECT 	s.CustID1
-		, 	s.CustID2
-		, 	s.TimeScore
-        , 	s.MatchScore
-        , 	s.LeagueScore
-        , 	s.TotalJoinedDays
-        , 	s.TotalJoinedMatches
-        , 	s.TotalJoinedSuspiciousMatches
-        ,	s.BetCount
-	FROM SPU_AIML.AssociationStats AS s
-    WHERE s.CustID1 > lv_MinCustID1
-		AND s.LastModifiedDate = lv_CurrentDate
-	ORDER BY s.CustID1 ASC
-    LIMIT 0, ip_BatchSize;  
-    
-	UPDATE SPU_AIML.SystemParameter
-    SET ParameterValue = (SELECT MAX(CustID1) FROM Temp_AssociationStats)
-	WHERE ParameterID = 2;
-    
-    SELECT *
-    FROM Temp_AssociationStats;
-    
-    DROP TEMPORARY TABLE IF EXISTS Temp_AssociationStats;
+    UPDATE Temp_AssociationStats AS t
+		LEFT JOIN SPU_AIML.AssociationStats AS a ON t.CustID1 = a.CustID1 AND t.CustID2 = a.CustID2
+    SET 	t.AccTimeScore =  a.TimeScore
+		,	t.AccMatchScore =  a.MatchScore
+        ,	t.AccLeagueScore =  a.LeagueScore
+        ,	t.AccTotalJoiningDays = a.TotalJoiningDays;
      
-END
+     SELECT *
+     FROM Temp_AssociationStats;
+     
+END$$

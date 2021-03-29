@@ -8,8 +8,8 @@ CREATE TABLE `AssociationStatsStaging` (
   `LeagueID` bigint unsigned NOT NULL,
   `IsMajorLeague` bit(1) DEFAULT NULL,
   `TotalJoiningCombs` int unsigned NOT NULL,
+  `IsNewData` BIT NOT NULL DEFAULT 1,
   PRIMARY KEY (`ID`),
   INDEX `IX_AssociationStatsStaging_CustID1CustID2` (`CustID1`,`CustID2`),
-  INDEX `IX_AssociationStatsStaging_MatchIDBettype` (`MatchID`,`Bettype`),
-  INDEX `IX_AssociationStatsStaging_IsMajorLeague` (`IsMajorLeague`)
+  INDEX `IX_AssociationStatsStaging_IsNewData` (`IsNewData`)
 ) ENGINE=InnoDB;

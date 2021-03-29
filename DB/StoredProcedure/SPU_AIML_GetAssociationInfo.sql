@@ -51,36 +51,45 @@ BEGIN
 			ID				BIGINT UNSIGNED	NOT NULL AUTO_INCREMENT PRIMARY KEY
 		, 	BettypeID		SMALLINT UNSIGNED NOT NULL
     );  
+        
+    IF EXISTS(SELECT 1 FROM SPU_AIML.AssociationSuspiciousInfo WHERE CustID1 = ip_CustID1 AND CustID2 = ip_CustID2) THEN		
+		SELECT MatchIDList, BettypeList
+		INTO lv_MatchIDList, lv_BettypeIDList
+		FROM SPU_AIML.AssociationSuspiciousInfo
+		WHERE CustID1 = ip_CustID1 AND CustID2 = ip_CustID2;
     
-    SELECT MatchIDList, BettypeList
-    INTO lv_MatchIDList, lv_BettypeIDList
-    FROM SPU_AIML.AssociationSuspiciousInfo
-    WHERE CustID1 = ip_CustID1 AND CustID2 = ip_CustID2;
+		SET @sql = CONCAT("INSERT INTO Temp_Match (MatchID) VALUES ('", REPLACE(lv_MatchIDList, ",", "'),('"),"');");
+		PREPARE stmt1 FROM @sql;
+		EXECUTE stmt1;
+		
+		SET @sql = CONCAT("INSERT INTO Temp_Bettype (BettypeID) VALUES ('", REPLACE(lv_BettypeIDList, ",", "'),('"),"');");
+		PREPARE stmt1 FROM @sql;
+		EXECUTE stmt1;
+		 
+		SET @@sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));
+		INSERT INTO Temp_DistinctedMatch(MatchID)
+		SELECT DISTINCT MatchID
+		FROM Temp_Match
+		ORDER BY ID DESC;
+		
+		SELECT COUNT(1)
+		INTO op_TotalMatchCount
+		FROM Temp_DistinctedMatch;
+		
+		DELETE FROM Temp_DistinctedMatch
+		WHERE ID > 50;
+		
+		WITH cts_matchbettype(MatchID,BettypeID) AS (
+			SELECT DISTINCT m.MatchID, b.BettypeID
+			FROM Temp_DistinctedMatch AS dm
+				INNER JOIN Temp_Match AS m ON dm.MatchID = m.MatchID
+				INNER JOIN Temp_Bettype AS b ON m.ID = b.ID
+        )
+		SELECT m.MatchID, GROUP_CONCAT(m.BettypeID) AS BettypeList
+		FROM cts_matchbettype AS m
+		GROUP BY m.MatchID;    
+    ELSE
+		SET op_TotalMatchCount = 0;
+    END IF;
     
-    SET @sql = CONCAT("INSERT INTO Temp_Match (MatchID) VALUES ('", REPLACE(lv_MatchIDList, ",", "'),('"),"');");
-	PREPARE stmt1 FROM @sql;
-	EXECUTE stmt1;
-    
-    SET @sql = CONCAT("INSERT INTO Temp_Bettype (BettypeID) VALUES ('", REPLACE(lv_BettypeIDList, ",", "'),('"),"');");
-	PREPARE stmt1 FROM @sql;
-	EXECUTE stmt1;
-     
-	SET @@sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));
-	INSERT INTO Temp_DistinctedMatch(MatchID)
-    SELECT DISTINCT MatchID
-    FROM Temp_Match
-    ORDER BY ID DESC;
-    
-    SELECT COUNT(1)
-    INTO op_TotalMatchCount
-    FROM Temp_DistinctedMatch;
-    
-    DELETE FROM Temp_DistinctedMatch
-    WHERE ID > 50;
-    
-    SELECT m.MatchID, GROUP_CONCAT(b.BettypeID) AS BettypeList
-    FROM Temp_DistinctedMatch AS dm
-		INNER JOIN Temp_Match AS m ON dm.MatchID = m.MatchID
-        INNER JOIN Temp_Bettype AS b ON m.ID = b.ID
-	GROUP BY m.MatchID;
 END$$
