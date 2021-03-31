@@ -54,6 +54,11 @@ class ProConfiguration(object):
     def GetSaveDataDir(self, config):
         config.config.sections()
         return config.config['DEFAULT']['SAVE_DATA_DIR']
+    
+    @classmethod   
+    def GetBackUp(self, config):
+        config.config.sections()
+        return config.config['DEFAULT']['BACK_UP']
 
     @classmethod
     def GetMatchLeagueMap(self, config):
@@ -164,6 +169,16 @@ class ProConfiguration(object):
     def getNumBatchCus(self, config):
         config.config.sections()
         return config.config['GROUPBETTINGCONFIG']['NUM_BATCH_CUS']
+    
+    @classmethod
+    def getTransferDataScore(self, config):
+        config.config.sections()
+        return config.config['ACTION_CTS'].getboolean('TRANSFER_DATASCORE')
+    
+    @classmethod
+    def getTransferDataIP(self, config):
+        config.config.sections()
+        return config.config['ACTION_CTS'].getboolean('TRANSFER_DATAIP')
 
 
 
