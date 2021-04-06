@@ -33,7 +33,7 @@ def get_unique_bettype(x):
     result = set(result)
     return pd.Series((result,counts))
 
-def AssociationbyIP(df_dataip,chunk_size,date_insert):
+def AssociationbyIP(df_dataip,chunk_size,date_insert,transfer_ip):
     try:
         time_start = time.time()
         
@@ -107,33 +107,43 @@ def AssociationbyIP(df_dataip,chunk_size,date_insert):
                     for x in range(0, len(fullDataIPSPU_dba), chunk_size)]
             
             try:
-                conn = MySQLConnection(user='aimlServiceAdmin', password='aimlServiceAdmin@AIML2209#',
-                                            host='10.40.40.78', port='3306', database='SPU_AIML')
+                conn = MySQLConnection(user='darius.vn', password='1qaz@Wsx3edc',
+                                            host='10.18.200.72', port='3306', database='SPU_AIML')
                 cur = conn.cursor()
                 for chunk1 in chunks1:
                     json_objIP1 = json.dumps(chunk1)
-                    cur.callproc('SPU_AIML.SPU_AIML_InsertCoupleIPStats',[json_objIP1,None])
+                    in1,out1 = cur.callproc('SPU_AIML.SPU_AIML_InsertCoupleIPStats',[json_objIP1,None])
+                    if out1 is not None:
+                        print(out1)
+                        logging.error(f'Error return from SP SPU_AIML_InsertCoupleIPStats: {out1}')
+                        message_telegram = f'Error return from SP SPU_AIML_InsertCoupleIPStats: {out1}'
+                        SendLogTelegram.send_message(message_telegram)
                     dba_results = [r.fetchall() for r in cur.stored_results()]
                     conn.commit()
-                    
-                    if len(dba_results[0]) > 0:
-                        df_CTS = pd.DataFrame(dba_results[0], columns=[
-                        "C1",
-                        "C2"])
-                        fullDataIPCTS_dba = df_CTS.to_json(orient="records")
-                        try:
-                            conn2 = MySQLConnection(user='ctsServiceAdmin', password='ctsServiceAdmin@CTS2209#',
-                                        host='10.40.40.58', port='3306', database='CTS_DataCenter')
-                            cur2 = conn2.cursor()
-                            cur2.callproc('CTS_DataCenter.CTS_DC_Association_InsertAssociationByIP',[fullDataIPCTS_dba,date_insert,None])
-                            conn2.commit()
-                            cur2.close()
-                            conn.close()
-                        except Exception as e:
-                            logging.error(f"Error insert Group Betting by IP to CTS DB: {e}")
-                            message_telegram = f"Error insert Group Betting by IP to CTS DB: {e}"
-                            SendLogTelegram.send_message(message_telegram)
-                            raise ValueError
+                    if transfer_ip:
+                        if len(dba_results[0]) > 0:
+                            df_CTS = pd.DataFrame(dba_results[0], columns=[
+                            "C1",
+                            "C2"])
+                            fullDataIPCTS_dba = df_CTS.to_json(orient="records")
+                            try:
+                                conn2 = MySQLConnection(user='long.vn', password='Welcome1',
+                                            host='10.18.200.72', port='3306', database='CTS_DataCenter')
+                                cur2 = conn2.cursor()
+                                in1,in2,out1 = cur2.callproc('CTS_DataCenter.CTS_DC_Association_InsertAssociationByIP',[fullDataIPCTS_dba,date_insert,None])
+                                if out1 is not None:
+                                    print(out1)
+                                    logging.error(f'Error return from SP CTS_DC_Association_InsertAssociationByIP: {out1}')
+                                    message_telegram = f'Error return from SP CTS_DC_Association_InsertAssociationByIP: {out1}'
+                                    SendLogTelegram.send_message(message_telegram)
+                                conn2.commit()
+                                cur2.close()
+                                conn2.close()
+                            except Exception as e:
+                                logging.error(f"Error insert Group Betting by IP to CTS DB: {e}")
+                                message_telegram = f"Error insert Group Betting by IP to CTS DB: {e}"
+                                SendLogTelegram.send_message(message_telegram)
+                                raise ValueError
                 
                 cur.close()
                 conn.close()

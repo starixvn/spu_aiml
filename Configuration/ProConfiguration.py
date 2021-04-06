@@ -56,6 +56,11 @@ class ProConfiguration(object):
         return config.config['DEFAULT']['SAVE_DATA_DIR']
     
     @classmethod   
+    def GetErrorFolder(self, config):
+        config.config.sections()
+        return config.config['DEFAULT']['ERROR_FOLDER']
+    
+    @classmethod   
     def GetBackUp(self, config):
         config.config.sections()
         return config.config['DEFAULT']['BACK_UP']

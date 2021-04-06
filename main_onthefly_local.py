@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import multiprocessing as mp
-from concurrent.futures import ProcessPoolExecutor,as_completed
+# from concurrent.futures import ProcessPoolExecutor,as_completed
 import logging
 import csv
 import json
@@ -169,7 +169,7 @@ def process_a_combination(args):
     X = np.asarray(X)
 
     # compute pairwise-time-score matrix
-    start_compute = time.time()
+    # start_compute = time.time()
     m = helper.compute_pairwise_cus(X, time_threshold)
     #print("\n","PAIRWISE MATRIX HAVING SHAPE %s OF MATCH %.0f BETTYPE %.0f :" % (m.shape,match,bettype),m,sep='\n')
     # print("\n", "MATCH %.0f BETTYPE %.0f | %.0f CUSTOMERS | COMPUTING TIME SCORE TAKES %.0f SECONDS" % (
@@ -191,13 +191,11 @@ def process_a_combination(args):
         for (i, j) in itertools.combinations([x for x in range(len(COMBINATION_CUST_LIST))], 2) if m[i, j] > 0
     ]
     # print(f"JSON OBJ 1th {obj[0]}",f"JSON OBJ 2nd {obj[1]}",f"JSON OBJ 3rd {obj[2]}",sep='\n')
-    temp_df=pd.DataFrame(obj)
-    temp_cus_list=temp_df.C1.to_list()
 
-    start_save = time.time()
+    # start_save = time.time()
     # build chunks for DB saving
     chunks = [obj[x:x+chunk_size] for x in range(0, len(obj), chunk_size)]
-    del m,temp_df
+    del m
     #print("JSON OBJECT :",obj,sep="\n")
     # print("\n", "MATCH %.0f BETTYPE %.0f | %.0f CUSTOMERS | TRANSFROMING TAKES %.0f SECONDS" % (
     #     match, bettype, len(COMBINATION_CUST_LIST), time.time() - start_transform))
@@ -210,13 +208,15 @@ def process_a_combination(args):
             cursor = conn.cursor()
             for chunk in chunks:
                 jsonList = json.dumps(chunk)
-                cursor.callproc(
-                    'SPU_AIML_InsertAssociationStatsStaging', [jsonList, None])
+                in1,out1 = cursor.callproc('SPU_AIML_InsertAssociationStatsStaging', [jsonList, None])
+                if out1 is not None:
+                    print(out1)
                 conn.commit()
             cursor.close()
             conn.close()
         except Exception as err:
-            logging.error(f'{ENV} | Error insert AssociationStatsStaging: {err}')
+            # logging.error(f'{ENV} | Error insert AssociationStatsStaging: {err}')
+            print(f'{ENV} | Error insert AssociationStatsStaging: {err}')
             # message_telegram = f'{ENV} | Error insert table byAI in DBA CTS: {err}'
             # SendLogTelegram.send_message(message_telegram)
             raise ValueError
@@ -269,6 +269,12 @@ def total_leaguescore(x, y):
         return (3 * (minor_score + 1) + (major_score + 2)) * (1/9)
 
 def day_end_aggregate(args):
+    """
+    >>> Input   :   MinCustID       : integer
+                    MaxCustID       : integer
+                    date_insert     : string | format : YYYY-MM-DD
+                    daily_cus_dict  : dictionary
+    """
     try:
         date_insert,daily_cus_dict=args[2],args[3]
         # sub_results=results[(results.C1>=int(args[0]))&(results.C1<=int(args[1]))]
@@ -438,9 +444,9 @@ def day_end_aggregate(args):
                     in1,out1 = cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationByAI', [json_obj5, None])
                     if out1 is not None:
                         print(out1)
-                        logging.error(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}')
-                        message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}'
-                        SendLogTelegram.send_message(message_telegram)
+                        # logging.error(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}')
+                        # message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}'
+                        # SendLogTelegram.send_message(message_telegram)
                     conn.commit()
                     
             # else:
@@ -454,7 +460,8 @@ def day_end_aggregate(args):
             conn.close()
 
         except Exception as err:
-            logging.error(f'{ENV} | Error insert 3 table in DBA: {err}')
+            # logging.error(f'{ENV} | Error insert 3 table in DBA: {err}')
+            print(f'{ENV} | Error insert 3 table in DBA: {err}')
             # message_telegram = f'{ENV} | Error insert 3 table in DBA: {err}'
             # SendLogTelegram.send_message(message_telegram)
             raise ValueError
@@ -472,16 +479,17 @@ def day_end_aggregate(args):
                     in1,in2,out1 = cur.callproc('CTS_DataCenter.CTS_DC_Association_InsertAssociationByAI', [json_obj4, date_insert, None])
                     if out1 is not None:
                         print(out1)
-                        logging.error(f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}')
-                        message_telegram = f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}'
-                        SendLogTelegram.send_message(message_telegram)
+                        # logging.error(f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}')
+                        # message_telegram = f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}'
+                        # SendLogTelegram.send_message(message_telegram)
                     conn.commit()
 
                 cur.close()
                 conn.close()
 
             except Exception as err:
-                logging.error(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
+                # logging.error(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
+                print(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
                 # message_telegram = f'{ENV} | Error insert table byAI in DBA CTS: {err}'
                 # SendLogTelegram.send_message(message_telegram)
                 raise ValueError
@@ -555,9 +563,9 @@ def day_end_aggregate(args):
                     in1,in2,out1 = cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationStats', [json_obj1, date_insert, None])
                     if out1 is not None:
                         print(out1)
-                        logging.error(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationStats: {out1}')
-                        message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationStats: {out1}'
-                        SendLogTelegram.send_message(message_telegram)
+                        # logging.error(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationStats: {out1}')
+                        # message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationStats: {out1}'
+                        # SendLogTelegram.send_message(message_telegram)
                     conn.commit()
 
                     json_obj5 = json.dumps(chunk5)
@@ -566,23 +574,25 @@ def day_end_aggregate(args):
                     in1,out1 = cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationByAI', [json_obj5, None])
                     if out1 is not None:
                         print(out1)
-                        logging.error(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}')
-                        message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}'
-                        SendLogTelegram.send_message(message_telegram)
+                        # logging.error(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}')
+                        # message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}'
+                        # SendLogTelegram.send_message(message_telegram)
                     conn.commit()
                     
             else:
                 for chunk1 in chunks1:
                     json_obj1 = json.dumps(chunk1)
-                    cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationStats', [
-                                json_obj1, date_insert, None])
+                    in1,in2,out1 = cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationStats', [json_obj1, date_insert, None])
+                    if out1 is not None:
+                        print(out1)
                     conn.commit()
 
             cur.close()
             conn.close()
 
         except Exception as err:
-            logging.error(f'{ENV} | Error insert 3 table in DBA: {err}')
+            # logging.error(f'{ENV} | Error insert 3 table in DBA: {err}')
+            print(f'{ENV} | Error insert 3 table in DBA: {err}')
             # message_telegram = f'{ENV} | Error insert 3 table in DBA: {err}'
             # SendLogTelegram.send_message(message_telegram)
             raise ValueError
@@ -595,25 +605,33 @@ def day_end_aggregate(args):
                 cur = conn.cursor()
                 for chunk4 in chunks4:
                     json_obj4 = json.dumps(chunk4)
-                    cur.callproc('CTS_DataCenter.CTS_DC_Association_InsertAssociationByAI', [
-                                json_obj4, date_insert, None])
+                    in1,in2,out1 = cur.callproc('CTS_DataCenter.CTS_DC_Association_InsertAssociationByAI', [json_obj4, date_insert, None])
+                    if out1 is not None:
+                        print(out1)
                     conn.commit()
 
                 cur.close()
                 conn.close()
 
             except Exception as err:
-                logging.error(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
+                # logging.error(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
+                print(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
                 # message_telegram = f'{ENV} | Error insert table byAI in DBA CTS: {err}'
                 # SendLogTelegram.send_message(message_telegram)
                 raise ValueError
     except Exception as err:
-        logging.error(f'{ENV} | Error in day-end agg function: {err}')
+        # logging.error(f'{ENV} | Error in day-end agg function: {err}')
+        print(f'{ENV} | Error in day-end agg function: {err}')
         # message_telegram = f'{ENV} | Error in day-end agg function: {err}'
         # SendLogTelegram.send_message(message_telegram)
         raise ValueError
 
 def aggregate(args):
+    """
+    >>> Input   :   customer list   : string
+                    date_insert     : string | format : YYYY-MM-DD
+                    daily_cus_dict  : dictionary     
+    """
     try:
         # date_insert,daily_cus_dict=args[2],args[3]
         date_insert,daily_cus_dict=args[1],args[2]
@@ -627,9 +645,9 @@ def aggregate(args):
         in1,out1 = cur.callproc('SPU_AIML_GetAssociationStatsStaging',[args[0], None])
         if out1 is not None:
             print(out1)
-            logging.error(f'{ENV} | Error return from SP SPU_AIML_GetAssociationStatsStaging: {out1}')
-            message_telegram = f'{ENV} | Error return from SP SPU_AIML_GetAssociationStatsStaging: {out1}'
-            SendLogTelegram.send_message(message_telegram)
+            # logging.error(f'{ENV} | Error return from SP SPU_AIML_GetAssociationStatsStaging: {out1}')
+            # message_telegram = f'{ENV} | Error return from SP SPU_AIML_GetAssociationStatsStaging: {out1}'
+            # SendLogTelegram.send_message(message_telegram)
         dba_results = [r.fetchall() for r in cur.stored_results()]
         conn.commit()
         cur.close()
@@ -757,9 +775,9 @@ def aggregate(args):
                         in1,out1 = cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationSuspiciousInfo', [json_obj2, None])
                         if out1 is not None:
                             print(out1)
-                            logging.error(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationSuspiciousInfo: {out1}')
-                            message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationSuspiciousInfo: {out1}'
-                            SendLogTelegram.send_message(message_telegram)
+                            # logging.error(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationSuspiciousInfo: {out1}')
+                            # message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationSuspiciousInfo: {out1}'
+                            # SendLogTelegram.send_message(message_telegram)
                         conn.commit()
                         
                         json_obj5 = json.dumps(chunk5)
@@ -768,9 +786,9 @@ def aggregate(args):
                         in1,out1 = cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationByAI', [json_obj5, None])
                         if out1 is not None:
                             print(out1)
-                            logging.error(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}')
-                            message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}'
-                            SendLogTelegram.send_message(message_telegram)
+                            # logging.error(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}')
+                            # message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}'
+                            # SendLogTelegram.send_message(message_telegram)
                         conn.commit()
                 else:
                     for chunk2 in chunks2:
@@ -780,14 +798,15 @@ def aggregate(args):
                         in1,out1 = cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationSuspiciousInfo', [json_obj2, None])
                         if out1 is not None:
                             print(out1)
-                            logging.error(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationSuspiciousInfo: {out1}')
-                            message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationSuspiciousInfo: {out1}'
-                            SendLogTelegram.send_message(message_telegram)
+                            # logging.error(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationSuspiciousInfo: {out1}')
+                            # message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationSuspiciousInfo: {out1}'
+                            # SendLogTelegram.send_message(message_telegram)
                         conn.commit()
                 cur.close()
                 conn.close()
             except Exception as err:
-                logging.error(f'{ENV} | Error insert 3 table in DBA: {err}')
+                # logging.error(f'{ENV} | Error insert 3 table in DBA: {err}')
+                print(f'{ENV} | Error insert 3 table in DBA: {err}')
                 # message_telegram = f'{ENV} | Error insert 3 table in DBA: {err}'
                 # SendLogTelegram.send_message(message_telegram)
                 raise ValueError
@@ -805,16 +824,17 @@ def aggregate(args):
                         in1,in2,out1 = cur.callproc('CTS_DataCenter.CTS_DC_Association_InsertAssociationByAI', [json_obj4, date_insert, None])
                         if out1 is not None:
                             print(out1)
-                            logging.error(f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}')
-                            message_telegram = f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}'
-                            SendLogTelegram.send_message(message_telegram)
+                            # logging.error(f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}')
+                            # message_telegram = f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}'
+                            # SendLogTelegram.send_message(message_telegram)
                         conn.commit()
 
                     cur.close()
                     conn.close()
 
                 except Exception as err:
-                    logging.error(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
+                    # logging.error(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
+                    print(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
                     # message_telegram = f'{ENV} | Error insert table byAI in DBA CTS: {err}'
                     # SendLogTelegram.send_message(message_telegram)
                     raise ValueError
@@ -829,16 +849,17 @@ def aggregate(args):
                 in1,out1 = cur.callproc('SPU_AIML_UpdateAssociationStatsStagingStatus', [args[0], None])
                 if out1 is not None:
                     print(out1)
-                    logging.error(f'{ENV} | Error return from SP SPU_AIML_UpdateAssociationStatsStagingStatus: {out1}')
-                    message_telegram = f'{ENV} | Error return from SP SPU_AIML_UpdateAssociationStatsStagingStatus: {out1}'
-                    SendLogTelegram.send_message(message_telegram)
+                    # logging.error(f'{ENV} | Error return from SP SPU_AIML_UpdateAssociationStatsStagingStatus: {out1}')
+                    # message_telegram = f'{ENV} | Error return from SP SPU_AIML_UpdateAssociationStatsStagingStatus: {out1}'
+                    # SendLogTelegram.send_message(message_telegram)
                 conn.commit()
 
                 cur.close()
                 conn.close()
 
             except Exception as err:
-                logging.error(f'{ENV} | Error Update Staging Status: {err}')
+                # logging.error(f'{ENV} | Error Update Staging Status: {err}')
+                print(f'{ENV} | Error Update Staging Status: {err}')
                 # message_telegram = f'{ENV} | Error Update Staging Status: {err}'
                 # SendLogTelegram.send_message(message_telegram)
                 raise ValueError
@@ -925,14 +946,15 @@ def aggregate(args):
                         in1,out1 = cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationByAI', [json_obj5, None])
                         if out1 is not None:
                             print(out1)
-                            logging.error(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}')
-                            message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}'
-                            SendLogTelegram.send_message(message_telegram)
+                            # logging.error(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}')
+                            # message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}'
+                            # SendLogTelegram.send_message(message_telegram)
                         conn.commit()
                 cur.close()
                 conn.close()
             except Exception as err:
-                logging.error(f'{ENV} | Error insert Assocication By AI at phase On The Fly: {err}')
+                # logging.error(f'{ENV} | Error insert Assocication By AI at phase On The Fly: {err}')
+                print(f'{ENV} | Error insert Assocication By AI at phase On The Fly: {err}')
                 # message_telegram = f'{ENV} | Error insert Assocication By AI at phase On The Fly: {err}'
                 # SendLogTelegram.send_message(message_telegram)
                 raise ValueError
@@ -950,16 +972,17 @@ def aggregate(args):
                         in1,in2,out1 = cur.callproc('CTS_DataCenter.CTS_DC_Association_InsertAssociationByAI', [json_obj4, date_insert, None])
                         if out1 is not None:
                             print(out1)
-                            logging.error(f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}')
-                            message_telegram = f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}'
-                            SendLogTelegram.send_message(message_telegram)
+                            # logging.error(f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}')
+                            # message_telegram = f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}'
+                            # SendLogTelegram.send_message(message_telegram)
                         conn.commit()
 
                     cur.close()
                     conn.close()
 
                 except Exception as err:
-                    logging.error(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
+                    # logging.error(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
+                    print(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
                     # message_telegram = f'{ENV} | Error insert table byAI in DBA CTS: {err}'
                     # SendLogTelegram.send_message(message_telegram)
                     raise ValueError
@@ -967,7 +990,8 @@ def aggregate(args):
         # return df_result3.to_dict(orient='records')
 
     except Exception as err:
-        logging.error(f'{ENV} | Error in agg function: {err}')
+        # logging.error(f'{ENV} | Error in agg function: {err}')
+        print(f'{ENV} | Error in agg function: {err}')
         # message_telegram = f'{ENV} | Error in agg function: {err}'
         # SendLogTelegram.send_message(message_telegram)
         raise ValueError
@@ -1004,11 +1028,13 @@ if __name__ == "__main__":
                 day_prev=orig_fn.split('.')[0].split('_')[2]
                 year_prev=orig_fn.split('.')[0].split('_')[3]
                 time_begin = time.time()
-                today = dt.today()
-                logging.info(
-                    "======================================================================================================")
-                logging.info(f"{ENV} | Running for Date: {year_prev+'-'+month_prev+'-'+day_prev}")
-                message_telegram = f"{ENV} | Group Betting is running for {year_prev+'-'+month_prev+'-'+day_prev}"
+                # today = dt.today()
+                # logging.info(
+                #     "======================================================================================================")
+                # logging.info(f"{ENV} | Running for Date: {year_prev+'-'+month_prev+'-'+day_prev}")
+                print("======================================================================================================")
+                print(f"{ENV} | Running for Date: {year_prev+'-'+month_prev+'-'+day_prev}")
+                # message_telegram = f"{ENV} | Group Betting is running for {year_prev+'-'+month_prev+'-'+day_prev}"
                 # SendLogTelegram.send_message(message_telegram)
                 initial=int(orig_fn.split('.')[0].split('_')[2])
             month_curr=orig_fn.split('.')[0].split('_')[1]
@@ -1039,9 +1065,9 @@ if __name__ == "__main__":
                 in1,out1 = cur.callproc('SPU_AIML.SPU_AIML_UpdateScanStatus',[date_insert, None])
                 if out1 is not None:
                     print(out1)
-                    logging.error(f'{ENV} | Error return from SP SPU_AIML_UpdateScanStatus: {out1}')
-                    message_telegram = f'{ENV} | Error return from SP SPU_AIML_UpdateScanStatus: {out1}'
-                    SendLogTelegram.send_message(message_telegram)
+                    # logging.error(f'{ENV} | Error return from SP SPU_AIML_UpdateScanStatus: {out1}')
+                    # message_telegram = f'{ENV} | Error return from SP SPU_AIML_UpdateScanStatus: {out1}'
+                    # SendLogTelegram.send_message(message_telegram)
                 conn.commit()
 
                 cur.close()
@@ -1049,8 +1075,9 @@ if __name__ == "__main__":
                 print("***********************************************************************************************************************************************************************************")
                 print("%s | AGG & INSERT TIME %.0f SECONDS" %
                     (ENV,time.time() - start_time))
-                logging.info(
-                    f"{ENV} | Done phase 2, takes {time.time() - start_time} seconds")
+                # logging.info(
+                #     f"{ENV} | Done day-end phase 2, takes {time.time() - start_time} seconds")
+                print(f"{ENV} | Done day-end phase 2, takes {time.time() - start_time} seconds")
                 # message_telegram = f"{ENV} | Group Betting is done, total {round((time.time() - time_begin)/3600,4)} hours "
                 # SendLogTelegram.send_message(message_telegram)
                 conn = MySQLConnection(user=aimluser, password=aimlpwd,
@@ -1175,11 +1202,13 @@ if __name__ == "__main__":
                 # print('\n', f"LEN OF CUS DICT {len(batch_cus_dict)}")
                 with open(os.path.join(root, cus_dict_fn), 'rb') as g:
                         daily_cus_dict = pickle.load(g)
-                logging.info(
-                    f"{ENV} | Done phase 0, takes {time.time() - time_phase0} seconds")
+                # logging.info(
+                #     f"{ENV} | Done phase 0, takes {time.time() - time_phase0} seconds")
+                print(f"{ENV} | Done phase 0, takes {time.time() - time_phase0} seconds")
                 # print('\n',f"MATCH BREAKING TAKES {(time.time()-start_match_breaking)} seconds")
             except Exception as e:
-                logging.error(f"{ENV} | Error at phase 0: {e}")
+                # logging.error(f"{ENV} | Error at phase 0: {e}")
+                print(f"{ENV} | Error at phase 0: {e}")
                 # message_telegram = f"{ENV} | Error at phase 0: {e}"
                 # SendLogTelegram.send_message(message_telegram)
                 break
@@ -1205,10 +1234,12 @@ if __name__ == "__main__":
                 # print('\n', '********************************************************************************************************************************************')
                 # print("\n", f"{ENV} | PROCESSING TIME %.0f SECONDS" %
                     # (time.time() - start_processing))
-                logging.info(
-                    f"{ENV} | Done phase 1, takes {time.time() - start_processing} seconds")
+                # logging.info(
+                #     f"{ENV} | Done phase 1, takes {time.time() - start_processing} seconds")
+                print(f"{ENV} | Done phase 1, takes {time.time() - start_processing} seconds")
             except Exception as e:
-                logging.error(f"{ENV} | Error phase 1: {e}")
+                # logging.error(f"{ENV} | Error phase 1: {e}")
+                print(f"{ENV} | Error phase 1: {e}")
                 # message_telegram = f"{ENV} | Error phase 1: {e}"
                 # SendLogTelegram.send_message(message_telegram)
                 break
@@ -1226,7 +1257,8 @@ if __name__ == "__main__":
                 # BATCHES = [batch_cus_list[x:x+num_batch_cus] for x in range(0, len(batch_cus_list), num_batch_cus)]
                 BATCHES = [','.join([str(z) for z in batch_cus_list[x:x+num_batch_cus]]) for x in range(0, len(batch_cus_list), num_batch_cus)]
                 # print('First Batch',BATCHES[0],sep='\n')
-                logging.info(f"number of cust list: {len(batch_cus_list)}")
+                # logging.info(f"number of cust list: {len(batch_cus_list)}")
+                print(f"number of cust list: {len(batch_cus_list)}")
                 # aggregate((np.min(BATCHES[0]),np.max(BATCHES[0])))
                 # pool = mp.Pool(nb_workers_phase_2)
                 # for _ in tqdm(pool.imap_unordered(aggregate, [(np.min(BATCH), np.max(BATCH),0,date_insert,daily_cus_dict) for BATCH in BATCHES]), total=len(BATCHES), desc='AGG'):
@@ -1243,11 +1275,13 @@ if __name__ == "__main__":
                 pool.close()
                 pool.join()
                 # results = [item for sublist in result for item in sublist]
-                logging.info(f'File {orig_fn} done in {time.time()-start_time} seconds')
+                # logging.info(f'A BATCH of {date_insert} done in {time.time()-start_time} seconds')
+                print(f'A BATCH of {date_insert} done in {time.time()-start_time} seconds')
                 # print(f'Once more batch of {date_insert} overcame phase 2 successfully !')
 
             except Exception as e:
-                logging.error(f"{ENV} | Error phase 2: {e}")
+                # logging.error(f"{ENV} | Error phase 2: {e}")
+                print(f"{ENV} | Error phase 2: {e}")
                 # message_telegram = f"{ENV} | Error phase 2: {e}"
                 # SendLogTelegram.send_message(message_telegram)
                 break

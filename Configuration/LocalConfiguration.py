@@ -59,6 +59,11 @@ class LocalConfiguration(object):
     def GetBackUp(self, config):
         config.config.sections()
         return config.config['DEFAULT']['BACK_UP']
+    
+    @classmethod   
+    def GetErrorFolder(self, config):
+        config.config.sections()
+        return config.config['DEFAULT']['ERROR_FOLDER']
 
     @classmethod
     def GetMatchLeagueMap(self, config):

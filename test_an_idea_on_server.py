@@ -35,102 +35,60 @@ warnings.filterwarnings("ignore")
 ENV='PRO'
 
 if ENV=='LOCAL':
-
     config = LocalConfiguration()
-
-    # define log config
-    save_dir_log = config.GetSaveDirectoryLog(config)
-    log_name = config.GetLogName(config)
-    logging.basicConfig(filename=os.path.join(
-        save_dir_log, log_name), level=logging.INFO)
-
-    # define GroupBetting config
-    config_retry = int(config.getRetry(config))
-    time_sleep = int(config.getTimeSleep(config))
-    percent_score = int(config.getPercentScore(config))
-    time_threshold = int(config.GetTimeThreshold(config))
-    combination_threshold = int(config.GetCombinationThreshold(config))
-    # define paths
-    root=config.GetSaveDataDir(config)
-    root_orig=config.GetPathCsvFile(config)
-    orig_fn=config.GetNameFile(config)
-    match_breaking=config.GetMatchBreaking(config)
-    cus_list_fn=config.GetListName(config)
-    cus_dict_fn=config.GetDictName(config)
-    mlm_dict_fn=config.GetMatchLeagueMap(config)
-    backup=config.GetBackUp(config)
-
-    # define chunk_size for DB saving
-    chunk_size = int(config.getChunkSize(config))
-
-    # define nb_workers_phase_1
-    nb_workers_phase_1 = int(config.getNumberWorkerPhase1(config))
-
-    # define nb_workers_phase_2
-    nb_workers_phase_2 = int(config.getNumberWorkerPhase2(config))
-
-    # define batch size for get customers in phase 2
-    num_batch_cus = int(config.getNumBatchCus(config))
-
-    aimluser=config.getSPU_AIMLUsername(config)
-    aimlpwd=config.getSPU_AIMLPassword(config)
-    aimlhost=config.getSPU_AIMLHost(config)
-    aimlport=config.getSPU_AIMLPort(config)
-    aimldb=config.getSPU_AIMLDatabaseName(config)
-
-    ctsuser=config.getCTS_DataCenterUsername(config)
-    ctspwd=config.getCTS_DataCenterPassword(config)
-    ctshost=config.getCTS_DataCenterHost(config)
-    ctsport=config.getCTS_DataCenterPort(config)
-    ctsdb=config.getCTS_DataCenterDatabaseName(config)
 else:
     config = ProConfiguration()
 
-    # define log config
-    save_dir_log = config.GetSaveDirectoryLog(config)
-    log_name = config.GetLogName(config)
-    logging.basicConfig(filename=os.path.join(
-        save_dir_log, log_name), level=logging.INFO)
+# define log config
+save_dir_log = config.GetSaveDirectoryLog(config)
+log_name = config.GetLogName(config)
+logging.basicConfig(filename=os.path.join(
+    save_dir_log, log_name), level=logging.INFO)
 
-    # define GroupBetting config
-    config_retry = int(config.getRetry(config))
-    time_sleep = int(config.getTimeSleep(config))
-    percent_score = int(config.getPercentScore(config))
-    time_threshold = int(config.GetTimeThreshold(config))
-    combination_threshold = int(config.GetCombinationThreshold(config))
-    # define paths
-    root=config.GetSaveDataDir(config)
-    root_orig=config.GetPathCsvFile(config)
-    orig_fn=config.GetNameFile(config)
-    match_breaking=config.GetMatchBreaking(config)
-    cus_list_fn=config.GetListName(config)
-    cus_dict_fn=config.GetDictName(config)
-    mlm_dict_fn=config.GetMatchLeagueMap(config)
-    backup=config.GetBackUp(config)
+# define GroupBetting config
+config_retry = int(config.getRetry(config))
+time_sleep = int(config.getTimeSleep(config))
+percent_score = int(config.getPercentScore(config))
+time_threshold = int(config.GetTimeThreshold(config))
+combination_threshold = int(config.GetCombinationThreshold(config))
+# define paths
+root=config.GetSaveDataDir(config)
+root_orig=config.GetPathCsvFile(config)
+orig_fn=config.GetNameFile(config)
+match_breaking=config.GetMatchBreaking(config)
+cus_list_fn=config.GetListName(config)
+cus_dict_fn=config.GetDictName(config)
+mlm_dict_fn=config.GetMatchLeagueMap(config)
+backup=config.GetBackUp(config)
 
-    # define chunk_size for DB saving
-    chunk_size = int(config.getChunkSize(config))
+# define chunk_size for DB saving
+chunk_size = int(config.getChunkSize(config))
 
-    # define nb_workers_phase_1
-    nb_workers_phase_1 = int(config.getNumberWorkerPhase1(config))
+# define nb_workers_phase_1
+nb_workers_phase_1 = int(config.getNumberWorkerPhase1(config))
 
-    # define nb_workers_phase_2
-    nb_workers_phase_2 = int(config.getNumberWorkerPhase2(config))
+# define nb_workers_phase_2
+nb_workers_phase_2 = int(config.getNumberWorkerPhase2(config))
 
-    # define batch size for get customers in phase 2
-    num_batch_cus = int(config.getNumBatchCus(config))
+# define batch size for get customers in phase 2
+num_batch_cus = int(config.getNumBatchCus(config))
 
-    aimluser=config.getSPU_AIMLUsername(config)
-    aimlpwd=config.getSPU_AIMLPassword(config)
-    aimlhost=config.getSPU_AIMLHost(config)
-    aimlport=config.getSPU_AIMLPort(config)
-    aimldb=config.getSPU_AIMLDatabaseName(config)
+aimluser=config.getSPU_AIMLUsername(config)
+aimlpwd=config.getSPU_AIMLPassword(config)
+aimlhost=config.getSPU_AIMLHost(config)
+aimlport=config.getSPU_AIMLPort(config)
+aimldb=config.getSPU_AIMLDatabaseName(config)
 
-    ctsuser=config.getCTS_DataCenterUsername(config)
-    ctspwd=config.getCTS_DataCenterPassword(config)
-    ctshost=config.getCTS_DataCenterHost(config)
-    ctsport=config.getCTS_DataCenterPort(config)
-    ctsdb=config.getCTS_DataCenterDatabaseName(config)
+ctsuser=config.getCTS_DataCenterUsername(config)
+ctspwd=config.getCTS_DataCenterPassword(config)
+ctshost=config.getCTS_DataCenterHost(config)
+ctsport=config.getCTS_DataCenterPort(config)
+ctsdb=config.getCTS_DataCenterDatabaseName(config)
+
+# define is transfer data to CTS
+transfer_score = config.getTransferDataScore(config)
+transfer_ip = config.getTransferDataIP(config)
+    
 
 def separate(transdate):
     """
@@ -246,23 +204,27 @@ def process_a_combination(filepath):
     #     match, bettype, len(COMBINATION_CUST_LIST), time.time() - start_transform))
 
     # filter json obj
-    if len(obj) > 0:
-        try:
-            conn = MySQLConnection(user=aimluser, password=aimlpwd,
-                                   host=aimlhost, port=aimlport, database=aimldb)
-            cursor = conn.cursor()
-            for chunk in chunks:
-                jsonList = json.dumps(chunk)
-                cursor.callproc(
-                    'SPU_AIML_InsertAssociationStatsStaging', [jsonList, None])
-                conn.commit()
-            cursor.close()
-            conn.close()
-        except Exception as err:
-            logging.error(f'{ENV} | Error insert AssociationStatsStaging: {err}')
-            # message_telegram = f'{ENV} | Error insert table byAI in DBA CTS: {err}'
-            # SendLogTelegram.send_message(message_telegram)
-            raise ValueError
+    # if len(obj) > 0:
+    #     try:
+    #         conn = MySQLConnection(user=aimluser, password=aimlpwd,
+    #                                host=aimlhost, port=aimlport, database=aimldb)
+    #         cursor = conn.cursor()
+    #         for chunk in chunks:
+    #             jsonList = json.dumps(chunk)
+    #             in_, out1 = cursor.callproc('SPU_AIML_InsertAssociationStatsStaging', [jsonList, None])
+    #             if out1 is not None:
+    #                 print(out1)
+    #                 print(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationStatsStaging: {out1}')
+    #                 # message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationStatsStaging: {out1}'
+    #                 # SendLogTelegram.send_message(message_telegram)
+    #             conn.commit()
+    #         cursor.close()
+    #         conn.close()
+    #     except Exception as err:
+    #         print(f'{ENV} | Error insert AssociationStatsStaging: {err}')
+    #         # message_telegram = f'{ENV} | Error insert table byAI in DBA CTS: {err}'
+    #         # SendLogTelegram.send_message(message_telegram)
+    #         raise ValueError
     # print("\n", "MATCH %.0f BETTYPE %.0f | %.0f CUSTOMERS | SAVING TAKES %.0f SECONDS" % (
     #     match, bettype, len(COMBINATION_CUST_LIST), time.time() - start_save))
     del chunks, obj
@@ -323,11 +285,16 @@ def day_end_aggregate(args):
     try:
         #date_insert=args[2]
         # sub_results=results[(results.C1>=int(args[0]))&(results.C1<=int(args[1]))]
+        time_getStaging = time.time()
         conn = MySQLConnection(user=aimluser, password=aimlpwd,
                                     host=aimlhost, port=aimlport, database=aimldb)
         cur = conn.cursor()
-        cur.callproc('SPU_AIML_GetAssociationStats',
-                    [int(args[0]), int(args[1]), None])
+        in1,in2,out1 = cur.callproc('SPU_AIML_GetAssociationStats',[int(args[0]), int(args[1]), None])
+        if out1 is not None:
+            print(out1)
+            print(f'{ENV} | Error return from SP SPU_AIML_GetAssociationStats: {out1}')
+            # message_telegram = f'{ENV} | Error return from SP SPU_AIML_GetAssociationStats: {out1}'
+            # SendLogTelegram.send_message(message_telegram)
         dba_results = [r.fetchall() for r in cur.stored_results()]
         conn.commit()
         cur.close()
@@ -435,6 +402,17 @@ def day_end_aggregate(args):
                               left_index=True, right_index=True)
         df_result3 = pd.merge(df_result2, df_leaguescore,
                               left_index=True, right_index=True)
+
+        if the_first_is_the_last:
+            susinfo = df[['sample_id', 'ML', 'BL']]
+            df_susinfo = transform_to_list(susinfo)
+            df_susinfo = df_susinfo.set_index('sample_id')
+            df_susinfo['ML'] = [','.join(map(str, l)) for l in df_susinfo['ML']]
+            df_susinfo['BL'] = [','.join(map(str, l)) for l in df_susinfo['BL']]
+            df_resultinfo = pd.merge(df_custid, df_susinfo, left_index=True, right_index=True)
+            fulldatainfo_dba = df_resultinfo.to_dict(orient="records")
+            chunks2 = [fulldatainfo_dba[x:x+chunk_size]
+                    for x in range(0, len(fulldatainfo_dba), chunk_size)]
         
         df_result3 = df_result3.drop(columns=['minor', 'major'])
 
@@ -454,7 +432,7 @@ def day_end_aggregate(args):
             isTraceLog = True
             df_result4 = df_result3[['TS', 'MS', 'LS', 'TJD', 'TJC']]
             df_byAISPU = pd.merge(df_result4, df_byAI,
-                                 left_index=True, right_index=True)
+                                left_index=True, right_index=True)
 
         # move to dba
         # fulldata_dba = df_result3.to_dict(orient="records")
@@ -462,62 +440,75 @@ def day_end_aggregate(args):
         fulldatabyAISPU_dba = df_byAISPU.to_dict(orient="records")
 
 
-        # chunks1 = [fulldata_dba[x:x+chunk_size]
-        #         for x in range(0, len(fulldata_dba), chunk_size)]
-
         chunks4 = [fulldatabyAI_dba[x:x+chunk_size]
                 for x in range(0, len(fulldatabyAI_dba), chunk_size)]
 
         chunks5 = [fulldatabyAISPU_dba[x:x+chunk_size]
                 for x in range(0, len(fulldatabyAISPU_dba), chunk_size)]   
 
-        # try:
-        #     conn = MySQLConnection(user=aimluser, password=aimlpwd,
-        #                         host=aimlhost, port=aimlport, database=aimldb)
-        #     cur = conn.cursor()
-        #     if isTraceLog:
-        #         for chunk5 in chunks5:
-        #   
-        #             json_obj5 = json.dumps(chunk5)
-        #             cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationByAI', [
-        #                             json_obj5, None])
-        #             conn.commit()
+        try:
+            conn = MySQLConnection(user=aimluser, password=aimlpwd,
+                                host=aimlhost, port=aimlport, database=aimldb)
+            cur = conn.cursor()
+            if isTraceLog:
+                for chunk5 in chunks5:
+                    json_obj5 = json.dumps(chunk5)
+                    in1,out1 = cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationByAI', [json_obj5, None])
+                    if out1 is not None:
+                        print(out1)
+                        print(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}')
+                        # message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}'
+                        # SendLogTelegram.send_message(message_telegram)
+                    conn.commit()
                     
-        #     else:
-        #         for chunk1 in chunks1:
-        #             json_obj1 = json.dumps(chunk1)
-        #             cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationStats', [
-        #                         json_obj1, date_insert, None])
-        #             conn.commit()
+            if the_first_is_the_last:
+                for chunk2 in chunks2:
+                    json_obj2 = json.dumps(chunk2)
+                    in1,out1 = cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationSuspiciousInfo', [json_obj2, None])
+                    if out1 is not None:
+                        print(out1)
+                        dataSP_error = json.loads(json_obj2)
+                        df_dataSP_error = pd.DataFrame(dataSP_error)
+                        df_dataSP_error.to_csv(f"/home/vnteam/Data/ErrorData/file_error_SP_data_{time.time()}.csv",index=False)
+                        
+                        print(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationSuspiciousInfo: {out1}')
+                        # message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationSuspiciousInfo: {out1}'
+                        # SendLogTelegram.send_message(message_telegram)
+                    conn.commit()
 
-        #     cur.close()
-        #     conn.close()
+            cur.close()
+            conn.close()
 
-        # except Exception as err:
-        #     logging.error(f'{ENV} | Error insert 3 table in DBA: {err}')
-        #     message_telegram = f'{ENV} | Error insert 3 table in DBA when day-end: {err}'
-        #     SendLogTelegram.send_message(message_telegram)
-        #     raise ValueError
+        except Exception as err:
+            print(f'{ENV} | Error insert 3 table in DBA: {err}')
+            # message_telegram = f'{ENV} | Error insert 3 table in DBA when day-end: {err}'
+            # SendLogTelegram.send_message(message_telegram)
+            raise ValueError
 
         # insert dba CTS
-        # try:
-        #     conn = MySQLConnection(user=ctsuser, password=ctspwd,
-        #                         host=ctshost, port=ctsport, database=ctsdb)
-        #     cur = conn.cursor()
-        #     for chunk4 in chunks4:
-        #         json_obj4 = json.dumps(chunk4)
-        #         cur.callproc('CTS_DataCenter.CTS_DC_Association_InsertAssociationByAI', [
-        #                     json_obj4, date_insert, None])
-        #         conn.commit()
+        if transfer_score:
+            try:
+                conn = MySQLConnection(user=ctsuser, password=ctspwd,
+                                    host=ctshost, port=ctsport, database=ctsdb)
+                cur = conn.cursor()
+                for chunk4 in chunks4:
+                    json_obj4 = json.dumps(chunk4)
+                    in1,in2,out1 = cur.callproc('CTS_DataCenter.CTS_DC_Association_InsertAssociationByAI', [json_obj4, date_insert, None])
+                    if out1 is not None:
+                        print(out1)
+                        print(f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}')
+                        # message_telegram = f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}'
+                        # SendLogTelegram.send_message(message_telegram)
+                    conn.commit()
 
-        #     cur.close()
-        #     conn.close()
+                cur.close()
+                conn.close()
 
-        # except Exception as err:
-        #     logging.error(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
-        #     message_telegram = f'{ENV} | Error insert table byAI in DBA CTS when day-end: {err}'
-        #     SendLogTelegram.send_message(message_telegram)
-        #     raise ValueError
+            except Exception as err:
+                print(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
+                # message_telegram = f'{ENV} | Error insert table byAI in DBA CTS when day-end: {err}'
+                # SendLogTelegram.send_message(message_telegram)
+                raise ValueError
         
         # Compute accomulatedly
         df_sampleDailyScore = df[['sample_id', 'C1',
@@ -545,19 +536,19 @@ def day_end_aggregate(args):
 
         df_DailyScore.rename(columns={'AccTS':'TS','AccMS':'MS','AccLS':'LS','AccTJD':'TJD'},inplace=True)
 
-        print('df_DailyScore',df_DailyScore.head(),sep='\n')
+        
         df_byAISample03 = df_DailyScore[['C1', 'C2', 'S','AccTJSC']]
         df_byAISample03.rename(columns={'AccTJSC':'TJSC'},inplace=True)
         df_byAI = df_byAISample03[(df_byAISample03['S'] >= percent_score) & (
             df_byAISample03['TJSC'] >= combination_threshold)]
-        print('df_byAI',df_byAI.head(),'*********************************************************************************************',sep='\n')        
+                
         isTraceLog = False
         df_byAISPU = pd.DataFrame()
         if len(df_byAI.index) != 0:
             isTraceLog = True
             df_result4 = df_DailyScore[['TS', 'MS', 'LS', 'TJD', 'TJC']]
             df_byAISPU = pd.merge(df_result4, df_byAI,
-                                 left_index=True, right_index=True)
+                                left_index=True, right_index=True)
 
         # move to dba
         fulldata_dba = df_DailyScore.to_dict(orient="records")
@@ -574,61 +565,69 @@ def day_end_aggregate(args):
         chunks5 = [fulldatabyAISPU_dba[x:x+chunk_size]
                 for x in range(0, len(fulldatabyAISPU_dba), chunk_size)]   
 
-        # try:
-        #     conn = MySQLConnection(user=aimluser, password=aimlpwd,
-        #                         host=aimlhost, port=aimlport, database=aimldb)
-        #     cur = conn.cursor()
-        #     if isTraceLog:
-        #         for (chunk1, chunk5) in zip(chunks1, chunks5):
-        #             json_obj1 = json.dumps(chunk1)
-        #             cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationStats', [
-        #                         json_obj1, date_insert, None])
-        #             conn.commit()
-
-        #             json_obj5 = json.dumps(chunk5)
-        #             cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationByAI', [
-        #                             json_obj5, None])
-        #             conn.commit()
+        try:
+            conn = MySQLConnection(user=aimluser, password=aimlpwd,
+                                host=aimlhost, port=aimlport, database=aimldb)
+            cur = conn.cursor()
+            if isTraceLog:
+                for chunk5 in chunks5:
+                    json_obj5 = json.dumps(chunk5)
+                    in1,out1 = cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationByAI', [json_obj5, None])
+                    if out1 is not None:
+                        print(out1)
+                        print(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}')
+                        # message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}'
+                        # SendLogTelegram.send_message(message_telegram)
+                    conn.commit()
                     
-        #     else:
-        #         for chunk1 in chunks1:
-        #             json_obj1 = json.dumps(chunk1)
-        #             cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationStats', [
-        #                         json_obj1, date_insert, None])
-        #             conn.commit()
+            for chunk1 in chunks1:
+                json_obj1 = json.dumps(chunk1)
+                in1,in2,out1 = cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationStats', [json_obj1, date_insert, None])
+                if out1 is not None:
+                    print(out1)
+                    print(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationStats: {out1}')
+                    # message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationStats: {out1}'
+                    # SendLogTelegram.send_message(message_telegram)
+                conn.commit()
 
-        #     cur.close()
-        #     conn.close()
+            cur.close()
+            conn.close()
 
-        # except Exception as err:
-        #     logging.error(f'{ENV} | Error insert 3 table in DBA: {err}')
-        #     message_telegram = f'{ENV} | Error insert 3 table in DBA when Acc day-end: {err}'
-        #     SendLogTelegram.send_message(message_telegram)
-        #     raise ValueError
+        except Exception as err:
+            print(f'{ENV} | Error insert 3 table in DBA: {err}')
+            # message_telegram = f'{ENV} | Error insert 3 table in DBA when Acc day-end: {err}'
+            # SendLogTelegram.send_message(message_telegram)
+            raise ValueError
 
         # insert dba CTS
-        # try:
-        #     conn = MySQLConnection(user=ctsuser, password=ctspwd,
-        #                         host=ctshost, port=ctsport, database=ctsdb)
-        #     cur = conn.cursor()
-        #     for chunk4 in chunks4:
-        #         json_obj4 = json.dumps(chunk4)
-        #         cur.callproc('CTS_DataCenter.CTS_DC_Association_InsertAssociationByAI', [
-        #                     json_obj4, date_insert, None])
-        #         conn.commit()
+        if transfer_score:
+            try:
+                conn = MySQLConnection(user=ctsuser, password=ctspwd,
+                                    host=ctshost, port=ctsport, database=ctsdb)
+                cur = conn.cursor()
+                for chunk4 in chunks4:
+                    json_obj4 = json.dumps(chunk4)
+                    in1,in2,out1 = cur.callproc('CTS_DataCenter.CTS_DC_Association_InsertAssociationByAI', [json_obj4, date_insert, None])
+                    if out1 is not None:
+                        print(out1)
+                        print(f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}')
+                        # message_telegram = f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}'
+                        # SendLogTelegram.send_message(message_telegram)
+                    conn.commit()
 
-        #     cur.close()
-        #     conn.close()
+                cur.close()
+                conn.close()
 
-        # except Exception as err:
-        #     logging.error(f'{ENV} | Error insert table byAI in DBA CTS when Acc day-end: {err}')
-        #     message_telegram = f'{ENV} | Error insert table byAI in DBA CTS when Acc day-end: {err}'
-        #     SendLogTelegram.send_message(message_telegram)
-        #     raise ValueError
+            except Exception as err:
+                print(f'{ENV} | Error insert table byAI in DBA CTS when Acc day-end: {err}')
+                # message_telegram = f'{ENV} | Error insert table byAI in DBA CTS when Acc day-end: {err}'
+                # SendLogTelegram.send_message(message_telegram)
+                raise ValueError
+        print(f"Time to complete child process into phase Acc day-end {os.getpid()}: {time.time() - time_getStaging}")
     except Exception as err:
-        logging.error(f'{ENV} | Error in day-end agg function: {err}')
-        message_telegram = f'{ENV} | Error in day-end agg function: {err}'
-        SendLogTelegram.send_message(message_telegram)
+        print(f'{ENV} | Error in day-end agg function: {err}')
+        # message_telegram = f'{ENV} | Error in day-end agg function: {err}'
+        # SendLogTelegram.send_message(message_telegram)
         raise ValueError
 
 def aggregate(args):
@@ -638,8 +637,12 @@ def aggregate(args):
         conn = MySQLConnection(user=aimluser, password=aimlpwd,
                             host=aimlhost, port=aimlport, database=aimldb)
         cur = conn.cursor()
-        cur.callproc('SPU_AIML_GetAssociationStatsStaging',
-                    [args, None])
+        in1,out1 = cur.callproc('SPU_AIML_GetAssociationStatsStaging',[args, None])
+        if out1 is not None:
+            print(out1)
+            print(f'{ENV} | Error return from SP SPU_AIML_GetAssociationStatsStaging: {out1}')
+            # message_telegram = f'{ENV} | Error return from SP SPU_AIML_GetAssociationStatsStaging: {out1}'
+            # SendLogTelegram.send_message(message_telegram)
         dba_results = [r.fetchall() for r in cur.stored_results()]
         conn.commit()
         cur.close()
@@ -658,8 +661,7 @@ def aggregate(args):
             "IsNew"
             ])
         IsNewdf=df[df.IsNew==1]
-        print('df | GetFromDB Step',df.head(),sep='\n')
-        #logging.info(f"Time get data from StatStaging: {time.time() - time_getStaging}")
+        #print(f"Time get data from StatStaging: {time.time() - time_getStaging}")
         if len(IsNewdf)>0:
             time_newBatch = time.time()
             IsNewdf['sample_id'] = IsNewdf['C1'].map(str) + IsNewdf['C2'].map(str)
@@ -730,9 +732,8 @@ def aggregate(args):
                 isTraceLog = True
                 df_result4 = df_result3[['TS', 'MS', 'LS', 'TJD', 'TJC']]
                 df_byAISPU = pd.merge(df_result4, df_byAI,
-                                     left_index=True, right_index=True)
+                                    left_index=True, right_index=True)
             # move to dba
-            print('df_resultinfo',df_resultinfo.head(),sep='\n')
             fulldatainfo_dba = df_resultinfo.to_dict(orient="records")
             fulldatabyAI_dba = df_byAI.to_dict(orient="records")
             fulldatabyAISPU_dba = df_byAISPU.to_dict(orient="records")
@@ -747,9 +748,10 @@ def aggregate(args):
 
             chunks5 = [fulldatabyAISPU_dba[x:x+chunk_size]
                     for x in range(0, len(fulldatabyAISPU_dba), chunk_size)]
-            #logging.info(f"Time to calculate new batch: {time.time() - time_newBatch}")
+            #print(f"Time to calculate new batch: {time.time() - time_newBatch}")
             time_inserttable = time.time()
             # try:
+                
             #     conn = MySQLConnection(user=aimluser, password=aimlpwd,
             #                         host=aimlhost, port=aimlport, database=aimldb)
             #     cur = conn.cursor()
@@ -757,71 +759,99 @@ def aggregate(args):
             #         for (chunk2, chunk5) in zip(chunks2, chunks5):
 
             #             json_obj2 = json.dumps(chunk2)
-            #             cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationSuspiciousInfo', [
-            #                         json_obj2, None])
+            #             in1,out1 = cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationSuspiciousInfo', [json_obj2, None])
+            #             if out1 is not None:
+            #                 print(out1)
+            #                 dataSP_error = json.loads(json_obj2)
+            #                 df_dataSP_error = pd.DataFrame(dataSP_error)
+            #                 df_dataSP_error.to_csv(f"/home/vnteam/Data/ErrorData/file_error_SP_data_{time.time()}.csv",index=False)
+            #                 #count_sp += 1
+            #                 print(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationSuspiciousInfo: {out1}')
+            #                 # message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationSuspiciousInfo: {out1}'
+            #                 # SendLogTelegram.send_message(message_telegram)
             #             conn.commit()
                         
             #             json_obj5 = json.dumps(chunk5)
-            #             cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationByAI', [
-            #                             json_obj5, None])
+            #             in1,out1 = cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationByAI', [json_obj5, None])
+            #             if out1 is not None:
+            #                 print(out1)
+            #                 print(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}')
+            #                 # message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}'
+            #                 # SendLogTelegram.send_message(message_telegram)
             #             conn.commit()
             #     else:
             #         for chunk2 in chunks2:
             #             json_obj2 = json.dumps(chunk2)
-            #             cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationSuspiciousInfo', [
-            #                         json_obj2, None])
+            #             in1,out1 = cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationSuspiciousInfo', [json_obj2, None])
+            #             if out1 is not None:
+            #                 print(out1)
+            #                 dataSP_error = json.loads(json_obj2)
+            #                 df_dataSP_error = pd.DataFrame(dataSP_error)
+            #                 df_dataSP_error.to_csv(f"/home/vnteam/Data/ErrorData/file_error_SP_data_{time.time()}.csv",index=False)
+            #                 #count_sp += 1
+            #                 print(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationSuspiciousInfo: {out1}')
+            #                 # message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationSuspiciousInfo: {out1}'
+            #                 # SendLogTelegram.send_message(message_telegram)
             #             conn.commit()
             #     cur.close()
             #     conn.close()
             # except Exception as err:
-            #     logging.error(f'{ENV} | Error insert 3 table in DBA: {err}')
-            #     message_telegram = f'{ENV} | Error insert 3 table in DBA: {err}'
-            #     SendLogTelegram.send_message(message_telegram)
+            #     print(f'{ENV} | Error insert 3 table in DBA: {err}')
+            #     # message_telegram = f'{ENV} | Error insert 3 table in DBA: {err}'
+            #     # SendLogTelegram.send_message(message_telegram)
             #     raise ValueError
             
             # insert dba CTS
+            # if transfer_score:
+            #     try:
+            #         conn = MySQLConnection(user=ctsuser, password=ctspwd,
+            #                             host=ctshost, port=ctsport, database=ctsdb)
+            #         cur = conn.cursor()
+            #         for chunk4 in chunks4:
+            #             json_obj4 = json.dumps(chunk4)
+            #             in1,in2,out1 = cur.callproc('CTS_DataCenter.CTS_DC_Association_InsertAssociationByAI', [json_obj4, date_insert, None])
+            #             if out1 is not None:
+            #                 print(out1)
+            #                 print(f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}')
+            #                 # message_telegram = f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}'
+            #                 # SendLogTelegram.send_message(message_telegram)
+            #             conn.commit()
+
+            #         cur.close()
+            #         conn.close()
+
+            #     except Exception as err:
+            #         print(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
+            #         # message_telegram = f'{ENV} | Error insert table byAI in DBA CTS: {err}'
+            #         # SendLogTelegram.send_message(message_telegram)
+            #         raise ValueError
+            
+            # update Staging Status
             # try:
-            #     conn = MySQLConnection(user=ctsuser, password=ctspwd,
-            #                         host=ctshost, port=ctsport, database=ctsdb)
+            #     conn = MySQLConnection(user=aimluser, password=aimlpwd,
+            #                         host=aimlhost, port=aimlport, database=aimldb)
             #     cur = conn.cursor()
-            #     for chunk4 in chunks4:
-            #         json_obj4 = json.dumps(chunk4)
-            #         cur.callproc('CTS_DataCenter.CTS_DC_Association_InsertAssociationByAI', [
-            #                     json_obj4, date_insert, None])
-            #         conn.commit()
+            #     #cur.callproc('SPU_AIML_UpdateAssociationStatsStagingStatus', [
+            #                 #int(args[0]), int(args[1]), None])
+            #     in1,out1 = cur.callproc('SPU_AIML_UpdateAssociationStatsStagingStatus', [args, None])
+            #     if out1 is not None:
+            #         print(out1)
+            #         print(f'{ENV} | Error return from SP SPU_AIML_UpdateAssociationStatsStagingStatus: {out1}')
+            #         # message_telegram = f'{ENV} | Error return from SP SPU_AIML_UpdateAssociationStatsStagingStatus: {out1}'
+            #         # SendLogTelegram.send_message(message_telegram)
+            #     conn.commit()
 
             #     cur.close()
             #     conn.close()
 
             # except Exception as err:
-            #     logging.error(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
-            #     message_telegram = f'{ENV} | Error insert table byAI in DBA CTS: {err}'
-            #     SendLogTelegram.send_message(message_telegram)
+            #     print(f'{ENV} | Error Update Staging Status: {err}')
+            #     # message_telegram = f'{ENV} | Error Update Staging Status: {err}'
+            #     # SendLogTelegram.send_message(message_telegram)
             #     raise ValueError
-            
-            # update Staging Status
-            try:
-                conn = MySQLConnection(user=aimluser, password=aimlpwd,
-                                    host=aimlhost, port=aimlport, database=aimldb)
-                cur = conn.cursor()
-                #cur.callproc('SPU_AIML_UpdateAssociationStatsStagingStatus', [
-                            #int(args[0]), int(args[1]), None])
-                cur.callproc('SPU_AIML_UpdateAssociationStatsStagingStatus', [
-                            args, None])
-                conn.commit()
-
-                cur.close()
-                conn.close()
-
-            except Exception as err:
-                logging.error(f'{ENV} | Error Update Staging Status: {err}')
-                message_telegram = f'{ENV} | Error Update Staging Status: {err}'
-                SendLogTelegram.send_message(message_telegram)
-                raise ValueError
-            #logging.info(f"Time to insert all table in DB: {time.time() - time_inserttable}")
+            #print(f"Time to insert all table in DB: {time.time() - time_inserttable}")
         if len(df)>len(IsNewdf):
             time_onthefly = time.time()
-            print('df | OnTheFly Step',df.head(),'*******************************************************************************************',sep='\n')
             df['TJC']=df.apply(lambda z : count_joining_combs_by_daily_cus_dict(z['C1'],z['C2']),axis=1)
             df['sample_id'] = df['C1'].map(str) + df['C2'].map(str)
             df = df.astype({"sample_id": 'int64'})
@@ -869,13 +899,13 @@ def aggregate(args):
                                 left_index=True, right_index=True)
             df_result3 = pd.merge(df_result2, df_leaguescore,
                                 left_index=True, right_index=True)
-            # susinfo = df[['sample_id', 'ML', 'BL']]
-            # df_susinfo = transform_to_list(susinfo)
-            # df_susinfo = df_susinfo.set_index('sample_id')
-            # df_susinfo['ML'] = [','.join(map(str, l)) for l in df_susinfo['ML']]
-            # df_susinfo['BL'] = [','.join(map(str, l)) for l in df_susinfo['BL']]
-            # df_resultinfo = pd.merge(
-            #     df_custid, df_susinfo, left_index=True, right_index=True)
+            susinfo = df[['sample_id', 'ML', 'BL']]
+            df_susinfo = transform_to_list(susinfo)
+            df_susinfo = df_susinfo.set_index('sample_id')
+            df_susinfo['ML'] = [','.join(map(str, l)) for l in df_susinfo['ML']]
+            df_susinfo['BL'] = [','.join(map(str, l)) for l in df_susinfo['BL']]
+            df_resultinfo = pd.merge(
+                df_custid, df_susinfo, left_index=True, right_index=True)
             df_result3 = df_result3.drop(columns=['minor', 'major'])
             df_result3['S'] = 100 * (df_result3['TS'] + df_result3['MS'] + df_result3['LS']) / 3
             df_byAISample03 = df_result3[['C1', 'C2', 'S','TJSC']]
@@ -888,7 +918,7 @@ def aggregate(args):
                 isTraceLog = True
                 df_result4 = df_result3[['TS', 'MS', 'LS', 'TJD', 'TJC']]
                 df_byAISPU = pd.merge(df_result4, df_byAI,
-                                     left_index=True, right_index=True)
+                                    left_index=True, right_index=True)
             # move to dba
             fulldatabyAI_dba = df_byAI.to_dict(orient="records")
             fulldatabyAISPU_dba = df_byAISPU.to_dict(orient="records")
@@ -898,7 +928,7 @@ def aggregate(args):
 
             chunks5 = [fulldatabyAISPU_dba[x:x+chunk_size]
                     for x in range(0, len(fulldatabyAISPU_dba), chunk_size)]
-            #logging.info(f"Time to calculate onthefly: {time.time() - time_onthefly}")
+            #print(f"Time to calculate onthefly: {time.time() - time_onthefly}")
             time_inserttable = time.time()
             # try:
             #     conn = MySQLConnection(user=aimluser, password=aimlpwd,
@@ -907,59 +937,70 @@ def aggregate(args):
             #     if isTraceLog:
             #         for chunk5 in chunks5:                     
             #             json_obj5 = json.dumps(chunk5)
-            #             cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationByAI', [
-            #                             json_obj5, None])
+            #             in1,out1 = cur.callproc('SPU_AIML.SPU_AIML_InsertAssociationByAI', [json_obj5, None])
+            #             if out1 is not None:
+            #                 print(out1)
+            #                 print(f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}')
+            #                 # message_telegram = f'{ENV} | Error return from SP SPU_AIML_InsertAssociationByAI: {out1}'
+            #                 # SendLogTelegram.send_message(message_telegram)
             #             conn.commit()
             #     cur.close()
             #     conn.close()
             # except Exception as err:
-            #     logging.error(f'{ENV} | Error insert Assocication By AI at phase On The Fly: {err}')
-            #     message_telegram = f'{ENV} | Error insert Assocication By AI at phase On The Fly: {err}'
-            #     SendLogTelegram.send_message(message_telegram)
+            #     print(f'{ENV} | Error insert Assocication By AI at phase On The Fly: {err}')
+            #     # message_telegram = f'{ENV} | Error insert Assocication By AI at phase On The Fly: {err}'
+            #     # SendLogTelegram.send_message(message_telegram)
             #     raise ValueError
             
             # insert dba CTS
-            # try:
-            #     conn = MySQLConnection(user=ctsuser, password=ctspwd,
-            #                         host=ctshost, port=ctsport, database=ctsdb)
-            #     cur = conn.cursor()
-            #     for chunk4 in chunks4:
-            #         json_obj4 = json.dumps(chunk4)
-            #         cur.callproc('CTS_DataCenter.CTS_DC_Association_InsertAssociationByAI', [
-            #                     json_obj4, date_insert, None])
-            #         conn.commit()
+            # if transfer_score:
+            #     try:
+            #         conn = MySQLConnection(user=ctsuser, password=ctspwd,
+            #                             host=ctshost, port=ctsport, database=ctsdb)
+            #         cur = conn.cursor()
+            #         for chunk4 in chunks4:
+            #             json_obj4 = json.dumps(chunk4)
+            #             in1,in2,out1 = cur.callproc('CTS_DataCenter.CTS_DC_Association_InsertAssociationByAI', [json_obj4, date_insert, None])
+            #             if out1 is not None:
+            #                 print(out1)
+            #                 print(f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}')
+            #                 # message_telegram = f'{ENV} | Error return from SP CTS_DC_Association_InsertAssociationByAI: {out1}'
+            #                 # SendLogTelegram.send_message(message_telegram)
+            #             conn.commit()
 
-            #     cur.close()
-            #     conn.close()
+            #         cur.close()
+            #         conn.close()
 
-            # except Exception as err:
-            #     logging.error(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
-            #     message_telegram = f'{ENV} | Error insert table byAI in DBA CTS: {err}'
-            #     SendLogTelegram.send_message(message_telegram)
-            #     raise ValueError
-            # logging.info(f"Time to complete child process {os.getpid()}: {time.time() - time_getStaging}")
+            #     except Exception as err:
+            #         print(f'{ENV} | Error insert table byAI in DBA CTS: {err}')
+            #         # message_telegram = f'{ENV} | Error insert table byAI in DBA CTS: {err}'
+            #         # SendLogTelegram.send_message(message_telegram)
+            #         raise ValueError
+        print(f"Time to complete child process {os.getpid()}: {time.time() - time_getStaging}")
         
 
     except Exception as err:
-        logging.error(f'{ENV} | Error in agg function: {err}')
-        message_telegram = f'{ENV} | Error in agg function: {err}'
-        SendLogTelegram.send_message(message_telegram)
+        print(f'{ENV} | Error in agg function: {err}')
+        # message_telegram = f'{ENV} | Error in agg function: {err}'
+        # SendLogTelegram.send_message(message_telegram)
         raise ValueError
 
 if __name__ == "__main__":
-    conn = MySQLConnection(user=aimluser, password=aimlpwd,
-                            host=aimlhost, port=aimlport, database=aimldb)
-    cur = conn.cursor()
-    # Truncate table AssociationStatsStaging
-    cur.callproc('SPU_AIML.SPU_AIML_DBA_Truncate_Table',
-                ['AssociationStatsStaging'])
-    conn.commit()
+    # conn = MySQLConnection(user=aimluser, password=aimlpwd,
+    #                         host=aimlhost, port=aimlport, database=aimldb)
+    # cur = conn.cursor()
+    # # Truncate table AssociationStatsStaging
+    # cur.callproc('SPU_AIML.SPU_AIML_DBA_Truncate_Table',
+    #             ['AssociationStatsStaging'])
+    # conn.commit()
     check_cus_files=os.listdir(root)
     if cus_list_fn in check_cus_files:
         os.remove(os.path.join(root,cus_list_fn))
     if cus_dict_fn in check_cus_files:
         os.remove(os.path.join(root,cus_dict_fn))
-    initial=None
+    initial = []
+    #count = 1
+    #count_sp = 1
     # results=None
     while True:
         check_files = [f for f in sorted(os.listdir(root_orig))]
@@ -968,69 +1009,19 @@ if __name__ == "__main__":
             myStrCheck = check_files[0].rsplit("_",4)
             pattern = "^" + myStrCheck[0]
             check_files_sameday = [i for i in check_files if re.findall(pattern,i)]
-            if initial is None:
+            if initial==[]:
                 month_prev=orig_fn.split('.')[0].split('_')[1]
                 day_prev=orig_fn.split('.')[0].split('_')[2]
                 year_prev=orig_fn.split('.')[0].split('_')[3]
                 time_begin = time.time()
                 today = dt.today()
-                logging.info(
+                print(
                     "======================================================================================================")
-                logging.info(f"{ENV} | Running for Date: {year_prev+'-'+month_prev+'-'+day_prev}")
-                message_telegram = f"{ENV} | Group Betting is running for {year_prev+'-'+month_prev+'-'+day_prev}"
-                SendLogTelegram.send_message(message_telegram)
-                initial=int(orig_fn.split('.')[0].split('_')[2])
-            month_curr=orig_fn.split('.')[0].split('_')[1]
-            day_curr=orig_fn.split('.')[0].split('_')[2]
-            year_curr=orig_fn.split('.')[0].split('_')[3]
-            time_constant=int(day_curr)-int(day_prev)
-            if time_constant !=0 :
-                # break
-                date_insert=year_prev+'-'+month_prev+'-'+day_prev
-                print(f'{ENV} | date_insert when DAY END {date_insert}')
-                with open(os.path.join(root, cus_list_fn), 'rb') as f:
-                    daily_cus_list = pickle.load(f)
-                with open(os.path.join(root, cus_dict_fn), 'rb') as g:
-                    daily_cus_dict = pickle.load(g)
-                daily_cus_list = np.sort(daily_cus_list)
-                BATCHES = [daily_cus_list[x:x+num_batch_cus] for x in range(0, len(daily_cus_list), num_batch_cus)]
-                #BATCHES = [','.join([str(z) for z in batch_cus_list[x:x+num_batch_cus]]) for x in range(0, len(batch_cus_list), num_batch_cus)]
-                pool = mp.Pool(nb_workers_phase_2)
-                for _ in tqdm(pool.imap_unordered(day_end_aggregate,[(min(BATCH),max(BATCH)) for BATCH in BATCHES]), total=len(BATCHES), desc='DAY-END AGG'):
-                    pass
-                pool.close()
-                pool.join()
-                conn = MySQLConnection(user=aimluser, password=aimlpwd,
-                                host=aimlhost, port=aimlport, database=aimldb)
-                cur = conn.cursor()
-                # update table SystemParameter
-                cur.callproc('SPU_AIML.SPU_AIML_UpdateScanStatus',
-                            [date_insert, None])
-                conn.commit()
-
-                cur.close()
-                conn.close()
-                print("***********************************************************************************************************************************************************************************")
-                print("%s | AGG & INSERT TIME %.0f SECONDS" %
-                    (ENV,time.time() - start_time))
-                logging.info(
-                    f"{ENV} | Done phase 2, takes {time.time() - start_time} seconds")
-                message_telegram = f"{ENV} | Group Betting is done, total {round((time.time() - time_begin)/3600,4)} hours "
-                SendLogTelegram.send_message(message_telegram)
-                conn = MySQLConnection(user=aimluser, password=aimlpwd,
-                                    host=aimlhost, port=aimlport, database=aimldb)
-                cur = conn.cursor()
-                # Truncate table AssociationStatsStaging
-                cur.callproc('SPU_AIML.SPU_AIML_DBA_Truncate_Table',
-                            ['AssociationStatsStaging'])
-                conn.commit()
-                check_cus_files=os.listdir(root)
-                if cus_list_fn in check_cus_files:
-                    os.remove(os.path.join(root,cus_list_fn))
-                if cus_dict_fn in check_cus_files:
-                    os.remove(os.path.join(root,cus_dict_fn))
-                initial=None
-                continue           
+                print(f"{ENV} | Running for Date: {year_prev+'-'+month_prev+'-'+day_prev}")
+                # message_telegram = f"{ENV} | Group Betting is running for {year_prev+'-'+month_prev+'-'+day_prev}"
+                # SendLogTelegram.send_message(message_telegram)
+                initial.append(day_prev)
+            
 
             # START PHASE 0 --> PREPARATION
             # *****************************************************************************************************************************************************************************
@@ -1049,40 +1040,47 @@ if __name__ == "__main__":
                 # if ENV=='LOCAL':
                 #     data = pd.read_csv(os.path.join(root_orig, orig_fn),encoding='ISO-8859-1')
                 # else:
-                # logging.info(f'Start running file {orig_fn}')
-                # print(f'Start running file {orig_fn}')
+                print(f'Start running file {orig_fn}')
                 # data = pd.read_csv(os.path.join(root_orig, orig_fn),
                 #                 encoding='ISO-8859-1'
                 #                 , skiprows=[1], skipfooter=1
                 #                 )
-                # logging.info(f"Total file: {len(check_files_sameday)}")
                 print(f"Total file: {len(check_files_sameday)}")
                 ### use recursive to concat data
-                data = recursiveApp(check_files_sameday)
+                #data = recursiveApp(check_files_sameday)
                 
                 ### use list comprehensive to concat data
-                #data = pd.concat((pd.read_csv(os.path.join(root_orig, f),encoding='ISO-8859-1', skiprows=[1], skipfooter=1) for f in check_files_sameday))
-                # logging.info(f"Number of rows: {len(data)}")
+                data = pd.concat((pd.read_csv(os.path.join(root_orig, f),encoding='ISO-8859-1', skiprows=[1], skipfooter=1).assign(file_name = f) for f in check_files_sameday))
+                for file in check_files_sameday:
+                    os.rename(os.path.join(root_orig,file),os.path.join(backup,file))
                 print(f"Number of rows: {len(data)}")
                 if len(data.index)==0:
-                    os.remove(os.path.join(root_orig, orig_fn))
-                    # logging.error(f'File Error {orig_fn}')
+                    for file in check_files_sameday:
+                        os.remove(os.path.join(root_orig, file))
+                    # print(f'File Error {orig_fn}')
                     # print(f'File Error {orig_fn}')
                     continue
                 if data.bettype.isnull().values.any():
                     # os.remove(os.path.join(root_orig, orig_fn))
-                    logging.error(f'File Error {orig_fn} | Bettype Column Null')
                     print(f'File Error {orig_fn} | Bettype Column Null')
-                    os.rename(os.path.join(root_orig, orig_fn),os.path.join(root,'NullBettype',orig_fn))
+                    print(f'File Error {orig_fn} | Bettype Column Null')
+                    for file in check_files_sameday:
+                        os.rename(os.path.join(root_orig, file),os.path.join(root,'NullBettype',file))
                     continue
                 #data.to_csv("/home/vnteam/backupdata.csv",index=False)
-                data.dropna(subset=['leagueid'],inplace=True)
+                ### clean missing data
+                data.dropna(subset=['custid', 'matchid', 'transdate', 'bettype','leagueid'],inplace=True)
+                df_nan = data[data[['custid', 'matchid', 'transdate', 'bettype','leagueid']].isna().any(axis=1)]
+                
+                if len(df_nan.index) == 0:
+                    data.to_csv(f"/home/vnteam/Data/ErrorData/file_error_data_{time.time()}.csv",index=False)
+                    #count +=1
                 DATE = data[(data.bettype.isin([1, 3, 7, 8]))
                             & (data.liveindicator)]
                 df_dataip = data[(data.bettype.isin([1, 3, 7, 8]))
                         & (data.liveindicator)]
                 if len(DATE.index)==0:
-                    logging.error(f'File Error {orig_fn} | No Live')
+                    print(f'File Error {orig_fn} | No Live')
                     print(f'File Error {orig_fn} | No Live')
                     os.rename(os.path.join(root_orig, orig_fn),os.path.join(root,'NoLive',orig_fn))
                     continue
@@ -1167,29 +1165,29 @@ if __name__ == "__main__":
                 # print('\n', f"LEN OF CUS DICT {len(cus_dict)}")
                 with open(os.path.join(root, cus_dict_fn), 'rb') as g:
                         daily_cus_dict = pickle.load(g)
-                logging.info(
+                print(
                     f"{ENV} | Done phase 0, takes {time.time() - time_phase0} seconds")
                 # print('\n',f"MATCH BREAKING TAKES {(time.time()-start_match_breaking)} seconds")
             except Exception as e:
-                logging.error(f"{ENV} | Error at phase 0: {e}")
-                message_telegram = f"{ENV} | Error at phase 0: {e}"
-                SendLogTelegram.send_message(message_telegram)
+                print(f"{ENV} | Error at phase 0: {e}")
+                # message_telegram = f"{ENV} | Error at phase 0: {e}"
+                # SendLogTelegram.send_message(message_telegram)
                 break
 
             # START PHASE ASSOCIATION BY IP 
             # *****************************************************************************************************************************************************************************
-            # try:
-            #     logging.info(f"{ENV} |Group Betting by IP is running")
-                # message_telegram = f"{ENV} |Group Betting by IP is running"
+            try:
+                print(f"{ENV} |Group Betting by IP is running")
+                message_telegram = f"{ENV} |Group Betting by IP is running"
+                SendLogTelegram.send_message(message_telegram)
+                df_dataip = df_dataip[['custid','ip','bettype','matchid','leagueid','homeid','awayid','transdate']]
+                GroupbyIP.AssociationbyIP(df_dataip,chunk_size,date_insert,transfer_ip)
+                del df_dataip
+            except Exception as e:
+                print(f"{ENV} | Error at phase Association by IP: {e}")
+                # message_telegram = f"{ENV} | Error at phase Association by IP: {e}"
                 # SendLogTelegram.send_message(message_telegram)
-                # df_dataip = df_dataip[['custid','ip','bettype','matchid','leagueid','homeid','awayid','transdate']]
-                # GroupbyIP.AssociationbyIP(df_dataip,chunk_size,date_insert)
-                # del df_dataip
-            # except Exception as e:
-            #     logging.error(f"{ENV} | Error at phase Association by IP: {e}")
-            #     message_telegram = f"{ENV} | Error at phase Association by IP: {e}"
-            #     SendLogTelegram.send_message(message_telegram)
-            #     break
+                break
             # END PHASE 0 - START PHASE 1
             # ****************************************************************************************************************************************************************************
             try:
@@ -1208,16 +1206,106 @@ if __name__ == "__main__":
                 print('\n', '********************************************************************************************************************************************')
                 print("\n", f"{ENV} | PROCESSING TIME %.0f SECONDS" %
                     (time.time() - start_processing))
-                logging.info(
+                print(
                     f"{ENV} | Done phase 1, takes {time.time() - start_processing} seconds")
             except Exception as e:
-                logging.error(f"{ENV} | Error phase 1: {e}")
-                message_telegram = f"{ENV} | Error phase 1: {e}"
-                SendLogTelegram.send_message(message_telegram)
+                print(f"{ENV} | Error phase 1: {e}")
+                # message_telegram = f"{ENV} | Error phase 1: {e}"
+                # SendLogTelegram.send_message(message_telegram)
                 break
 
             # END PHASE 1 - START PHASE 2
             # *****************************************************************************************************************************************************************************
+            check_files = [f for f in sorted(os.listdir(root_orig))]
+            while len(check_files)==0:
+                time.sleep(time_sleep)
+                check_files = [f for f in sorted(os.listdir(root_orig))]
+            orig_fn = check_files[0]
+            day_curr=orig_fn.split('.')[0].split('_')[2]
+            initial.append(day_curr)
+            time_constant=int(day_curr)-int(day_prev)
+            if time_constant !=0 :
+                start_time = time.time()
+                the_first_is_the_last = False
+                if len(initial)>2:
+                    try:
+                        start_time = time.time()
+                        # read customer list
+                        # with open(os.path.join(root, cus_list_fn), 'rb') as f:
+                        #     daily_cus_list = pickle.load(f)
+
+                        # build batches
+                        batch_cus_list = sorted(batch_cus_list)
+                        BATCHES = [','.join([str(z) for z in batch_cus_list[x:x+num_batch_cus]]) for x in range(0, len(batch_cus_list), num_batch_cus)]
+                        # print('First Batch',BATCHES[0],sep='\n')
+                        # print(f"number of cust list: {len(batch_cus_list)}")
+                        print(f"number of cust list: {len(batch_cus_list)}")
+                        pool = mp.Pool(nb_workers_phase_2)
+                        # result = pool.map(aggregate, [(np.min(BATCH), np.max(BATCH),date_insert,daily_cus_dict) for BATCH in BATCHES])
+                        for _ in tqdm(pool.imap_unordered(aggregate,BATCHES),total=len(BATCHES),desc=f'AGG | A BATCH OF {date_insert}'):
+                            pass
+                        pool.close()
+                        pool.join()
+                        print(f'A BATCH of {date_insert} done in {time.time()-start_time} seconds')
+                        # print(f'Once more batch of {date_insert} overcame phase 2 successfully !')
+
+                    except Exception as e:
+                        print(f"{ENV} | Error phase 2 right before day end: {e}")
+                        # print(f"{ENV} | Error phase 2: {e}")
+                        # message_telegram = f"{ENV} | Error phase 2 right before day end: {e}"
+                        # SendLogTelegram.send_message(message_telegram)
+                        break
+                else:
+                    the_first_is_the_last = True
+                date_insert=year_prev+'-'+month_prev+'-'+day_prev
+                print(f'{ENV} | date_insert when DAY END {date_insert}')
+                with open(os.path.join(root, cus_list_fn), 'rb') as f:
+                    daily_cus_list = pickle.load(f)
+                with open(os.path.join(root, cus_dict_fn), 'rb') as g:
+                    daily_cus_dict = pickle.load(g)
+                daily_cus_list = np.sort(daily_cus_list)
+                BATCHES = [daily_cus_list[x:x+num_batch_cus] for x in range(0, len(daily_cus_list), num_batch_cus)]
+                #BATCHES = [','.join([str(z) for z in batch_cus_list[x:x+num_batch_cus]]) for x in range(0, len(batch_cus_list), num_batch_cus)]
+                pool = mp.Pool(nb_workers_phase_2)
+                for _ in tqdm(pool.imap_unordered(day_end_aggregate,[(min(BATCH),max(BATCH)) for BATCH in BATCHES]), total=len(BATCHES), desc='DAY-END AGG'):
+                    pass
+                pool.close()
+                pool.join()
+                conn = MySQLConnection(user=aimluser, password=aimlpwd,
+                                host=aimlhost, port=aimlport, database=aimldb)
+                cur = conn.cursor()
+                # update table SystemParameter
+                in1,out1 = cur.callproc('SPU_AIML.SPU_AIML_UpdateScanStatus',[date_insert, None])
+                if out1 is not None:
+                    print(out1)
+                    print(f'{ENV} | Error return from SP SPU_AIML_UpdateScanStatus: {out1}')
+                    # message_telegram = f'{ENV} | Error return from SP SPU_AIML_UpdateScanStatus: {out1}'
+                    # SendLogTelegram.send_message(message_telegram)
+                conn.commit()
+
+                cur.close()
+                conn.close()
+                print("***********************************************************************************************************************************************************************************")
+                print("%s | AGG & INSERT TIME %.0f SECONDS" %
+                    (ENV,time.time() - start_time))
+                print(
+                    f"{ENV} | Done phase 2 at the end of the day, takes {time.time() - start_time} seconds")
+                # message_telegram = f"{ENV} | Group Betting is done, total {round((time.time() - time_begin)/3600,4)} hours "
+                # SendLogTelegram.send_message(message_telegram)
+                conn = MySQLConnection(user=aimluser, password=aimlpwd,
+                                    host=aimlhost, port=aimlport, database=aimldb)
+                cur = conn.cursor()
+                # Truncate table AssociationStatsStaging
+                cur.callproc('SPU_AIML.SPU_AIML_DBA_Truncate_Table',
+                            ['AssociationStatsStaging'])
+                conn.commit()
+                check_cus_files=os.listdir(root)
+                if cus_list_fn in check_cus_files:
+                    os.remove(os.path.join(root,cus_list_fn))
+                if cus_dict_fn in check_cus_files:
+                    os.remove(os.path.join(root,cus_dict_fn))
+                initial = []
+                continue           
             try:
                 start_time = time.time()
                 # read customer list
@@ -1228,8 +1316,8 @@ if __name__ == "__main__":
                 batch_cus_list = sorted(batch_cus_list)
                 #BATCHES = [daily_cus_list[x:x+num_batch_cus] for x in range(0, len(daily_cus_list), num_batch_cus)]
                 BATCHES = [','.join([str(z) for z in batch_cus_list[x:x+num_batch_cus]]) for x in range(0, len(batch_cus_list), num_batch_cus)]
-                logging.info("*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*")
-                logging.info(f"number of cust list: {len(batch_cus_list)}")
+                print("*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*")
+                print(f"number of cust list: {len(batch_cus_list)}")
                 pool = mp.Pool(nb_workers_phase_2)
                 # for _ in tqdm(pool.imap_unordered(aggregate, [(np.min(BATCH), np.max(BATCH)) for BATCH in BATCHES]), total=len(BATCHES), desc='AGG'):
                 #     pass
@@ -1251,13 +1339,13 @@ if __name__ == "__main__":
                 pool.join()
                 # myls = [item for sublist in bigls for item in sublist]
                 # results = pd.DataFrame(myls)
-                logging.info(f'{ENV} | Done phase 2, takes {time.time()-start_time} seconds')
+                print(f'{ENV} | Done phase 2, takes {time.time()-start_time} seconds')
                 # print(f'Once more batch of {date_insert} overcame phase 2 successfully !')
 
             except Exception as e:
-                logging.error(f"{ENV} | Error phase 2: {e}")
-                message_telegram = f"{ENV} | Error phase 2: {e}"
-                SendLogTelegram.send_message(message_telegram)
+                print(f"{ENV} | Error phase 2: {e}")
+                # message_telegram = f"{ENV} | Error phase 2: {e}"
+                # SendLogTelegram.send_message(message_telegram)
                 break
             
             # remove file when complete
@@ -1266,7 +1354,7 @@ if __name__ == "__main__":
             # print("-.-.-.-.-.-.-.--.-.-.-.-.-.-.--.-.-.-.-.-.-.--.-.-.-.-.-.-.-")
             # local_vars = list(locals().items())
             # for var, obj in local_vars:
-            #     logging.info('%s occupied %.0f bytes' % (var, sys.getsizeof(obj)))
+            #     print('%s occupied %.0f bytes' % (var, sys.getsizeof(obj)))
         
         else:
             time.sleep(time_sleep)
