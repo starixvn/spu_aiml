@@ -8,12 +8,15 @@ import numpy as np
 import pandas as pd
 import datetime
 import logging
+
+
 def notify_logging(mess, isInfo = False):
     if isInfo:
         logging.info(mess)
     else:
         logging.error(mess)
     SendLogTelegram.send_message(mess)
+    
 def separate(transdate):
     """
     >>> Input  :    '2020-09-26 7:31:01.872'
@@ -25,7 +28,6 @@ def separate(transdate):
     year, month, day = int(date[0]), int(date[1]), int(date[2])
     hour, min, sec = int(hms[0]), int(hms[1]), int(hms[2])
     return (year, month, day, hour, min, sec)
-
 
 def distance_time(transdate1, transdate2):
     """
@@ -62,7 +64,6 @@ def transform_to_list(df):
     df2 = pd.DataFrame({'sample_id': ukeys, 'ML': [list(
         a) for a in arrays], 'BL': [list(b) for b in arrays2]})
     return df2
-
 
 def gini_score(lista):
     """

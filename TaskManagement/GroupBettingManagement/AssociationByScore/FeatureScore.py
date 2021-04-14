@@ -1,5 +1,7 @@
 import pandas as pd
 from Utilities import FunctionSupport
+
+
 def leaguescore_dataflow(df):
     # version 4
     df_parameter = (df.groupby(['sample_id', 'IsMajorLeague', 'LeagueID']).size(
@@ -79,8 +81,6 @@ def calculate_score(df,config,isCreateSusInfo = False,isDayEnd = False):
         df_susinfo = data_suspiciousInfo(df)
         df_resultinfo = pd.merge(df_custid, df_susinfo, left_index=True, right_index=True)
     
-    
-    
     df_result3 = df_result3.drop(columns=['minor', 'major'])
 
     # add BC column with default value 1
@@ -93,7 +93,7 @@ def calculate_score(df,config,isCreateSusInfo = False,isDayEnd = False):
     df_byAISample03 = df_result3[['C1', 'C2', 'S','TJSC']]
     df_byAI = df_byAISample03[(df_byAISample03['S'] >= config.percent_score) & (
         df_byAISample03['TJSC'] >= config.combination_threshold)]
-            
+    
     isTraceLog = False
     df_byAISPU = pd.DataFrame()
     df_result3['TJD'] = 1
@@ -102,4 +102,5 @@ def calculate_score(df,config,isCreateSusInfo = False,isDayEnd = False):
         df_result4 = df_result3[['TS', 'MS', 'LS', 'TJD', 'TJC']]
         df_byAISPU = pd.merge(df_result4, df_byAI,
                             left_index=True, right_index=True)
+        
     return df_byAI,df_byAISPU,df_resultinfo,isTraceLog,df_result3

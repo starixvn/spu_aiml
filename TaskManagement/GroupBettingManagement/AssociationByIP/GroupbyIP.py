@@ -12,6 +12,8 @@ import numpy as np
 from Utilities import FunctionSupport
 from DataAccess.AssociationIPDA.SPU_AIML import CoupleIPStats
 from mysql.connector import MySQLConnection
+
+
 def transform_to_listIP(df):
     keys, values1 = df.sort_values('sample_id').values.T
     ukeys, index = np.unique(keys, True)

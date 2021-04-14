@@ -71,20 +71,20 @@ def run(config):
                 ### use list comprehensive to concat data
                 data = pd.concat((pd.read_csv(os.path.join(config.root_orig, f),encoding='ISO-8859-1', skiprows=[1], skipfooter=1).assign(file_name = f) if (os.access(config.root_orig + f, os.R_OK) is True and os.access(config.root_orig + f, os.X_OK) is True) else FunctionSupport.notify_logging(f"Error read file {f}") for f in check_files_sameday))
                 
-                #for file in check_files_sameday:
-                    #os.rename(os.path.join(config.root_orig,file),os.path.join(config.backup,file))
+                for file in check_files_sameday:
+                    os.rename(os.path.join(config.root_orig,file),os.path.join(config.backup,file))
                 logging.info(f"Number of rows: {len(data)}")
                 
                 if len(data.index)==0:
-                    for file in check_files_sameday:
-                        os.remove(os.path.join(config.root_orig, file))
+                    # for file in check_files_sameday:
+                    #     os.remove(os.path.join(config.root_orig, file))
                     continue
                 
                 if data.bettype.isnull().values.any():
                     logging.error(f'File Error {orig_fn} | Bettype Column Null')
                     print(f'File Error {orig_fn} | Bettype Column Null')
-                    for file in check_files_sameday:
-                        os.rename(os.path.join(config.root_orig, file),os.path.join(config.root,'NullBettype',file))
+                    # for file in check_files_sameday:
+                    #     os.rename(os.path.join(config.root_orig, file),os.path.join(config.root,'NullBettype',file))
                     continue
                 
                 ### clean missing data
@@ -101,7 +101,7 @@ def run(config):
                 if len(DATE.index)==0:
                     logging.error(f'File Error {orig_fn} | No Live')
                     print(f'File Error {orig_fn} | No Live')
-                    os.rename(os.path.join(config.root_orig, orig_fn),os.path.join(config.root,'NoLive',orig_fn))
+                    # os.rename(os.path.join(config.root_orig, orig_fn),os.path.join(config.root,'NoLive',orig_fn))
                     continue
 
                 date_winlost = DATE['winlostdate'].min()

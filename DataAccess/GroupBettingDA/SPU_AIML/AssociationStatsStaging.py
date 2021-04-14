@@ -8,6 +8,7 @@ from mysql.connector import MySQLConnection
 from app import config
 from Utilities import FunctionSupport
 
+
 def TruncateAssociationStatsStaging():
     try:
         conn = MySQLConnection(user=config.aimluser, password=config.aimlpwd,

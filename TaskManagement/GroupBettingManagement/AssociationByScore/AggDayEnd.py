@@ -9,7 +9,6 @@ from DataAccess.GroupBettingDA.SPU_AIML import AssociationSuspiciousInfo
 from DataAccess.GroupBettingDA.CTS_DataCenter import AssociationByAICTS
 from TaskManagement.GroupBettingManagement.AssociationByScore import FeatureScore
 from app import config
-
 from Utilities import FunctionSupport
 from mysql.connector import MySQLConnection
 import time
@@ -17,6 +16,8 @@ import os
 import json
 import pandas as pd
 import logging
+
+
 def day_end_aggregate(args):
     try:
         date_insert = args[2]

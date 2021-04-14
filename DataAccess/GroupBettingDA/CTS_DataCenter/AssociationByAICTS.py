@@ -8,6 +8,7 @@ from app import config
 from Utilities import FunctionSupport
 from mysql.connector import MySQLConnection
 
+
 def InsertAssociationByAICTS(batches_data,date_insert):
     try:
         conn = MySQLConnection(user=config.ctsuser, password=config.ctspwd,

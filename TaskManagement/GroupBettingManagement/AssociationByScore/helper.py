@@ -3,6 +3,8 @@ from numba import prange, njit, set_num_threads, jit
 from numba.typed import List
 import numba
 from tqdm import tqdm
+
+
 @njit(parallel=True)
 def compute_pairwise_cus(X,time_threshold,n_jobs=4):
     set_num_threads(n_jobs)

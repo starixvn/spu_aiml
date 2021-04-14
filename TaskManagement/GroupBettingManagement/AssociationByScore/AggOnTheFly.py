@@ -17,6 +17,8 @@ import os
 import json
 import pandas as pd
 import logging
+
+
 def aggregate(args):
     try:
         date_insert = args[1]
@@ -102,8 +104,6 @@ def aggregate(args):
             if config.transfer_score:
                 AssociationByAICTS.InsertAssociationByAICTS(chunks4,date_insert)
         logging.info(f"Time to complete child process {os.getpid()}: {time.time() - time_getStaging}")
-        
-
     except Exception as err:
         message_telegram = f'{config.ENV} | Error in agg function: {err}'
         FunctionSupport.notify_logging(message_telegram)
