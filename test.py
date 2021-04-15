@@ -1,12 +1,12 @@
 import pandas as pd
 import numpy as np
-import multiprocessing as mp
-# import os
-# import pickle
-import multiprocessing as mp
-def sum_of_square(x):
-    count+=1
-    print('x^2 = ',x**2)
+# import multiprocessing as mp
+# # import os
+# # import pickle
+# import multiprocessing as mp
+# def sum_of_square(x):
+#     count+=1
+#     print('x^2 = ',x**2)
 if __name__ == "__main__":
     # root="C:/Users/diego.nguyen/Downloads/DataVer04"
     # root="C:/Users/diego.nguyen/Downloads/DataVer02/New folder"
@@ -31,8 +31,17 @@ if __name__ == "__main__":
     #     print(f'YES and here its combs {daily_cus_dict[custid]}')
     # else:
     #     print('No It is not')
-    count = 1
-    pool = mp.Pool(2)
+    # count = 1
+    # pool = mp.Pool(2)
+    # ls = list(range(10))
+    # pool.map(sum_of_square,ls)
+    # vector1D = np.array([2,4,6])
+    # matrix = np.array([[0],[1],[2]])
+    # print('vector1D\n',vector1D)
+    # print('matrix\n',matrix)
+    # print('Adding 1Dvector and 2Dmatrix\n',vector1D+matrix)
+    # print('My name is \"Diego\"')
     ls = list(range(10))
-    pool.map(sum_of_square,ls)
+    np.random.shuffle(ls)
+    print('ls\n',ls)
     
