@@ -70,7 +70,7 @@ class AggScoreCouple(object):
         pool.close()
         pool.join()
         
-    def run(self):
+    def check_day_end(self):
         time_begin = time.time()
         check_files = [f for f in sorted(os.listdir(config.root_orig))]
         while len(check_files)==0:
@@ -80,6 +80,10 @@ class AggScoreCouple(object):
         day_curr=orig_fn.split('.')[0].split('_')[2]
         self.initial.append(day_curr)
         time_constant=int(day_curr)-int(self.day_prev)
+        return time_constant
+    
+    def run(self):
+        time_constant = self.check_day_end()
         if time_constant !=0 :
             start_time = time.time()
             the_first_is_the_last = False
