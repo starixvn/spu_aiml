@@ -5,22 +5,18 @@ import sys
 sys.path.append("D:\\Project\\aiml_cleancode\\")
 from app import config
 from Utilities import FunctionSupport
-from mysql.connector import MySQLConnection
+from DataAccess.SPUAIMLDA import CommonDA
 
 
-def InsertAssociationByIPCTS(batch_data,date_insert):
-    try:
-        conn = MySQLConnection(user=config.ctsuser, password=config.ctspwd,
-            host=config.ctshost, port=config.ctsport, database=config.ctsdb)
-        cur = conn.cursor()
-        in1,in2,out1 = cur.callproc('CTS_DC_Association_InsertAssociationByIP',[batch_data,date_insert,None])
-        if out1 is not None:
-            message_telegram = f'{config.ENV} | Error return from SP CTS_DC_Association_InsertAssociationByIP: {out1}'
+class InsertAssociationByIPCTS:
+
+    def execute(self, batch_data, date_insert):
+        try:
+            proc_name = 'CTS_DC_Association_InsertAssociationByIP'
+            data = [batch_data, date_insert, None]
+            common_da = CommonDA()
+            common_da.insert_single(proc_name, data)
+        except Exception as e:
+            message_telegram = f"{config.ENV} | Error insert Group Betting by IP to CTS DB: {e}"
             FunctionSupport.notify_logging(message_telegram)
-        conn.commit()
-        cur.close()
-        conn.close()
-    except Exception as e:
-        message_telegram = f"{config.ENV} | Error insert Group Betting by IP to CTS DB: {e}"
-        FunctionSupport.notify_logging(message_telegram)
-        raise ValueError
+            raise ValueError

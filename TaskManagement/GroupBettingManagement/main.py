@@ -13,7 +13,7 @@ import re
 import json
 import warnings
 from DataAccess.GroupBettingDA.SPU_AIML import AssociationStatsStaging
-from DataAccess.CommonDA import SystemParameter
+from DataAccess.SystemParameter import SystemParameter
 from TaskManagement.GroupBettingManagement.AssociationByScore import AggDayEnd
 from TaskManagement.GroupBettingManagement.AssociationByScore import AggOnTheFly
 from TaskManagement.GroupBettingManagement.AssociationByIP import GroupbyIP
