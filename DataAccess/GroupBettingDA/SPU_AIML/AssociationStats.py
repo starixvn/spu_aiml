@@ -2,16 +2,14 @@ import sys
 # PROD
 # sys.path.append("/home/vnteam/app/")
 # LOCAL
-sys.path.append("D:\\Project\\aiml_cleancode\\")
-import json
+sys.path.append("D:\\\working\\aiml\\")
 from app import config
 from Utilities import FunctionSupport
-from mysql.connector import MySQLConnection
-from DataAccess.SPUAIMLDA import CommonDA
 
 
 class AssociationStats:
     def __init__(self):
+        from DataAccess.SPUAIMLDA import CommonDA
         self.common_da = CommonDA()
 
     def get(self, from_custid, to_custid):

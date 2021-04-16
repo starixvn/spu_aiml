@@ -2,14 +2,14 @@ import sys
 # PROD
 # sys.path.append("/home/vnteam/app/")
 # LOCAL
-sys.path.append("D:\\Project\\aiml_cleancode\\")
+sys.path.append("D:\\\working\\aiml\\")
 from app import config
 from Utilities import FunctionSupport
-from DataAccess.SPUAIMLDA import CommonDA
 
 
 class InsertAssociationByAISPU:
     def execute(self, batches_data):
+        from DataAccess.SPUAIMLDA import CommonDA
         try:
             proc_name = 'SPU_AIML_InsertAssociationByAI'
             common_da = CommonDA()

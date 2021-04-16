@@ -5,17 +5,17 @@ import sys
 # LOCAL
 from DataAccess.AssociationIPDA.CTS_DataCenter.AssociationByIPCTS import InsertAssociationByIPCTS
 
-sys.path.append("D:\\Project\\aiml_cleancode\\")
+sys.path.append("D:\\\working\\aiml\\")
 import json
 import pandas as pd
 from app import config
 from Utilities import FunctionSupport
-from DataAccess.SPUAIMLDA import CommonDA
 
 
 class InsertCoupleIPStats:
     def execute(self, batches_data, date_insert):
         try:
+            from DataAccess.SPUAIMLDA import CommonDA
             common_da = CommonDA()
             for data in batches_data:
                 json_objIP1 = json.dumps(data)

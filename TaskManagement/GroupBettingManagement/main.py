@@ -1,39 +1,29 @@
-import sys
 ##PROD
 #sys.path.append("/home/vnteam/app/")
 ##LOCAL
 #sys.path.append("D:\\Project\\aiml_cleancode\\")
-import pandas as pd
-import numpy as np
-import multiprocessing as mp
-from concurrent.futures import ProcessPoolExecutor,as_completed
 import logging
-import csv
+import multiprocessing as mp
+import os
+import pickle
 import re
-import json
-import warnings
+import time
+from datetime import date as dt
+
+import numpy as np
+import pandas as pd
+from tqdm import tqdm
+
 from DataAccess.GroupBettingDA.SPU_AIML import AssociationStatsStaging
 from DataAccess.SystemParameter import SystemParameter
+from Helper import SendLogTelegram
+from TaskManagement.GroupBettingManagement.AssociationByIP import GroupbyIP
 from TaskManagement.GroupBettingManagement.AssociationByScore import AggDayEnd
 from TaskManagement.GroupBettingManagement.AssociationByScore import AggOnTheFly
-from TaskManagement.GroupBettingManagement.AssociationByIP import GroupbyIP
 from TaskManagement.GroupBettingManagement.AssociationByScore import ExtractInsightData
 from Utilities import FunctionSupport
-from Helper import SendLogTelegram
-import datetime
-import time
-import pickle
-import itertools
-import gc
-import os
-import torch
 
-from tqdm import tqdm
-from mysql.connector import MySQLConnection
-from Configuration.Configuration import Configuration
 
-from datetime import date as dt
-from datetime import timedelta
 def run(config):
     initial = []
     while True:

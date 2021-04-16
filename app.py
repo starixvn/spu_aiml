@@ -9,7 +9,6 @@ import warnings
 from DataAccess.GroupBettingDA.SPU_AIML import AssociationStatsStaging
 from TaskManagement.GroupBettingManagement import main
 import os
-import torch
 
 warnings.filterwarnings("ignore")
 logging.basicConfig(filename=os.path.join(config.save_dir_log, config.log_name), level=logging.INFO)
@@ -25,5 +24,3 @@ if __name__ == "__main__":
         os.remove(os.path.join(config.root,config.cus_dict_fn))
     
     main.run(config)
-    
-    

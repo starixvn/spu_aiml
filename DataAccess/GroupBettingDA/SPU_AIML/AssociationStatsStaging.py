@@ -2,14 +2,14 @@ import sys
 ##PROD
 #sys.path.append("/home/vnteam/app/")
 ##LOCAL
-sys.path.append("D:\\Project\\aiml_cleancode\\")
+sys.path.append("D:\\\working\\aiml\\")
 from app import config
 from Utilities import FunctionSupport
-from DataAccess.SPUAIMLDA import CommonDA
 
 
 class AssociationStatsStaging:
     def __init__(self):
+        from DataAccess.SPUAIMLDA import CommonDA
         self.common_da = CommonDA()
 
     def truncate(self):
