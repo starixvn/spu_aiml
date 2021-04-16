@@ -3,7 +3,7 @@ import sys
 # sys.path.append("/home/vnteam/app/")
 # LOCAL
 sys.path.append("D:\\Project\\aiml_cleancode\\")
-from app import config
+from TaskManagement.GroupBettingManagement.GroupBettingController import config
 from Utilities import FunctionSupport
 from mysql.connector import MySQLConnection
 
