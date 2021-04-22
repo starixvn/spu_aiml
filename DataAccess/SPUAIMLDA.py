@@ -4,89 +4,98 @@ import time
 import pandas as pd
 from mysql.connector import MySQLConnection
 
+from DataAccess.AssociationIPDA.CTS_DataCenter.AssociationByIPCTS import InsertAssociationByIPCTS
 from Utilities import FunctionSupport
 from app import config
 
 
 class CommonDA:
-    def insert_single(self, proc_name, data):
+    def __init__(self, db='aiml'):
+        if db == 'aiml':
+            self.conn = MySQLConnection(user=config.aimluser, password=config.aimlpwd,
+                                        host=config.aimlhost, port=config.aimlport, database=config.aimldb)
+        elif db == 'cts':
+            self.conn = MySQLConnection(user=config.ctsuser, password=config.ctspwd,
+                                   host=config.ctshost, port=config.ctsport, database=config.ctsdb)
+        self.cursor = self.conn.cursor()
+
+    def __del__(self):
+        self.cursor.close()
+        self.conn.close()
+
+    def insert(self, proc_name, batches_data, error_message, date_insert=None, write_error_to_csv=False, save_ip=False, save_ip_date=None, to_json=False):
         try:
-            conn = MySQLConnection(user=config.aimluser, password=config.aimlpwd,
-                                   host=config.aimlhost, port=config.aimlport, database=config.aimldb)
-            cur = conn.cursor()
-            # update table SystemParameter
-            proc_output = cur.callproc(proc_name, data)
-            if proc_output[-1] is not None:
-                message_telegram = f'{config.ENV} | Error updating data: {proc_name} {proc_output[-1]}'
-                FunctionSupport.notify_logging(message_telegram)
-            dba_results = [r.fetchall() for r in cur.stored_results()]
-            conn.commit()
-
-            cur.close()
-            conn.close()
-            return dba_results
-
-        except Exception as e:
-            message_telegram = f"{config.ENV} | Error insert data: {e}"
-            FunctionSupport.notify_logging(message_telegram)
-            raise ValueError
-
-    def insert_many(self, proc_name, batches_data, date_insert, write_error_to_csv=False):
-        try:
-            conn = MySQLConnection(user=config.aimluser, password=config.aimlpwd,
-                                    host=config.aimlhost, port=config.aimlport, database=config.aimldb)
-            cursor = conn.cursor()
             for data in batches_data:
-                jsonList = json.dumps(data)
-                proc_output = cursor.callproc(proc_name, [jsonList, date_insert, None])
+                if to_json:
+                    jsonList = json.dumps(data)
+                else:
+                    jsonList = data
+                if date_insert:
+                    print('no hello')
+                    proc_output = self.cursor.callproc(proc_name, [jsonList, date_insert, None])
+                else:
+                    print('hello')
+                    proc_output = self.cursor.callproc(proc_name, [jsonList, None])
+
                 if proc_output[-1] is not None:
                     if write_error_to_csv:
                         dataSP_error = json.loads(jsonList)
                         df_dataSP_error = pd.DataFrame(dataSP_error)
-                        df_dataSP_error.to_csv(config.errorFolder+f"file_error_SP_data_{time.time()}.csv",index=False)
-                    message_telegram = f'{config.ENV} | Error return from {proc_name}: {proc_output[-1]} | With JSON {jsonList}'
-                    FunctionSupport.notify_logging(message_telegram)
-                conn.commit()
-            cursor.close()
-            conn.close()
+                        df_dataSP_error.to_csv(config.errorFolder+f"file_error_SP_data_{time.time()}.csv", index=False)
+                    write_error_message_telegram = f'{config.ENV} | Error return from {proc_name}: {proc_output[-1]} | With JSON {jsonList}'
+                    FunctionSupport.notify_logging(write_error_message_telegram)
+
+                dba_results = [r.fetchall() for r in self.cursor.stored_results()]
+                if save_ip:
+                    if config.transfer_ip:
+                        save_dba_results(dba_results, save_ip_date)
+                self.conn.commit()
+
         except Exception as err:
-            message_telegram = f'{config.ENV} | Error insert table {proc_name} in SPU DB: {err}'
-            FunctionSupport.notify_logging(message_telegram)
+            FunctionSupport.notify_logging(error_message + str(err))
             raise ValueError
 
-    def get(self, proc_name, id_data):
+    def get(self, proc_name, id_data, message_telegram):
         try:
-            conn = MySQLConnection(user=config.aimluser, password=config.aimlpwd, host=config.aimlhost, port=config.aimlport, database=config.aimldb)
-            cur = conn.cursor()
-            proc_output = cur.callproc(proc_name, id_data)
+            proc_output = self.cursor.callproc(proc_name, id_data)
             if proc_output[-1] is not None:
                 message_telegram = f'{config.ENV} | Error return from SP {proc_name}: {proc_output[-1]} | With CusList {id_data}'
                 FunctionSupport.notify_logging(message_telegram)
-            dba_results = [r.fetchall() for r in cur.stored_results()]
-            conn.commit()
-            cur.close()
-            conn.close()
+            dba_results = [r.fetchall() for r in self.cursor.stored_results()]
+            self.conn.commit()
             return dba_results
         except Exception as err:
-            message_telegram = f'{config.ENV} | Error get data from {proc_name} in SPU when on-the-fly: {err}'
-            FunctionSupport.notify_logging(message_telegram)
+            FunctionSupport.notify_logging(message_telegram + str(err))
             raise ValueError
 
-    def update(self, proc_name, custid_list):
+    def update(self, proc_name, custid_list, message_telegram):
         try:
-            conn = MySQLConnection(user=config.aimluser, password=config.aimlpwd,
-                                host=config.aimlhost, port=config.aimlport, database=config.aimldb)
-            cur = conn.cursor()
-            proc_output = cur.callproc(proc_name, [custid_list, None])
+            proc_output = self.cursor.callproc(proc_name, [custid_list, None])
             if proc_output[-1] is not None:
                 message_telegram = f'{config.ENV} | Error return from SP {proc_name}: {proc_output[-1]} | With CusList {custid_list}'
                 FunctionSupport.notify_logging(message_telegram)
-            conn.commit()
-
-            cur.close()
-            conn.close()
+            self.conn.commit()
 
         except Exception as err:
-            message_telegram = f'{config.ENV} | Error Update Staging Status: {err}'
-            FunctionSupport.notify_logging(message_telegram)
+            FunctionSupport.notify_logging(message_telegram + str(err))
+            print(message_telegram + str(err))
             raise ValueError
+
+    def truncate(self, table_name):
+        try:
+            self.cursor.callproc('SPU_AIML_DBA_Truncate_Table', [table_name])
+            self.conn.commit()
+        except Exception as err:
+            error_message = f'Error truncating table: {table_name}: '
+            FunctionSupport.notify_logging(error_message + str(err))
+            raise ValueError
+
+
+def save_dba_results(dba_results, date_insert):
+    if len(dba_results[0]) > 0:
+        df_CTS = pd.DataFrame(dba_results[0], columns=[
+            "C1",
+            "C2"])
+        full_data_IPCTS_dba = df_CTS.to_json(orient="records")
+        insert_association_by_IPCTS = InsertAssociationByIPCTS()
+        insert_association_by_IPCTS.execute(full_data_IPCTS_dba, date_insert=date_insert)

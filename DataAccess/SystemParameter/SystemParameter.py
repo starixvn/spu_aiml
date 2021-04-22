@@ -4,11 +4,12 @@ import sys
 ##LOCAL
 sys.path.append("D:\\Project\\aiml_cleancode\\")
 from DataAccess.SPUAIMLDA import CommonDA
+from app import config
 
 
 class InsertSystemParameter:
     def execute(self, date_insert):
         proc_name = 'SPU_AIML_UpdateScanStatus'
-        data = [date_insert, None]
+        message_telegram = f"{config.ENV} | Error insert system parameter: "
         common_da = CommonDA()
-        common_da.insert_single(proc_name, data)
+        common_da.insert(proc_name, [date_insert], message_telegram)
