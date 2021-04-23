@@ -9,7 +9,7 @@ from DataAccess.GroupBettingDA.SPU_AIML.AssociationSuspiciousInfo import Associa
 
 sys.path.append("D:\\Project\\aiml_cleancode\\")
 from DataAccess.GroupBettingDA.SPU_AIML.AssociationStatsStaging import AssociationStatsStagingDA
-from TaskManagement.GroupBettingManagement.AssociationByScore import FeatureScore
+from GroupBettingManagement.AssociationByScore import FeatureScore
 from Configuration.Configuration import config
 #from GroupBetting.Support import helper
 from Utilities import FunctionSupport
@@ -52,7 +52,7 @@ def aggregate(args):
             IsNewdf = IsNewdf.astype({"sample_id": 'int64'})
             IsNewdf['TS'] = IsNewdf['TS'].astype('float')
             
-            df_byAI,df_byAISPU,df_resultinfo,isTraceLog,df_result3 = FeatureScore.calculate_score(IsNewdf,config,True)
+            df_byAI,df_byAISPU,df_resultinfo,isTraceLog,df_result3 = FeatureScore.calculate_score(IsNewdf, config, True)
             
             # move to dba
             fulldatainfo_dba = df_resultinfo.to_dict(orient="records")
@@ -90,7 +90,7 @@ def aggregate(args):
             df = df.astype({"sample_id": 'int64'})
             df['TS'] = df['TS'].astype('float')
             
-            df_byAI,df_byAISPU,df_resultinfo,isTraceLog,df_result3 = FeatureScore.calculate_score(df,config)
+            df_byAI,df_byAISPU,df_resultinfo,isTraceLog,df_result3 = FeatureScore.calculate_score(df, config)
             
             # move to dba
             fulldatabyAI_dba = df_byAI.to_dict(orient="records")

@@ -2,10 +2,10 @@ import sys
 ##PROD
 #sys.path.append("/home/vnteam/app/")
 ##LOCAL
-sys.path.append("D:\\working\\aiml\\")
+sys.path.append("/\\")
 from DataAccess.GroupBettingDA.SPU_AIML.AssociationStatsStaging import AssociationStatsStagingDA
 from Configuration.Configuration import config
-from TaskManagement.GroupBettingManagement.AssociationByScore import helper
+from GroupBettingManagement.AssociationByScore import helper
 from Utilities import FunctionSupport
 import time
 import os

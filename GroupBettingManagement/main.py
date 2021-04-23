@@ -16,10 +16,8 @@ from tqdm import tqdm
 
 from DataAccess.GroupBettingDA.SPU_AIML.AssociationStatsStaging import AssociationStatsStagingDA
 from DataAccess.SystemParameter.SystemParameter import SystemParameterDA
-from TaskManagement.GroupBettingManagement.AssociationByIP import GroupbyIP
-from TaskManagement.GroupBettingManagement.AssociationByScore import AggDayEnd
-from TaskManagement.GroupBettingManagement.AssociationByScore import AggOnTheFly
-from TaskManagement.GroupBettingManagement.AssociationByScore import ExtractInsightData
+from GroupBettingManagement.AssociationByIP import GroupbyIP
+from GroupBettingManagement.AssociationByScore import ExtractInsightData, AggDayEnd, AggOnTheFly
 from Utilities import FunctionSupport
 
 
@@ -191,7 +189,7 @@ def run(config):
                 # message_telegram = f"{ENV} |Group Betting by IP is running"
                 # SendLogTelegram.send_message(message_telegram)
                 df_dataip = df_dataip[['custid','ip','bettype','matchid','leagueid','homeid','awayid','transdate']]
-                GroupbyIP.AssociationbyIP(df_dataip,date_insert,config)
+                GroupbyIP.AssociationbyIP(df_dataip, date_insert, config)
                 del df_dataip
             except Exception as e:
                 message_telegram = f"{config.ENV} | Error at phase Association by IP: {e}"
@@ -207,7 +205,7 @@ def run(config):
                 pool = mp.Pool(config.nb_workers_phase_1)
                 # pool.map(process_a_combination,candidates)
                 # process_a_combination('39960404_3.csv')
-                for _ in tqdm(pool.imap_unordered(ExtractInsightData.process_a_combination, [(candidate,batch_cus_dict) for candidate in candidates]), total=len(candidates), desc='MAIN PROCESS'):
+                for _ in tqdm(pool.imap_unordered(ExtractInsightData.process_a_combination, [(candidate, batch_cus_dict) for candidate in candidates]), total=len(candidates), desc='MAIN PROCESS'):
                     pass
                 pool.close()
                 pool.join()
@@ -252,7 +250,7 @@ def run(config):
                         logging.info(f"number of cust list: {len(batch_cus_list)}")
                         pool = mp.Pool(config.nb_workers_phase_2)
                         # result = pool.map(aggregate, [(np.min(BATCH), np.max(BATCH),date_insert,daily_cus_dict) for BATCH in BATCHES])
-                        for _ in tqdm(pool.imap_unordered(AggOnTheFly.aggregate,[(BATCH,date_insert,daily_cus_dict) for BATCH in BATCHES]),total=len(BATCHES),desc=f'AGG | A BATCH OF {date_insert}'):
+                        for _ in tqdm(pool.imap_unordered(AggOnTheFly.aggregate, [(BATCH, date_insert, daily_cus_dict) for BATCH in BATCHES]), total=len(BATCHES), desc=f'AGG | A BATCH OF {date_insert}'):
                             pass
                         pool.close()
                         pool.join()
@@ -276,7 +274,7 @@ def run(config):
                 BATCHES = [daily_cus_list[x:x+config.num_batch_cus] for x in range(0, len(daily_cus_list), config.num_batch_cus)]
                 #BATCHES = [','.join([str(z) for z in batch_cus_list[x:x+num_batch_cus]]) for x in range(0, len(batch_cus_list), num_batch_cus)]
                 pool = mp.Pool(config.nb_workers_phase_2)
-                for _ in tqdm(pool.imap_unordered(AggDayEnd.day_end_aggregate,[(min(BATCH),max(BATCH),date_insert,the_first_is_the_last,daily_cus_dict) for BATCH in BATCHES]), total=len(BATCHES), desc='DAY-END AGG'):
+                for _ in tqdm(pool.imap_unordered(AggDayEnd.day_end_aggregate, [(min(BATCH), max(BATCH), date_insert, the_first_is_the_last, daily_cus_dict) for BATCH in BATCHES]), total=len(BATCHES), desc='DAY-END AGG'):
                     pass
                 pool.close()
                 pool.join()
@@ -309,7 +307,7 @@ def run(config):
                 logging.info(f"number of cust list: {len(batch_cus_list)}")
                 pool = mp.Pool(config.nb_workers_phase_2)
                 
-                for _ in tqdm(pool.imap_unordered(AggOnTheFly.aggregate,[(BATCH,date_insert,daily_cus_dict) for BATCH in BATCHES]), total=len(BATCHES), desc='AGG'):
+                for _ in tqdm(pool.imap_unordered(AggOnTheFly.aggregate, [(BATCH, date_insert, daily_cus_dict) for BATCH in BATCHES]), total=len(BATCHES), desc='AGG'):
                     pass
                 pool.close()
                 pool.join()

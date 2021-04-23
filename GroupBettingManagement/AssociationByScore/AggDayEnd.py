@@ -9,7 +9,7 @@ from DataAccess.GroupBettingDA.SPU_AIML.AssociationSuspiciousInfo import Associa
 
 sys.path.append("D:\\Project\\aiml_cleancode\\")
 from DataAccess.GroupBettingDA.SPU_AIML.AssociationStats import AssociationStatsDA
-from TaskManagement.GroupBettingManagement.AssociationByScore import FeatureScore
+from GroupBettingManagement.AssociationByScore import FeatureScore
 from Configuration.Configuration import config
 from Utilities import FunctionSupport
 import time
@@ -67,7 +67,7 @@ def day_end_aggregate(args):
         df['AccMS'] = df['AccMS'].astype('float')
         df['AccLS'] = df['AccLS'].astype('float')
 
-        df_byAI,df_byAISPU,df_resultinfo,isTraceLog,df_result3 = FeatureScore.calculate_score(df,config,the_first_is_the_last,True)
+        df_byAI,df_byAISPU,df_resultinfo,isTraceLog,df_result3 = FeatureScore.calculate_score(df, config, the_first_is_the_last, True)
         
         # move to dba
         fulldatabyAI_dba = df_byAI.to_dict(orient="records")
