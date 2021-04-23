@@ -88,4 +88,3 @@ def total_leaguescore(x, y):
         minor_score = (x + 5/2) * (2/7)
         major_score = (y + 3/2) * (2/5)
         return (3 * (minor_score + 1) + (major_score + 2)) * (1/9)
-    
