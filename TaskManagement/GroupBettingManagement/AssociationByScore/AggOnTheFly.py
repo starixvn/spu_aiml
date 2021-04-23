@@ -1,20 +1,20 @@
 import sys
+
 ##PROD
-#sys.path.append("/home/vnteam/app/")
+# sys.path.append("/home/vnteam/app/")
 ##LOCAL
+from DataAccess.GroupBettingDA.CTS_DataCenter.AssociationByAICTS import AssociationByAICTSDA
+from DataAccess.GroupBettingDA.SPU_AIML.AssociationByAISPU import AssociationByAISPUDA
+from DataAccess.GroupBettingDA.SPU_AIML.AssociationSuspiciousInfo import AssociationSuspiciousInfoDA
+
 sys.path.append("D:\\Project\\aiml_cleancode\\")
-from DataAccess.GroupBettingDA.SPU_AIML import AssociationStatsStaging
-from DataAccess.GroupBettingDA.SPU_AIML import AssociationByAISPU
-from DataAccess.GroupBettingDA.SPU_AIML import AssociationSuspiciousInfo
-from DataAccess.GroupBettingDA.CTS_DataCenter import AssociationByAICTS
+from DataAccess.GroupBettingDA.SPU_AIML.AssociationStatsStaging import AssociationStatsStagingDA
 from TaskManagement.GroupBettingManagement.AssociationByScore import FeatureScore
-from app import config
+from Configuration.Configuration import config
 #from GroupBetting.Support import helper
 from Utilities import FunctionSupport
-from mysql.connector import MySQLConnection
 import time
 import os
-import json
 import pandas as pd
 import logging
 
@@ -24,8 +24,12 @@ def aggregate(args):
         date_insert = args[1]
         daily_cus_dict = args[2]
         time_getStaging = time.time()
-        
-        dba_results = AssociationStatsStaging.GetAssociationStatsStaging(args[0])
+        association_by_aicts_da = AssociationByAICTSDA()
+        association_by_aispu_da = AssociationByAISPUDA()
+        association_stats_staging_da = AssociationStatsStagingDA()
+        association_suspicious_info_da = AssociationSuspiciousInfoDA()
+
+        dba_results = association_stats_staging_da.get(args[0])
         
         if len(dba_results[0]) == 0:
             return []
@@ -68,16 +72,16 @@ def aggregate(args):
             #logging.info(f"Time to calculate new batch: {time.time() - time_newBatch}")
             time_inserttable = time.time()
             if isTraceLog:
-                AssociationByAISPU.InsertAssociationByAISPU(chunks5)
-            AssociationSuspiciousInfo.InsertAssociationSuspiciousInfo(chunks2)
+                association_by_aispu_da.insert(chunks5)
+            association_suspicious_info_da.insert(chunks2)
             
             # insert dba CTS
             if config.transfer_score:
-                AssociationByAICTS.InsertAssociationByAICTS(chunks4,date_insert)
+                association_by_aicts_da.insert(chunks4, date_insert)
 
             # update Staging Status
-            AssociationStatsStaging.UpdateAssociationStatsStagingStatus(args[0])
-            
+            association_stats_staging_da.update(args[0])
+
             #logging.info(f"Time to insert all table in DB: {time.time() - time_inserttable}")
         if len(df)>len(IsNewdf):
             time_onthefly = time.time()
@@ -99,10 +103,10 @@ def aggregate(args):
                     for x in range(0, len(fulldatabyAISPU_dba), config.chunk_size)]
 
             if isTraceLog:
-                AssociationByAISPU.InsertAssociationByAISPU(chunks5)
+                association_by_aispu_da.insert(chunks5)
             # insert dba CTS
             if config.transfer_score:
-                AssociationByAICTS.InsertAssociationByAICTS(chunks4,date_insert)
+                association_by_aicts_da.insert(chunks4, date_insert)
         logging.info(f"Time to complete child process {os.getpid()}: {time.time() - time_getStaging}")
     except Exception as err:
         message_telegram = f'{config.ENV} | Error in agg function: {err}'

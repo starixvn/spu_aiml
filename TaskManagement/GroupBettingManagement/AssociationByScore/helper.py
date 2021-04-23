@@ -1,8 +1,5 @@
 import numpy as np
-from numba import prange, njit, set_num_threads, jit
-from numba.typed import List
-import numba
-from tqdm import tqdm
+from numba import prange, njit, set_num_threads
 
 
 @njit(parallel=True)

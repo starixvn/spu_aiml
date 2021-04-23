@@ -1,39 +1,28 @@
-import sys
 ##PROD
 #sys.path.append("/home/vnteam/app/")
 ##LOCAL
 #sys.path.append("D:\\Project\\aiml_cleancode\\")
-import pandas as pd
-import numpy as np
-import multiprocessing as mp
-from concurrent.futures import ProcessPoolExecutor,as_completed
 import logging
-import csv
+import multiprocessing as mp
+import os
+import pickle
 import re
-import json
-import warnings
-from DataAccess.GroupBettingDA.SPU_AIML import AssociationStatsStaging
-from DataAccess.CommonDA import SystemParameter
+import time
+from datetime import date as dt
+
+import numpy as np
+import pandas as pd
+from tqdm import tqdm
+
+from DataAccess.GroupBettingDA.SPU_AIML.AssociationStatsStaging import AssociationStatsStagingDA
+from DataAccess.SystemParameter.SystemParameter import SystemParameterDA
+from TaskManagement.GroupBettingManagement.AssociationByIP import GroupbyIP
 from TaskManagement.GroupBettingManagement.AssociationByScore import AggDayEnd
 from TaskManagement.GroupBettingManagement.AssociationByScore import AggOnTheFly
-from TaskManagement.GroupBettingManagement.AssociationByIP import GroupbyIP
 from TaskManagement.GroupBettingManagement.AssociationByScore import ExtractInsightData
 from Utilities import FunctionSupport
-from Helper import SendLogTelegram
-import datetime
-import time
-import pickle
-import itertools
-import gc
-import os
-import torch
 
-from tqdm import tqdm
-from mysql.connector import MySQLConnection
-from Configuration.Configuration import Configuration
 
-from datetime import date as dt
-from datetime import timedelta
 def run(config):
     initial = []
     while True:
@@ -53,7 +42,8 @@ def run(config):
                     "======================================================================================================")
                 logging.info(f"{config.ENV} | Running for Date: {year_prev+'-'+month_prev+'-'+day_prev}")
                 message_telegram = f"{config.ENV} | Group Betting is running for {year_prev+'-'+month_prev+'-'+day_prev}"
-                SendLogTelegram.send_message(message_telegram)
+                print(message_telegram)
+                # SendLogTelegram.send_message(message_telegram)
                 initial.append(day_prev)
             
 
@@ -69,8 +59,9 @@ def run(config):
                 logging.info(f"Total file: {len(check_files_sameday)}")
                 
                 ### use list comprehensive to concat data
-                data = pd.concat((pd.read_csv(os.path.join(config.root_orig, f),encoding='ISO-8859-1', skiprows=[1], skipfooter=1).assign(file_name = f) if (os.access(config.root_orig + f, os.R_OK) is True and os.access(config.root_orig + f, os.X_OK) is True) else FunctionSupport.notify_logging(f"Error read file {f}") for f in check_files_sameday))
-                
+                # data = pd.concat((pd.read_csv(os.path.join(config.root_orig, f),encoding='ISO-8859-1', skiprows=[1], skipfooter=1).assign(file_name = f) if (os.access(config.root_orig + f, os.R_OK) is True and os.access(config.root_orig + f, os.X_OK) is True) else FunctionSupport.notify_logging(f"Error read file {f}") for f in check_files_sameday))
+                data = pd.concat((pd.read_csv(os.path.join(config.root_orig, f),encoding='ISO-8859-1', skiprows=[1], skipfooter=1).assign(file_name = f) if (os.access(config.root_orig + f, os.R_OK) is True and os.access(config.root_orig + f, os.X_OK) is True) else print(f"Error read file {f}") for f in check_files_sameday))
+
                 for file in check_files_sameday:
                     os.rename(os.path.join(config.root_orig,file),os.path.join(config.backup,file))
                 logging.info(f"Number of rows: {len(data)}")
@@ -189,7 +180,8 @@ def run(config):
                 # print('\n',f"MATCH BREAKING TAKES {(time.time()-start_match_breaking)} seconds")
             except Exception as e:
                 message_telegram = f"{config.ENV} | Error at phase 0: {e}"
-                FunctionSupport.notify_logging(message_telegram)
+                # FunctionSupport.notify_logging(message_telegram)
+                print(message_telegram)
                 break
 
             # START PHASE ASSOCIATION BY IP 
@@ -203,7 +195,8 @@ def run(config):
                 del df_dataip
             except Exception as e:
                 message_telegram = f"{config.ENV} | Error at phase Association by IP: {e}"
-                FunctionSupport.notify_logging(message_telegram)
+                # FunctionSupport.notify_logging(message_telegram)
+                print(message_telegram)
                 break
             # END PHASE 0 - START PHASE 1
             # ****************************************************************************************************************************************************************************
@@ -227,7 +220,8 @@ def run(config):
                     f"{config.ENV} | Done phase 1, takes {time.time() - start_processing} seconds")
             except Exception as e:
                 message_telegram = f"{config.ENV} | Error phase 1: {e}"
-                FunctionSupport.notify_logging(message_telegram)
+                # FunctionSupport.notify_logging(message_telegram)
+                print(message_telegram)
                 break
 
             # END PHASE 1 - START PHASE 2
@@ -267,7 +261,8 @@ def run(config):
 
                     except Exception as e:
                         message_telegram = f"{config.ENV} | Error phase 2 right before day end: {e}"
-                        FunctionSupport.notify_logging(message_telegram)
+                        # FunctionSupport.notify_logging(message_telegram)
+                        print(message_telegram)
                         break
                 else:
                     the_first_is_the_last = True
@@ -285,15 +280,18 @@ def run(config):
                     pass
                 pool.close()
                 pool.join()
-                SystemParameter.InsertSystemParameter(date_insert)
+                system_parameter_da = SystemParameterDA()
+                system_parameter_da.insert(date_insert)
                 print("***********************************************************************************************************************************************************************************")
                 print("%s | AGG & INSERT TIME %.0f SECONDS" %
                     (config.ENV,time.time() - start_time))
                 message_telegram = f"{config.ENV} | Group Betting is done, total {round((time.time() - time_begin)/3600,4)} hours "
-                FunctionSupport.notify_logging(message_telegram,True)
-                
-                AssociationStatsStaging.TruncateAssociationStatsStaging()
-                
+                # FunctionSupport.notify_logging(message_telegram,True)
+                print(message_telegram)
+
+                association_stats_staging_da = AssociationStatsStagingDA()
+                association_stats_staging_da.truncate()
+
                 check_cus_files=os.listdir(config.root)
                 if config.cus_list_fn in check_cus_files:
                     os.remove(os.path.join(config.root,config.cus_list_fn))
@@ -305,7 +303,8 @@ def run(config):
                 start_time = time.time()
                 # build batches
                 batch_cus_list = sorted(batch_cus_list)
-                BATCHES = [','.join([str(z) for z in batch_cus_list[x:x+config.num_batch_cus]]) for x in range(0, len(batch_cus_list), config.num_batch_cus)]
+                # BATCHES = [','.join([str(z) for z in batch_cus_list[x:x+config.num_batch_cus]]) for x in range(0, len(batch_cus_list), config.num_batch_cus)]
+                BATCHES = [batch_cus_list[x:x+config.num_batch_cus] for x in range(0, len(batch_cus_list), config.num_batch_cus)]
                 logging.info("*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*")
                 logging.info(f"number of cust list: {len(batch_cus_list)}")
                 pool = mp.Pool(config.nb_workers_phase_2)
@@ -318,7 +317,8 @@ def run(config):
                 logging.info(f'{config.ENV} | Done phase 2, takes {time.time()-start_time} seconds')
             except Exception as e:
                 message_telegram = f"{config.ENV} | Error phase 2: {e}"
-                FunctionSupport.notify_logging(message_telegram)
+                # FunctionSupport.notify_logging(message_telegram)
+                print(message_telegram)
                 break
         else:
             time.sleep(config.time_sleep)

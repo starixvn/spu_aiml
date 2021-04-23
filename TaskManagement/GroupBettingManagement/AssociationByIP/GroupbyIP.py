@@ -1,17 +1,17 @@
 import sys
+
 ##PROD
-#sys.path.append("/home/vnteam/app/")
+# sys.path.append("/home/vnteam/app/")
 ##LOCAL
+from DataAccess.AssociationIPDA.SPU_AIML.CoupleIPStats import CoupleIPStatsDA
+
 sys.path.append("D:\\Project\\aiml_cleancode\\")
 import pandas as pd
 import itertools
 import time
 import logging
-import json
 import numpy as np
 from Utilities import FunctionSupport
-from DataAccess.AssociationIPDA.SPU_AIML import CoupleIPStats
-from mysql.connector import MySQLConnection
 
 
 def transform_to_listIP(df):
@@ -21,7 +21,6 @@ def transform_to_listIP(df):
     
     df2 = pd.DataFrame({'sample_id': ukeys, 'ip': [set(
         a) for a in arrays]})
-    # print(df2)
     return df2
 
 def transform_to_listBettype(df):
@@ -34,7 +33,6 @@ def transform_to_listBettype(df):
     # print(df2)
     return df2
 def get_unique_bettype(x):
-    #print(x)
     list_bettype = [i.split(',') for i in x]
     result = list(itertools.chain.from_iterable(list_bettype))
     counts = len(result)
@@ -111,8 +109,9 @@ def AssociationbyIP(df_dataip,date_insert,config):
             fullDataIPSPU_dba = df_result.to_dict(orient="records")
             chunks1 = [fullDataIPSPU_dba[x:x+config.chunk_size]
                     for x in range(0, len(fullDataIPSPU_dba), config.chunk_size)]
-            
-            CoupleIPStats.InsertCoupleIPStats(chunks1,date_insert)
+
+            couple_ip_stats_da = CoupleIPStatsDA()
+            couple_ip_stats_da.insert(chunks1, date_insert)
             logging.info(f"Group Betting by IP is done, total: {time.time() - time_start} seconds")
             #message_telegram = f"Group Betting by IP is done, total {round((time.time() - time_start)/3600,4)} hours "
             #SendLogTelegram.send_message(message_telegram)
@@ -121,6 +120,3 @@ def AssociationbyIP(df_dataip,date_insert,config):
         message_telegram = f"Error at phase Group Betting by IP: {e}"
         FunctionSupport.notify_logging(message_telegram)
         raise ValueError       
-    
-
-    

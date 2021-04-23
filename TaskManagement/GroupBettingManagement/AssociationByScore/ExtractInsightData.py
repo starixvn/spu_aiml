@@ -2,15 +2,13 @@ import sys
 ##PROD
 #sys.path.append("/home/vnteam/app/")
 ##LOCAL
-sys.path.append("D:\\Project\\aiml_cleancode\\")
-from DataAccess.GroupBettingDA.SPU_AIML import AssociationStatsStaging
-from app import config
+sys.path.append("D:\\working\\aiml\\")
+from DataAccess.GroupBettingDA.SPU_AIML.AssociationStatsStaging import AssociationStatsStagingDA
+from Configuration.Configuration import config
 from TaskManagement.GroupBettingManagement.AssociationByScore import helper
 from Utilities import FunctionSupport
-from mysql.connector import MySQLConnection
 import time
 import os
-import json
 import itertools
 import gc
 import numpy as np
@@ -95,7 +93,9 @@ def process_a_combination(args):
 
     # filter json obj
     if len(obj) > 0:
-        AssociationStatsStaging.InsertAssociationStatsStaging(chunks)
+        association_stats_staging_da = AssociationStatsStagingDA()
+        association_stats_staging_da.insert(chunks)
+
     # print("\n", "MATCH %.0f BETTYPE %.0f | %.0f CUSTOMERS | SAVING TAKES %.0f SECONDS" % (
     #     match, bettype, len(COMBINATION_CUST_LIST), time.time() - start_save))
     del chunks, obj

@@ -1,19 +1,19 @@
 import sys
+
 ##PROD
-#sys.path.append("/home/vnteam/app/")
+# sys.path.append("/home/vnteam/app/")
 ##LOCAL
+from DataAccess.GroupBettingDA.CTS_DataCenter.AssociationByAICTS import AssociationByAICTSDA
+from DataAccess.GroupBettingDA.SPU_AIML.AssociationByAISPU import AssociationByAISPUDA
+from DataAccess.GroupBettingDA.SPU_AIML.AssociationSuspiciousInfo import AssociationSuspiciousInfoDA
+
 sys.path.append("D:\\Project\\aiml_cleancode\\")
-from DataAccess.GroupBettingDA.SPU_AIML import AssociationStats
-from DataAccess.GroupBettingDA.SPU_AIML import AssociationByAISPU
-from DataAccess.GroupBettingDA.SPU_AIML import AssociationSuspiciousInfo
-from DataAccess.GroupBettingDA.CTS_DataCenter import AssociationByAICTS
+from DataAccess.GroupBettingDA.SPU_AIML.AssociationStats import AssociationStatsDA
 from TaskManagement.GroupBettingManagement.AssociationByScore import FeatureScore
-from app import config
+from Configuration.Configuration import config
 from Utilities import FunctionSupport
-from mysql.connector import MySQLConnection
 import time
 import os
-import json
 import pandas as pd
 import logging
 
@@ -24,8 +24,13 @@ def day_end_aggregate(args):
         the_first_is_the_last = args[3]
         daily_cus_dict = args[4]
         time_getStaging = time.time()
-    
-        dba_results = AssociationStats.GetAssociationStats(int(args[0]), int(args[1]))
+        association_by_aicts_da = AssociationByAICTSDA()
+        association_by_aispu_da = AssociationByAISPUDA()
+        association_stats_da = AssociationStatsDA()
+        association_suspicious_info_da = AssociationSuspiciousInfoDA()
+
+        dba_results = association_stats_da.get(int(args[0]), int(args[1]))
+
         if len(dba_results[0]) == 0:
             return True
         df = pd.DataFrame(dba_results[0], columns=[
@@ -78,13 +83,12 @@ def day_end_aggregate(args):
                 for x in range(0, len(fulldatabyAISPU_dba), config.chunk_size)]   
         
         if isTraceLog:
-            AssociationByAISPU.InsertAssociationByAISPU(chunks5)
+            association_by_aispu_da.insert(chunks5)
         if the_first_is_the_last:
-            AssociationSuspiciousInfo.InsertAssociationSuspiciousInfo(chunks2)
+            association_suspicious_info_da.insert(chunks2)
         # insert dba CTS
         if config.transfer_score:
-            AssociationByAICTS.InsertAssociationByAICTS(chunks4,date_insert)
-        
+            association_by_aicts_da.insert(chunks4, date_insert)
         # Compute accomulatedly
         df_sampleDailyScore = df[['sample_id', 'C1',
                                   'C2', 'AccTS', 'AccMS', 'AccLS', 'AccTJD', 'AccTJSC']]
@@ -109,9 +113,8 @@ def day_end_aggregate(args):
 
         df_DailyScore = df_DailyScore.drop(columns=['TS','MS','LS'])
 
-        df_DailyScore.rename(columns={'AccTS':'TS','AccMS':'MS','AccLS':'LS','AccTJD':'TJD'},inplace=True)
+        df_DailyScore.rename(columns={'AccTS': 'TS', 'AccMS': 'MS', 'AccLS': 'LS', 'AccTJD': 'TJD'},inplace=True)
 
-        
         df_byAISample03 = df_DailyScore[['C1', 'C2', 'S','AccTJSC']]
         df_byAISample03.rename(columns={'AccTJSC':'TJSC'},inplace=True)
         df_byAI = df_byAISample03[(df_byAISample03['S'] >= config.percent_score) & (
@@ -141,15 +144,16 @@ def day_end_aggregate(args):
                 for x in range(0, len(fulldatabyAISPU_dba), config.chunk_size)]  
          
         if isTraceLog:
-            AssociationByAISPU.InsertAssociationByAISPU(chunks5)
+            association_by_aispu_da.insert(chunks5)
             
-        AssociationStats.InsertAssociationStats(chunks1,date_insert)
+        association_stats_da.insert(chunks1, date_insert)
 
         if config.transfer_score:
-            AssociationByAICTS.InsertAssociationByAICTS(chunks4,date_insert)
+            association_by_aicts_da.insert(chunks4, date_insert)
     
         logging.info(f"Time to complete child process into phase Acc day-end {os.getpid()}: {time.time() - time_getStaging}")
     except Exception as err:
         message_telegram = f'{config.ENV} | Error in day-end agg function: {err}'
-        FunctionSupport.notify_logging(message_telegram)
+        # FunctionSupport.notify_logging(message_telegram)
+        print(message_telegram)
         raise ValueError

@@ -94,3 +94,10 @@ class Configuration(object):
     def getDataBooleanConfig(self, config, parent, child):
         config.sections()
         return config[parent].getboolean(child)
+
+
+ENV='LOCAL'
+if ENV=='LOCAL':
+    config = Configuration("localconfig.ini",ENV)
+else:
+    config = Configuration("proconfig.ini",ENV)
