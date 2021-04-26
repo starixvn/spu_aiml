@@ -23,6 +23,7 @@ def transform_to_listIP(df):
         a) for a in arrays]})
     return df2
 
+
 def transform_to_listBettype(df):
     keys, values1 = df.sort_values('sample_id').values.T
     ukeys, index = np.unique(keys, True)
@@ -32,12 +33,15 @@ def transform_to_listBettype(df):
     
     # print(df2)
     return df2
+
+
 def get_unique_bettype(x):
     list_bettype = [i.split(',') for i in x]
     result = list(itertools.chain.from_iterable(list_bettype))
     counts = len(result)
     result = set(result)
     return pd.Series((result,counts))
+
 
 def AssociationbyIP(df_dataip,date_insert,config):
     try:

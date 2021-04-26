@@ -9,7 +9,7 @@ from DataAccess.GroupBettingDA.SPU_AIML.AssociationSuspiciousInfo import Associa
 
 sys.path.append("D:\\Project\\aiml_cleancode\\")
 from DataAccess.GroupBettingDA.SPU_AIML.AssociationStats import AssociationStatsDA
-from GroupBettingManagement.AssociationByScore import FeatureScore
+from GroupBettingController.AssociationByScore import FeatureScore
 from Configuration.Configuration import config
 from Utilities import FunctionSupport
 import time

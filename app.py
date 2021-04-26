@@ -4,7 +4,7 @@ import warnings
 
 from Configuration.Configuration import config
 from DataAccess.GroupBettingDA.SPU_AIML.AssociationStatsStaging import AssociationStatsStagingDA
-from GroupBettingManagement import main
+from GroupBettingController import main
 
 warnings.filterwarnings("ignore")
 logging.basicConfig(filename=os.path.join(config.save_dir_log, config.log_name), level=logging.INFO)

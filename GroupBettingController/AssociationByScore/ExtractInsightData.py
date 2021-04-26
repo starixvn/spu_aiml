@@ -5,7 +5,7 @@ import sys
 sys.path.append("/\\")
 from DataAccess.GroupBettingDA.SPU_AIML.AssociationStatsStaging import AssociationStatsStagingDA
 from Configuration.Configuration import config
-from GroupBettingManagement.AssociationByScore import helper
+from GroupBettingController.AssociationByScore import helper
 from Utilities import FunctionSupport
 import time
 import os
