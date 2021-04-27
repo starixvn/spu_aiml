@@ -9,7 +9,7 @@ from Configuration.Configuration import config
 class AssociationStatsDA:
 
     def __init__(self):
-        from DataAccess.SPUAIMLDA import CommonDA
+        from DataAccess.CoreDA.SPUAIMLDA import CommonDA
         self.common_da = CommonDA()
 
     def get(self, from_custid, to_custid):

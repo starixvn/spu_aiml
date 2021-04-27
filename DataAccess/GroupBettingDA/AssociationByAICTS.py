@@ -9,7 +9,7 @@ from Configuration.Configuration import config
 class AssociationByAICTSDA:
 
     def insert(self, batches_data, date_insert):
-        from DataAccess.SPUAIMLDA import CommonDA
+        from DataAccess.CoreDA.SPUAIMLDA import CommonDA
         proc_name = 'CTS_DC_Association_InsertAssociationByAI'
         error_message = f'{config.ENV} | Error insert table byAI in DBA CTS when day-end: '
         common_da = CommonDA(db='cts')

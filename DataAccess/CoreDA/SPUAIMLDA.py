@@ -4,7 +4,7 @@ import time
 import pandas as pd
 from mysql.connector import MySQLConnection
 
-from DataAccess.AssociationIPDA.CTS_DataCenter.AssociationByIPCTS import AssociationByIPCTSDA
+from DataAccess.AssociationIPDA.AssociationByIPCTS import AssociationByIPCTSDA
 from Utilities import FunctionSupport
 from Configuration.Configuration import config
 

@@ -3,7 +3,7 @@ import sys
 #sys.path.append("/home/vnteam/app/")
 ##LOCAL
 sys.path.append("D:\\Project\\aiml_cleancode\\")
-from DataAccess.SPUAIMLDA import CommonDA
+from DataAccess.CoreDA.SPUAIMLDA import CommonDA
 from app import config
 
 

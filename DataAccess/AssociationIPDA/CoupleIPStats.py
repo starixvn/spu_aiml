@@ -4,9 +4,9 @@ import sys
 # sys.path.append("/home/vnteam/app/")
 # LOCAL
 
-sys.path.append("D:\\\working\\aiml\\")
+sys.path.append("/\\")
 from Configuration.Configuration import config
-from DataAccess.SPUAIMLDA import CommonDA
+from DataAccess.CoreDA.SPUAIMLDA import CommonDA
 
 
 class CoupleIPStatsDA:

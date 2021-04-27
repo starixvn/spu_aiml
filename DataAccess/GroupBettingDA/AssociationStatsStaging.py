@@ -9,7 +9,7 @@ from Configuration.Configuration import config
 class AssociationStatsStagingDA:
 
     def __init__(self):
-        from DataAccess.SPUAIMLDA import CommonDA
+        from DataAccess.CoreDA.SPUAIMLDA import CommonDA
         self.common_da = CommonDA()
 
     def truncate(self):

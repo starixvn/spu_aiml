@@ -3,9 +3,8 @@ import sys
 #sys.path.append("/home/vnteam/app/")
 ##LOCAL
 sys.path.append("/\\")
-from DataAccess.GroupBettingDA.SPU_AIML.AssociationStatsStaging import AssociationStatsStagingDA
+from DataAccess.GroupBettingDA.AssociationStatsStaging import AssociationStatsStagingDA
 from Configuration.Configuration import config
-from GroupBettingController.AssociationByScore import helper
 from Utilities import FunctionSupport
 import time
 import os
@@ -61,7 +60,7 @@ def process_a_combination(args):
 
     # compute pairwise-time-score matrix
     start_compute = time.time()
-    m = helper.compute_pairwise_cus(X, config.time_threshold)
+    m = FunctionSupport.compute_pairwise_cus(X, config.time_threshold)
     #print("\n","PAIRWISE MATRIX HAVING SHAPE %s OF MATCH %.0f BETTYPE %.0f :" % (m.shape,match,bettype),m,sep='\n')
     # print("\n", "MATCH %.0f BETTYPE %.0f | %.0f CUSTOMERS | COMPUTING TIME SCORE TAKES %.0f SECONDS" % (
     #     match, bettype, len(COMBINATION_CUST_LIST), time.time() - start_compute))

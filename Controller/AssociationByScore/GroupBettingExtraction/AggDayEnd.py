@@ -5,13 +5,13 @@ import time
 
 import pandas as pd
 
-sys.path.append("D:\\working\\aiml\\")
+sys.path.append("/\\")
 from Configuration.Configuration import config
-from DataAccess.GroupBettingDA.CTS_DataCenter.AssociationByAICTS import AssociationByAICTSDA
-from DataAccess.GroupBettingDA.SPU_AIML.AssociationByAISPU import AssociationByAISPUDA
-from DataAccess.GroupBettingDA.SPU_AIML.AssociationStats import AssociationStatsDA
-from DataAccess.GroupBettingDA.SPU_AIML.AssociationSuspiciousInfo import AssociationSuspiciousInfoDA
-from GroupBettingController.AssociationByScore import FeatureScore
+from DataAccess.GroupBettingDA.AssociationByAICTS import AssociationByAICTSDA
+from DataAccess.GroupBettingDA.AssociationByAISPU import AssociationByAISPUDA
+from DataAccess.GroupBettingDA.AssociationStats import AssociationStatsDA
+from DataAccess.GroupBettingDA.AssociationSuspiciousInfo import AssociationSuspiciousInfoDA
+from Controller.AssociationByScore.GroupBettingExtraction import FeatureScore
 from Utilities import FunctionSupport
 
 ##PROD

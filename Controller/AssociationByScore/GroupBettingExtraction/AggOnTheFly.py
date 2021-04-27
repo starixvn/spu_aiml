@@ -3,13 +3,13 @@ import sys
 ##PROD
 # sys.path.append("/home/vnteam/app/")
 ##LOCAL
-from DataAccess.GroupBettingDA.CTS_DataCenter.AssociationByAICTS import AssociationByAICTSDA
-from DataAccess.GroupBettingDA.SPU_AIML.AssociationByAISPU import AssociationByAISPUDA
-from DataAccess.GroupBettingDA.SPU_AIML.AssociationSuspiciousInfo import AssociationSuspiciousInfoDA
+from DataAccess.GroupBettingDA.AssociationByAICTS import AssociationByAICTSDA
+from DataAccess.GroupBettingDA.AssociationByAISPU import AssociationByAISPUDA
+from DataAccess.GroupBettingDA.AssociationSuspiciousInfo import AssociationSuspiciousInfoDA
 
 sys.path.append("D:\\Project\\aiml_cleancode\\")
-from DataAccess.GroupBettingDA.SPU_AIML.AssociationStatsStaging import AssociationStatsStagingDA
-from GroupBettingController.AssociationByScore import FeatureScore
+from DataAccess.GroupBettingDA.AssociationStatsStaging import AssociationStatsStagingDA
+from Controller.AssociationByScore.GroupBettingExtraction import FeatureScore
 from Configuration.Configuration import config
 from Utilities import FunctionSupport
 import time

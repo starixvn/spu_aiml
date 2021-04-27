@@ -11,7 +11,72 @@ from Configuration.Configuration import config
 from Utilities import FunctionSupport
 
 
-class Phase0Controller:
+class DataPreparationController:
+    def run(self, orig_fn, check_files_sameday, date_insert):
+
+        time_phase0 = time.time()
+        t = time.localtime()
+        current_time = time.strftime("%H:%M:%S", t)
+
+        print(f"{config.ENV} | CURRENT TIME : ", current_time)
+        logging.info(f'Start running file {orig_fn}')
+        logging.info(f"Total file: {len(check_files_sameday)}")
+
+        ### use list comprehensive to concat data
+        # data = pd.concat((pd.read_csv(os.path.join(config.root_orig, f),encoding='ISO-8859-1', skiprows=[1], skipfooter=1).assign(file_name = f) if (os.access(config.root_orig + f, os.R_OK) is True and os.access(config.root_orig + f, os.X_OK) is True) else FunctionSupport.notify_logging(f"Error read file {f}") for f in check_files_sameday))
+        data = pd.concat((pd.read_csv(os.path.join(config.root_orig, f), encoding='ISO-8859-1', skiprows=[1],
+                                      skipfooter=1).assign(file_name=f) if (
+                    os.access(config.root_orig + f, os.R_OK) is True and os.access(config.root_orig + f,
+                                                                                   os.X_OK) is True) else print(
+            f"Error read file {f}") for f in check_files_sameday))
+
+        self.remove_file_from_live_folder(check_files_sameday)
+
+        logging.info(f"Number of rows: {len(data)}")
+
+        if data.empty:
+            return None, None, None, None
+
+        if data.bettype.isnull().values.any():
+            logging.error(f'File Error {orig_fn} | Bettype Column Null')
+            print(f'File Error {orig_fn} | Bettype Column Null')
+            return None, None, None, None
+
+        ### clean missing data
+        data = self.process_nan_data(data)
+        if data.empty:
+            return None, None, None, None
+
+        df_dataip = data[(data.bettype.isin([1, 3, 7, 8]))
+                         & (data.liveindicator)]
+        print(f"date insert {date_insert}")
+
+        DATE = data[(data.bettype.isin([1, 3, 7, 8]))
+                    & (data.liveindicator)]
+        DATE = self.process_date_data(DATE)
+
+        batch_cus_list = list(DATE.custid.unique())
+        check_cus_files = os.listdir(os.path.join(config.root))
+        self.dump_check_cus_files(batch_cus_list, check_cus_files)
+
+        # match breaking
+        matches = DATE.matchid.unique()
+        check_match_files = os.listdir(os.path.join(config.root, config.match_breaking))
+        self.process_match_breaking(check_match_files, matches, DATE)
+
+        del DATE, data
+        print('\n')
+
+        # build cus_dict for count joining combinations
+        batch_cus_dict = self.build_combinations_cus_dict()
+        self.dump_daily_cus_dict(batch_cus_dict, check_cus_files)
+
+        with open(os.path.join(config.root, config.cus_dict_fn), 'rb') as g:
+            daily_cus_dict = pickle.load(g)
+        logging.info(
+            f"{config.ENV} | Done phase 0, takes {time.time() - time_phase0} seconds")
+
+        return df_dataip, batch_cus_dict, batch_cus_list, daily_cus_dict
 
     def init_file_container(self, check_files):
         orig_fn = check_files[0]
@@ -54,7 +119,7 @@ class Phase0Controller:
         DATE = DATE[['custid', 'matchid', 'transdate', 'bettype', 'leagueid', 'category']]
         date = DATE['transdate'].min()
         DATE['transdate'] = DATE['transdate'].apply(
-            lambda z: FunctionSupport.distance_time(FunctionSupport.separate(date), FunctionSupport.separate(z)))
+            lambda z: FunctionSupport.time_distance(FunctionSupport.separate(date), FunctionSupport.separate(z)))
         return DATE
 
     def dump_check_cus_files(self, batch_cus_list, check_cus_files):

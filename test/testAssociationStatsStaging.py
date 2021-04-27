@@ -1,4 +1,4 @@
-from DataAccess.GroupBettingDA.SPU_AIML.AssociationStatsStaging import AssociationStatsStaging
+from DataAccess.GroupBettingDA.AssociationStatsStaging import AssociationStatsStaging
 
 association_stats_staging = AssociationStatsStaging()
 
