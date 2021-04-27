@@ -11,7 +11,7 @@ sys.path.append("D:\\Project\\aiml_cleancode\\")
 from DataAccess.GroupBettingDA.SPU_AIML.AssociationStatsStaging import AssociationStatsStagingDA
 from GroupBettingController.AssociationByScore import FeatureScore
 from Configuration.Configuration import config
-from Utilities import FunctionSupport
+from Helper import Utilities
 import time
 import os
 import pandas as pd
@@ -38,7 +38,7 @@ def aggregate(args):
             agg_on_the_fly_controller.save_batch_to_dba(df_resultinfo, df_byAI, df_byAISPU, isTraceLog, args)
 
         if len(df)>len(IsNewdf):
-            df['TJC']=df.apply(lambda z : FunctionSupport.count_joining_combs_by_daily_cus_dict(z['C1'],z['C2'],daily_cus_dict),axis=1)
+            df['TJC']=df.apply(lambda z : Utilities.count_joining_combs_by_daily_cus_dict(z['C1'],z['C2'],daily_cus_dict),axis=1)
             df['sample_id'] = df['C1'].map(str) + df['C2'].map(str)
             df = df.astype({"sample_id": 'int64'})
             df['TS'] = df['TS'].astype('float')
@@ -50,7 +50,7 @@ def aggregate(args):
         logging.info(f"Time to complete child process {os.getpid()}: {time.time() - time_getStaging}")
     except Exception as err:
         message_telegram = f'{config.ENV} | Error in agg function: {err}'
-        FunctionSupport.notify_logging(message_telegram)
+        Utilities.notify_logging(message_telegram)
         raise ValueError
 
 

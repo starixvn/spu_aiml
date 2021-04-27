@@ -13,16 +13,22 @@ import pandas as pd
 from tqdm import tqdm
 
 from DataAccess.GroupBettingDA.SPU_AIML.AssociationStatsStaging import AssociationStatsStagingDA
-from GroupBettingController.AssociationByIP import GroupbyIP
-from GroupBettingController.AssociationByScore import ExtractInsightData
-from GroupBettingController.Phase0Controller import Phase0Controller
-from GroupBettingController.Phase2Controller import Phase2Controller
+from Controller.AssociationByIP import GroupbyIP
+from Controller.AssociationByScore import ExtractInsightData
+from Controller.PreprocessDataController import PreprocessData
+from Controller.ComputeGroupBettingController import ComputeGroupBetting
 
 
 def run(config):
-    phase0_controller = Phase0Controller()
-    phase2_controller = Phase2Controller()
+    
+    # Reset old data for new run
+    association_stats_staging_da = AssociationStatsStagingDA()
+    association_stats_staging_da.truncate()
+
+    phase0_controller = PreprocessData()
+    phase2_controller = ComputeGroupBetting()
     date_item_container = []
+
     while True:
         check_files = [f for f in sorted(os.listdir(config.root_orig))]
         if len(check_files) > 0:
@@ -33,7 +39,7 @@ def run(config):
                 time_begin = time.time()
                 date_item_container, date_insert, day_prev  = phase0_controller.init_datetime(date_item_container, orig_fn)
 
-            # START PHASE 0 --> PREPARATION
+            # START PREPARING DATA
             # *****************************************************************************************************************************************************************************
             try:
                 time_phase0 = time.time()
@@ -45,7 +51,7 @@ def run(config):
                 logging.info(f"Total file: {len(check_files_sameday)}")
                 
                 ### use list comprehensive to concat data
-                # data = pd.concat((pd.read_csv(os.path.join(config.root_orig, f),encoding='ISO-8859-1', skiprows=[1], skipfooter=1).assign(file_name = f) if (os.access(config.root_orig + f, os.R_OK) is True and os.access(config.root_orig + f, os.X_OK) is True) else FunctionSupport.notify_logging(f"Error read file {f}") for f in check_files_sameday))
+                # data = pd.concat((pd.read_csv(os.path.join(config.root_orig, f),encoding='ISO-8859-1', skiprows=[1], skipfooter=1).assign(file_name = f) if (os.access(config.root_orig + f, os.R_OK) is True and os.access(config.root_orig + f, os.X_OK) is True) else Utilities.notify_logging(f"Error read file {f}") for f in check_files_sameday))
                 data = pd.concat((pd.read_csv(os.path.join(config.root_orig, f),encoding='ISO-8859-1', skiprows=[1], skipfooter=1).assign(file_name = f) if (os.access(config.root_orig + f, os.R_OK) is True and os.access(config.root_orig + f, os.X_OK) is True) else print(f"Error read file {f}") for f in check_files_sameday))
 
                 phase0_controller.remove_file_from_live_folder(check_files_sameday)
@@ -96,25 +102,26 @@ def run(config):
                     f"{config.ENV} | Done phase 0, takes {time.time() - time_phase0} seconds")
             except Exception as e:
                 message_telegram = f"{config.ENV} | Error at phase 0: {e}"
-                # FunctionSupport.notify_logging(message_telegram)
+                # Utilities.notify_logging(message_telegram)
                 print(message_telegram)
                 break
 
-            # START PHASE ASSOCIATION BY IP 
+            # START COMPUTING ASSOCIATION BY IP 
             # *****************************************************************************************************************************************************************************
             try:
                 logging.info(f"{config.ENV} |Group Betting by IP is running")
                 # message_telegram = f"{ENV} |Group Betting by IP is running"
-                # SendLogTelegram.send_message(message_telegram)
+                # Notifier.Telegram_send_message(message_telegram)
                 df_dataip = df_dataip[['custid','ip','bettype','matchid','leagueid','homeid','awayid','transdate']]
-                GroupbyIP.AssociationbyIP(df_dataip, date_insert, config)
+                GroupbyIP.run(df_dataip, date_insert, config)
                 del df_dataip
             except Exception as e:
                 message_telegram = f"{config.ENV} | Error at phase Association by IP: {e}"
-                # FunctionSupport.notify_logging(message_telegram)
+                # Utilities.notify_logging(message_telegram)
                 print(message_telegram)
                 break
-            # END PHASE 0 - START PHASE 1
+
+            # START PREPROCESSING DATA
             # ****************************************************************************************************************************************************************************
             try:
                 start_processing = time.time()
@@ -132,11 +139,11 @@ def run(config):
                     f"{config.ENV} | Done phase 1, takes {time.time() - start_processing} seconds")
             except Exception as e:
                 message_telegram = f"{config.ENV} | Error phase 1: {e}"
-                # FunctionSupport.notify_logging(message_telegram)
+                # Utilities.notify_logging(message_telegram)
                 print(message_telegram)
                 break
 
-            # END PHASE 1 - START PHASE 2
+            # START COMPUTING GROUP BETTING
             # *****************************************************************************************************************************************************************************
             check_files = phase2_controller.wait_for_files()
 
@@ -157,7 +164,7 @@ def run(config):
                         logging.info(f'A BATCH of {date_insert} done in {time.time() - start_time} seconds')
                     except Exception as e:
                         message_telegram = f"{config.ENV} | Error phase 2 right before day end: {e}"
-                        # FunctionSupport.notify_logging(message_telegram)
+                        # Utilities.notify_logging(message_telegram)
                         print(message_telegram)
                         break
                 else:
@@ -175,8 +182,8 @@ def run(config):
                 print("***********************************************************************************************************************************************************************************")
                 print("%s | AGG & INSERT TIME %.0f SECONDS" %
                     (config.ENV,time.time() - start_time))
-                message_telegram = f"{config.ENV} | Group Betting is done, total {round((time.time() - time_begin)/3600,4)} hours "
-                # FunctionSupport.notify_logging(message_telegram,True)
+                message_telegram = f"GROUP BETTING | {config.ENV} | Done, total {round((time.time() - time_begin)/3600,4)} hours "
+                # Utilities.notify_logging(message_telegram,True)
                 print(message_telegram)
 
                 association_stats_staging_da = AssociationStatsStagingDA()
@@ -192,7 +199,7 @@ def run(config):
                 logging.info(f'{config.ENV} | Done phase 2, takes {time.time()-start_time} seconds')
             except Exception as e:
                 message_telegram = f"{config.ENV} | Error phase 2: {e}"
-                # FunctionSupport.notify_logging(message_telegram)
+                # Utilities.notify_logging(message_telegram)
                 print(message_telegram)
                 break
         else:

@@ -12,6 +12,6 @@ from DataAccess.SPUAIMLDA import CommonDA
 class CoupleIPStatsDA:
 
     def insert(self, batches_data, date_insert):
-        message_telegram = f"{config.ENV} | Error insert CoupleIPStats to SPU DB: "
+        message_telegram = f"GROUP BETTING | {config.ENV} | ERROR | Insert CoupleIPStats to SPU_AIML DB failed: "
         common_da = CommonDA()
         common_da.insert('SPU_AIML_InsertCoupleIPStats', batches_data, message_telegram, save_ip=True, save_ip_date=date_insert, to_json=True)

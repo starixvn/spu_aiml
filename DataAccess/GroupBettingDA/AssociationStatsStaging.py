@@ -17,7 +17,7 @@ class AssociationStatsStagingDA:
 
     def get(self, custid_list):
         proc_name = 'SPU_AIML_GetAssociationStatsStaging'
-        message_telegram = f'{config.ENV} | Error get data from AssociationStatsStaging in SPU when on-the-fly: '
+        message_telegram = f'GROUP BETTING | {config.ENV} | ERROR | Get data from SPU_AIML AssociationStatsStaging failed (on-the-fly): '
         custid_proc_input = ''
         for id in custid_list[:-1]:
             custid_proc_input += str(id) + ', '
@@ -27,7 +27,7 @@ class AssociationStatsStagingDA:
         return dba_results
 
     def update(self, custid_list):
-        message_telegram = f'{config.ENV} | Error Update Staging Status: '
+        message_telegram = f'GROUP BETTING | {config.ENV} | ERROR | Update AssociationStatsStaging failed: '
         custid_proc_input = ''
         for id in custid_list[:-1]:
             custid_proc_input += str(id) + ', '
@@ -36,5 +36,5 @@ class AssociationStatsStagingDA:
         return dba_results
 
     def insert(self, batches_data):
-        message_telegram = f'{config.ENV} | Error insert AssociationStats in SPU when day-end: '
+        message_telegram = f'GROUP BETTING | {config.ENV} | ERROR | Insert AssociationStatsStaging to SPU_AIML DB failed (at day-end): '
         self.common_da.insert('SPU_AIML_InsertAssociationStatsStaging', batches_data, message_telegram, to_json=True)

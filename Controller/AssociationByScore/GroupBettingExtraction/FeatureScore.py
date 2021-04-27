@@ -1,5 +1,5 @@
 import pandas as pd
-from Utilities import FunctionSupport
+from Helper import Utilities
 
 
 def leaguescore_dataflow(df):
@@ -41,12 +41,12 @@ def leaguescore_dataflow(df):
     df_leaguescore['major'] = 1 - \
         df_parameter3.groupby('sample_id')['score_eachleague_1'].sum()
     df_leaguescore['LS'] = df_leaguescore.apply(
-        lambda x: FunctionSupport.total_leaguescore(x['minor'], x['major']), axis=1)
+        lambda x: Utilities.total_leaguescore(x['minor'], x['major']), axis=1)
     return df_leaguescore
 
 def data_suspiciousInfo(df):
     susinfo = df[['sample_id', 'ML', 'BL']]
-    df_susinfo = FunctionSupport.transform_to_list(susinfo)
+    df_susinfo = Utilities.transform_to_list(susinfo)
     df_susinfo = df_susinfo.set_index('sample_id')
     df_susinfo['ML'] = [','.join(map(str, l)) for l in df_susinfo['ML']]
     df_susinfo['BL'] = [','.join(map(str, l)) for l in df_susinfo['BL']]

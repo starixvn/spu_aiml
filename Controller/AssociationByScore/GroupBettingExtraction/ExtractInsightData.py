@@ -6,7 +6,7 @@ sys.path.append("/\\")
 from DataAccess.GroupBettingDA.SPU_AIML.AssociationStatsStaging import AssociationStatsStagingDA
 from Configuration.Configuration import config
 from GroupBettingController.AssociationByScore import helper
-from Utilities import FunctionSupport
+from Helper import Utilities
 import time
 import os
 import itertools
@@ -75,7 +75,7 @@ def process_a_combination(args):
 
         {"C1": int(COMBINATION_CUST_LIST[i]), "C2":int(COMBINATION_CUST_LIST[j]), "TS": m[i, j], "M":match, "B":bettype
             , "L":int(leagueid)
-            , "TJC":FunctionSupport.count_joining_combs_by_file_cus_dict(COMBINATION_CUST_LIST[i], COMBINATION_CUST_LIST[j], batch_cus_dict)
+            , "TJC":Utilities.count_joining_combs_by_file_cus_dict(COMBINATION_CUST_LIST[i], COMBINATION_CUST_LIST[j], batch_cus_dict)
             , "IML":IMJ
             ,  "IN":1}
 
