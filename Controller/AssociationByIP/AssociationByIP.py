@@ -1,19 +1,20 @@
-import sys
-
 ##PROD
 # sys.path.append("/home/vnteam/app/")
 ##LOCAL
-from DataAccess.AssociationIPDA.CoupleIPStats import CoupleIPStatsDA
-
-sys.path.append("D:\\Project\\aiml_cleancode\\")
-import pandas as pd
 import itertools
-import time
 import logging
+import sys
+import time
+sys.path.append("D:\\Project\\aiml_cleancode\\")
+
 import numpy as np
+import pandas as pd
+
+from DataAccess.AssociationIPDA.CoupleIPStats import CoupleIPStatsDA
 from Helper import Utilities
 
-class AssociationByIP:
+
+class AssociationByIPController:
     def transform_to_listIP(self, df):
         keys, values1 = df.sort_values('sample_id').values.T
         ukeys, index = np.unique(keys, True)
@@ -116,11 +117,11 @@ class AssociationByIP:
 
                 couple_ip_stats_da = CoupleIPStatsDA()
                 couple_ip_stats_da.insert(chunks1, date_insert)
-                logging.info(f"Group Betting by IP is done, total: {time.time() - time_start} seconds")
-                #message_telegram = f"Group Betting by IP is done, total {round((time.time() - time_start)/3600,4)} hours "
-                #Notifier.Telegram_send_message(message_telegram)
+                logging.info(f"GROUP BETTING | Group Betting by IP is done, total: {time.time() - time_start} seconds")
+                message_telegram = f"GROUP BETTING | Group Betting by IP is done, total {round((time.time() - time_start)/3600,4)} hours "
+                Utilities.notify_logging(message_telegram)
                 #endregion
         except Exception as e:
-            message_telegram = f"Error at phase Group Betting by IP: {e}"
+            message_telegram = f"GROUP BETTING | Error at phase Group Betting by IP: {e}"
             Utilities.notify_logging(message_telegram)
             raise ValueError       

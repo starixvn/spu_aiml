@@ -92,8 +92,8 @@ class DataPreparationController:
         date_insert = year_prev+'-'+month_prev+'-'+day_prev
         logging.info(
             "======================================================================================================")
-        logging.info(f"{config.ENV} | Running for Date: {date_insert}")
-        message_telegram = f"{config.ENV} | Group Betting is running for {year_prev + '-' + month_prev + '-' + day_prev}"
+        logging.info(f"GROUP BETTING | {config.ENV} | Running for Date: {date_insert}")
+        message_telegram = f"GROUP BETTING | {config.ENV} | Group Betting is running for {year_prev + '-' + month_prev + '-' + day_prev}"
         Utilities.notify_logging(message_telegram)
         date_item_container.append(day_prev)
         return date_item_container, date_insert, day_prev

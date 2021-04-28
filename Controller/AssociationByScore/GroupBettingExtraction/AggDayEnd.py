@@ -51,10 +51,10 @@ def day_end_aggregate(args):
                                 left_index=True, right_index=True)
 
         agg_day_end_controller.save_aggregate_to_dba(df_DailyScore, df_byAI, df_byAISPU, isTraceLog, date_insert)
-        logging.info(f"Time to complete child process into phase Acc day-end {os.getpid()}: {time.time() - time_getStaging}")
+        logging.info(f"GROUP BETTING | Time to complete child process into phase Acc day-end {os.getpid()}: {time.time() - time_getStaging}")
 
     except Exception as err:
-        message_telegram = f'{config.ENV} | Error in day-end agg function: {err}'
+        message_telegram = f'GROUP BETTING | {config.ENV} | Error in day-end agg function: {err}'
         Utilities.notify_logging(message_telegram)
         raise ValueError
 

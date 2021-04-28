@@ -6,7 +6,7 @@ import logging
 import os
 import time
 
-from Controller.AssociationByIP.GroupbyIP import AssociationByIPController
+from Controller.AssociationByIP.AssociationByIP import AssociationByIPController
 from Controller.AssociationByScore.DataPreparation.DataPreparation import DataPreparationController
 from Controller.AssociationByScore.DataPreprocessing.DataPreprocessing import DataPrepprocessingController
 from Controller.AssociationByScore.GroupBettingExtraction.GroupBettingExtraction import GroupBettingExtractionController
@@ -40,7 +40,7 @@ def run(config):
                 if error:
                     continue
             except Exception as e:
-                message_telegram = f"{config.ENV} | Error at phase 0: {e}"
+                message_telegram = f"GROUP BETTING | {config.ENV} | Error at phase 0: {e}"
                 Utilities.notify_logging(message_telegram)
                 break
 
@@ -51,7 +51,7 @@ def run(config):
                 association_by_ip_controller.run(df_dataip, date_insert, config)
                 del df_dataip
             except Exception as e:
-                message_telegram = f"{config.ENV} | Error at phase Association by IP: {e}"
+                message_telegram = f"GROUP BETTING | {config.ENV} | Error at phase Association by IP: {e}"
                 Utilities.notify_logging(message_telegram)
                 break
 
@@ -61,7 +61,7 @@ def run(config):
                 preprocess_controller.run(batch_cus_dict)
                 date_item_container = []
             except Exception as e:
-                message_telegram = f"{config.ENV} | Error phase 1: {e}"
+                message_telegram = f"GROUP BETTING | {config.ENV} | Error phase 1: {e}"
                 Utilities.notify_logging(message_telegram)
                 break
 
@@ -84,9 +84,9 @@ def run(config):
                         start_time = time.time()
                         BATCHES = compute_group_betting_controller.build_batches(batch_cus_list)
                         compute_group_betting_controller.process_batches(BATCHES, date_insert, daily_cus_dict)
-                        logging.info(f'A BATCH of {date_insert} done in {time.time() - start_time} seconds')
+                        logging.info(f'GROUP BETTING | A BATCH of {date_insert} done in {time.time() - start_time} seconds')
                     except Exception as e:
-                        message_telegram = f"{config.ENV} | Error phase 2 right before day end: {e}"
+                        message_telegram = f"GROUP BETTING | {config.ENV} | Error phase 2 right before day end: {e}"
                         Utilities.notify_logging(message_telegram)
                         break
                 else:
