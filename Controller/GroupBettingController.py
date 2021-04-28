@@ -6,10 +6,10 @@ import logging
 import os
 import time
 
-from Controller.AssociationByIP.GroupbyIP import AssociationbyIP
+from Controller.AssociationByIP.GroupbyIP import AssociationByIPController
 from Controller.AssociationByScore.DataPreparation.DataPreparation import DataPreparationController
 from Controller.AssociationByScore.DataPreprocessing.DataPreprocessing import DataPrepprocessingController
-from Controller.AssociationByScore.GroupBettingExtraction.GroupBettingExtraction import ComputeGroupBettingController
+from Controller.AssociationByScore.GroupBettingExtraction.GroupBettingExtraction import GroupBettingExtractionController
 from DataAccess.GroupBettingDA.AssociationStatsStaging import AssociationStatsStagingDA
 from Helper import Utilities
 
@@ -19,9 +19,9 @@ def run(config):
     association_stats_staging_da = AssociationStatsStagingDA()
     association_stats_staging_da.truncate()
     data_preparation_controller = DataPreparationController()
-    association_by_ip_controller = AssociationbyIP()
+    association_by_ip_controller = AssociationByIPController()
     preprocess_controller = DataPrepprocessingController()
-    compute_group_betting_controller = ComputeGroupBettingController()
+    compute_group_betting_controller = GroupBettingExtractionController()
     date_item_container = []
     while True:
         check_files = [f for f in sorted(os.listdir(config.root_orig))]
@@ -33,7 +33,7 @@ def run(config):
                 time_begin = time.time()
                 date_item_container, date_insert, day_prev = data_preparation_controller.init_datetime(date_item_container, orig_fn)
 
-            # START PHASE 0 --> DATA PREPARATION
+            # START PHASE 0: DATA PREPARATION
             # *****************************************************************************************************************************************************************************
             try:
                 error, df_dataip, batch_cus_dict, batch_cus_list, daily_cus_dict = data_preparation_controller.run(orig_fn, check_files_sameday, date_insert)
@@ -44,7 +44,7 @@ def run(config):
                 Utilities.notify_logging(message_telegram)
                 break
 
-            # START PHASE 1 ASSOCIATION BY IP
+            # START PHASE 1: ASSOCIATION BY IP
             # *****************************************************************************************************************************************************************************
             try:
                 df_dataip = df_dataip[['custid','ip','bettype','matchid','leagueid','homeid','awayid','transdate']]
@@ -54,7 +54,8 @@ def run(config):
                 message_telegram = f"{config.ENV} | Error at phase Association by IP: {e}"
                 Utilities.notify_logging(message_telegram)
                 break
-            # END PHASE 0 - START PHASE 2 PREPROCESS DATA
+
+            # START PHASE 2: DATA PREPROCESSING
             # ****************************************************************************************************************************************************************************
             try:
                 preprocess_controller.run(batch_cus_dict)
@@ -64,7 +65,7 @@ def run(config):
                 Utilities.notify_logging(message_telegram)
                 break
 
-            # END PHASE 2 - START PHASE 3 COMPUTE GROUP BETTING
+            # START PHASE 3: GROUP BETTING EXTRACTION
             # *****************************************************************************************************************************************************************************
 
             check_files = compute_group_betting_controller.wait_for_files()

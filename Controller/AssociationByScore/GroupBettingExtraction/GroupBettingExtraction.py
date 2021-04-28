@@ -13,7 +13,7 @@ from DataAccess.GroupBettingDA.AssociationStatsStaging import AssociationStatsSt
 from DataAccess.GroupBettingDA.SystemParameter import SystemParameterDA
 
 
-class ComputeGroupBettingController:
+class GroupBettingExtractionController:
     def __init__(self):
         self.association_stats_staging_da = AssociationStatsStagingDA()
 
