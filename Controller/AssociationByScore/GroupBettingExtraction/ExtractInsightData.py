@@ -1,17 +1,19 @@
-import sys
 ##PROD
 #sys.path.append("/home/vnteam/app/")
 ##LOCAL
-sys.path.append("/\\")
-from DataAccess.GroupBettingDA.AssociationStatsStaging import AssociationStatsStagingDA
-from Configuration.Configuration import config
-from Utilities import FunctionSupport
-import time
-import os
-import itertools
 import gc
+import itertools
+import os
+import sys
+import time
+sys.path.append("/\\")
+
 import numpy as np
 import pandas as pd
+
+from Configuration.Configuration import config
+from DataAccess.GroupBettingDA.AssociationStatsStaging import AssociationStatsStagingDA
+from Helper import Utilities
 
 
 def process_a_combination(args):
@@ -60,7 +62,7 @@ def process_a_combination(args):
 
     # compute pairwise-time-score matrix
     start_compute = time.time()
-    m = FunctionSupport.compute_pairwise_cus(X, config.time_threshold)
+    m = Utilities.compute_pairwise_cus(X, config.time_threshold)
     #print("\n","PAIRWISE MATRIX HAVING SHAPE %s OF MATCH %.0f BETTYPE %.0f :" % (m.shape,match,bettype),m,sep='\n')
     # print("\n", "MATCH %.0f BETTYPE %.0f | %.0f CUSTOMERS | COMPUTING TIME SCORE TAKES %.0f SECONDS" % (
     #     match, bettype, len(COMBINATION_CUST_LIST), time.time() - start_compute))
@@ -74,7 +76,7 @@ def process_a_combination(args):
 
         {"C1": int(COMBINATION_CUST_LIST[i]), "C2":int(COMBINATION_CUST_LIST[j]), "TS": m[i, j], "M":match, "B":bettype
             , "L":int(leagueid)
-            , "TJC":FunctionSupport.count_joining_combs_by_file_cus_dict(COMBINATION_CUST_LIST[i], COMBINATION_CUST_LIST[j], batch_cus_dict)
+            , "TJC":Utilities.count_joining_combs_by_file_cus_dict(COMBINATION_CUST_LIST[i], COMBINATION_CUST_LIST[j], batch_cus_dict)
             , "IML":IMJ
             ,  "IN":1}
 

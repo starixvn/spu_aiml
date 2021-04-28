@@ -12,7 +12,7 @@ from DataAccess.GroupBettingDA.AssociationByAISPU import AssociationByAISPUDA
 from DataAccess.GroupBettingDA.AssociationStats import AssociationStatsDA
 from DataAccess.GroupBettingDA.AssociationSuspiciousInfo import AssociationSuspiciousInfoDA
 from Controller.AssociationByScore.GroupBettingExtraction import FeatureScore
-from Utilities import FunctionSupport
+from Helper import Utilities
 
 ##PROD
 # sys.path.append("/home/vnteam/app/")
@@ -55,7 +55,7 @@ def day_end_aggregate(args):
 
     except Exception as err:
         message_telegram = f'{config.ENV} | Error in day-end agg function: {err}'
-        # FunctionSupport.notify_logging(message_telegram)
+        # Utilities.notify_logging(message_telegram)
         print(message_telegram)
         raise ValueError
 
@@ -100,7 +100,7 @@ class AggDayEndController:
 
     def preprocess_df(self, df, daily_cus_dict):
         df['TJC'] = df.apply(
-            lambda z: FunctionSupport.count_joining_combs_by_daily_cus_dict(z['C1'], z['C2'], daily_cus_dict), axis=1)
+            lambda z: Utilities.count_joining_combs_by_daily_cus_dict(z['C1'], z['C2'], daily_cus_dict), axis=1)
 
         df['sample_id'] = df['C1'].map(str) + df['C2'].map(str)
 

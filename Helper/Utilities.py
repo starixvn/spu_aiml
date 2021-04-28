@@ -1,5 +1,3 @@
-import datetime
-import logging
 import sys
 ##PROD
 #sys.path.append("/home/vnteam/app/")

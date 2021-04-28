@@ -8,7 +8,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from Configuration.Configuration import config
-from Utilities import FunctionSupport
+from Helper import Utilities
 
 
 class DataPreparationController:
@@ -119,7 +119,7 @@ class DataPreparationController:
         DATE = DATE[['custid', 'matchid', 'transdate', 'bettype', 'leagueid', 'category']]
         date = DATE['transdate'].min()
         DATE['transdate'] = DATE['transdate'].apply(
-            lambda z: FunctionSupport.time_distance(FunctionSupport.separate(date), FunctionSupport.separate(z)))
+            lambda z: Utilities.time_distance(Utilities.separate(date), Utilities.separate(z)))
         return DATE
 
     def dump_check_cus_files(self, batch_cus_list, check_cus_files):
