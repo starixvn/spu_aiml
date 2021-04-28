@@ -9,7 +9,7 @@ import time
 from Controller.AssociationByIP.GroupbyIP import AssociationbyIP
 from Controller.AssociationByScore.DataPreparation.DataPreparation import DataPreparationController
 from Controller.AssociationByScore.DataPreprocessing.DataPreprocessing import DataPrepprocessingController
-from Controller.ComputeGroupBetting import ComputeGroupBettingController
+from Controller.ComputeGroupBetting.ComputeGroupBetting import ComputeGroupBettingController
 from DataAccess.GroupBettingDA.AssociationStatsStaging import AssociationStatsStagingDA
 
 
