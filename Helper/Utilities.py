@@ -1,3 +1,5 @@
+import datetime
+import logging
 import sys
 ##PROD
 #sys.path.append("/home/vnteam/app/")
@@ -99,9 +101,9 @@ def separate(transdate):
 
 def time_distance(transdate1, transdate2):
     """
-    >>> Input  : transdate 1 : datetime.datetime(2020,9,26,7,28,1)
+    >>> Input  : transdate_1 : datetime.datetime(2020,9,26,7,28,1)
 
-                 transdate 2 : datetime.datetime(2020,9,26,7,31,1)
+                 transdate_2 : datetime.datetime(2020,9,26,7,31,1)
 
     >>> Output : 180 seconds
     """

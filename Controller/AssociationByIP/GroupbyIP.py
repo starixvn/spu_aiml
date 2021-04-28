@@ -11,7 +11,7 @@ import itertools
 import time
 import logging
 import numpy as np
-from Utilities import FunctionSupport
+from Helper import Utilities
 
 
 def transform_to_listIP(df):
@@ -123,5 +123,5 @@ class AssociationbyIP:
                 #endregion
         except Exception as e:
             message_telegram = f"Error at phase Group Betting by IP: {e}"
-            FunctionSupport.notify_logging(message_telegram)
+            Utilities.notify_logging(message_telegram)
             raise ValueError
