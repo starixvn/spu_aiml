@@ -40,12 +40,12 @@ class DataPreparationController:
         if data.bettype.isnull().values.any():
             logging.error(f'File Error {orig_fn} | Bettype Column Null')
             print(f'File Error {orig_fn} | Bettype Column Null')
-            return None, None, None, None
+            return True, None, None, None, None
 
         ### clean missing data
         data = self.process_nan_data(data)
         if data.empty:
-            return None, None, None, None
+            return True, None, None, None, None
 
         df_dataip = data[(data.bettype.isin([1, 3, 7, 8]))
                          & (data.liveindicator)]
@@ -76,7 +76,7 @@ class DataPreparationController:
         logging.info(
             f"{config.ENV} | Done phase 0, takes {time.time() - time_phase0} seconds")
 
-        return df_dataip, batch_cus_dict, batch_cus_list, daily_cus_dict
+        return False, df_dataip, batch_cus_dict, batch_cus_list, daily_cus_dict
 
     def init_file_container(self, check_files):
         orig_fn = check_files[0]

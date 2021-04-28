@@ -17,5 +17,3 @@ if __name__ == "__main__":
         os.remove(os.path.join(config.root,config.cus_dict_fn))
     
     GroupBettingController.run(config)
-    
-    
