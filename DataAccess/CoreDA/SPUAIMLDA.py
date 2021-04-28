@@ -76,7 +76,6 @@ class CommonDA:
 
         except Exception as err:
             Utilities.notify_logging(message_telegram + str(err))
-            print(message_telegram + str(err))
             raise ValueError
 
     def truncate(self, table_name):

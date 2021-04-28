@@ -23,7 +23,7 @@ class DataPreparationController:
         logging.info(f"Total file: {len(check_files_sameday)}")
 
         ### use list comprehensive to concat data
-        # data = pd.concat((pd.read_csv(os.path.join(config.root_orig, f),encoding='ISO-8859-1', skiprows=[1], skipfooter=1).assign(file_name = f) if (os.access(config.root_orig + f, os.R_OK) is True and os.access(config.root_orig + f, os.X_OK) is True) else FunctionSupport.notify_logging(f"Error read file {f}") for f in check_files_sameday))
+        # data = pd.concat((pd.read_csv(os.path.join(config.root_orig, f),encoding='ISO-8859-1', skiprows=[1], skipfooter=1).assign(file_name = f) if (os.access(config.root_orig + f, os.R_OK) is True and os.access(config.root_orig + f, os.X_OK) is True) else Utilities.notify_logging(f"Error read file {f}") for f in check_files_sameday))
         data = pd.concat((pd.read_csv(os.path.join(config.root_orig, f), encoding='ISO-8859-1', skiprows=[1],
                                       skipfooter=1).assign(file_name=f) if (
                     os.access(config.root_orig + f, os.R_OK) is True and os.access(config.root_orig + f,
@@ -94,8 +94,7 @@ class DataPreparationController:
             "======================================================================================================")
         logging.info(f"{config.ENV} | Running for Date: {date_insert}")
         message_telegram = f"{config.ENV} | Group Betting is running for {year_prev + '-' + month_prev + '-' + day_prev}"
-        print(message_telegram)
-        # SendLogTelegram.send_message(message_telegram)
+        Utilities.notify_logging(message_telegram)
         date_item_container.append(day_prev)
         return date_item_container, date_insert, day_prev
 

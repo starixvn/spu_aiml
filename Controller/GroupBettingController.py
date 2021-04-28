@@ -9,8 +9,9 @@ import time
 from Controller.AssociationByIP.GroupbyIP import AssociationbyIP
 from Controller.AssociationByScore.DataPreparation.DataPreparation import DataPreparationController
 from Controller.AssociationByScore.DataPreprocessing.DataPreprocessing import DataPrepprocessingController
-from Controller.ComputeGroupBetting.ComputeGroupBetting import ComputeGroupBettingController
+from Controller.AssociationByScore.GroupBettingExtraction.GroupBettingExtraction import ComputeGroupBettingController
 from DataAccess.GroupBettingDA.AssociationStatsStaging import AssociationStatsStagingDA
+from Helper import Utilities
 
 
 def run(config):
@@ -32,19 +33,18 @@ def run(config):
                 time_begin = time.time()
                 date_item_container, date_insert, day_prev = data_preparation_controller.init_datetime(date_item_container, orig_fn)
 
-            # START PHASE 0 --> PREPARATION
+            # START PHASE 0 --> DATA PREPARATION
             # *****************************************************************************************************************************************************************************
-            # try:
+            try:
                 error, df_dataip, batch_cus_dict, batch_cus_list, daily_cus_dict = data_preparation_controller.run(orig_fn, check_files_sameday, date_insert)
                 if error:
                     continue
-            # except Exception as e:
-            #     message_telegram = f"{config.ENV} | Error at phase 0: {e}"
-            #     # FunctionSupport.notify_logging(message_telegram)
-            #     print(message_telegram)
-            #     break
+            except Exception as e:
+                message_telegram = f"{config.ENV} | Error at phase 0: {e}"
+                Utilities.notify_logging(message_telegram)
+                break
 
-            # START PHASE ASSOCIATION BY IP 
+            # START PHASE 1 ASSOCIATION BY IP
             # *****************************************************************************************************************************************************************************
             try:
                 df_dataip = df_dataip[['custid','ip','bettype','matchid','leagueid','homeid','awayid','transdate']]
@@ -52,21 +52,19 @@ def run(config):
                 del df_dataip
             except Exception as e:
                 message_telegram = f"{config.ENV} | Error at phase Association by IP: {e}"
-                # FunctionSupport.notify_logging(message_telegram)
-                print(message_telegram)
+                Utilities.notify_logging(message_telegram)
                 break
-            # END PHASE 0 - START PHASE 1
+            # END PHASE 0 - START PHASE 2 PREPROCESS DATA
             # ****************************************************************************************************************************************************************************
             try:
                 preprocess_controller.run(batch_cus_dict)
                 date_item_container = []
             except Exception as e:
                 message_telegram = f"{config.ENV} | Error phase 1: {e}"
-                # FunctionSupport.notify_logging(message_telegram)
-                print(message_telegram)
+                Utilities.notify_logging(message_telegram)
                 break
 
-            # END PHASE 1 - START PHASE 2
+            # END PHASE 2 - START PHASE 3 COMPUTE GROUP BETTING
             # *****************************************************************************************************************************************************************************
 
             check_files = compute_group_betting_controller.wait_for_files()
@@ -88,8 +86,7 @@ def run(config):
                         logging.info(f'A BATCH of {date_insert} done in {time.time() - start_time} seconds')
                     except Exception as e:
                         message_telegram = f"{config.ENV} | Error phase 2 right before day end: {e}"
-                        # Utilities.notify_logging(message_telegram)
-                        print(message_telegram)
+                        Utilities.notify_logging(message_telegram)
                         break
                 else:
                     the_first_is_the_last = True
@@ -104,8 +101,7 @@ def run(config):
                 print("%s | AGG & INSERT TIME %.0f SECONDS" %
                       (config.ENV, time.time() - start_time))
                 message_telegram = f"GROUP BETTING | {config.ENV} | Done, total {round((time.time() - time_begin) / 3600, 4)} hours "
-                # Utilities.notify_logging(message_telegram,True)
-                print(message_telegram)
+                Utilities.notify_logging(message_telegram,True)
 
                 association_stats_staging_da = AssociationStatsStagingDA()
                 association_stats_staging_da.truncate()

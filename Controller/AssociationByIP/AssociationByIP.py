@@ -3,7 +3,7 @@ import sys
 ##PROD
 # sys.path.append("/home/vnteam/app/")
 ##LOCAL
-from DataAccess.AssociationIPDA.SPU_AIML.CoupleIPStats import CoupleIPStatsDA
+from DataAccess.AssociationIPDA.CoupleIPStats import CoupleIPStatsDA
 
 sys.path.append("D:\\Project\\aiml_cleancode\\")
 import pandas as pd
@@ -14,7 +14,7 @@ import numpy as np
 from Helper import Utilities
 
 class AssociationByIP:
-    def transform_to_listIP(df):
+    def transform_to_listIP(self, df):
         keys, values1 = df.sort_values('sample_id').values.T
         ukeys, index = np.unique(keys, True)
         arrays = np.split(values1, index[1:])
@@ -24,7 +24,7 @@ class AssociationByIP:
         return df2
 
 
-    def transform_to_listBettype(df):
+    def transform_to_listBettype(self, df):
         keys, values1 = df.sort_values('sample_id').values.T
         ukeys, index = np.unique(keys, True)
         arrays = np.split(values1, index[1:])
@@ -35,7 +35,7 @@ class AssociationByIP:
         return df2
 
 
-    def get_unique_bettype(x):
+    def get_unique_bettype(self, x):
         list_bettype = [i.split(',') for i in x]
         result = list(itertools.chain.from_iterable(list_bettype))
         counts = len(result)
@@ -43,7 +43,7 @@ class AssociationByIP:
         return pd.Series((result,counts))
 
 
-    def run(df_dataip,date_insert,config):
+    def run(self, df_dataip,date_insert,config):
         try:
             time_start = time.time()
         
@@ -73,7 +73,7 @@ class AssociationByIP:
             
                 #region: concat unique list IP and count
                 df_listAllIP = df_combicustid[['sample_id','ip']]
-                df_listAllIP = transform_to_listIP(df_listAllIP)
+                df_listAllIP = self.transform_to_listIP(df_listAllIP)
                 df_listAllIP['IPC'] = df_listAllIP['ip'].str.len()
                 df_listAllIP['ip'] = [','.join(map(str, l)) for l in df_listAllIP['ip']]
                 df_listAllIP.set_index('sample_id',inplace=True)
@@ -81,7 +81,7 @@ class AssociationByIP:
             
                 #region: concat unique list bettype and count
                 df_listAllBettype = df_combicustid[['sample_id','bettype']]
-                df_listAllBettype = transform_to_listBettype(df_listAllBettype)
+                df_listAllBettype = self.transform_to_listBettype(df_listAllBettype)
                 df_listAllBettype['BTC'] = df_listAllBettype['bettype'].str.len()
                 df_listAllBettype['bettype'] = df_listAllBettype['bettype'].apply(lambda x: set(x))
                 df_listAllBettype['bettype'] = [','.join(map(str, l)) for l in df_listAllBettype['bettype']]

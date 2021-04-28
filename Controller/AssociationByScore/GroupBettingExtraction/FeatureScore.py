@@ -44,6 +44,7 @@ def leaguescore_dataflow(df):
         lambda x: Utilities.total_leaguescore(x['minor'], x['major']), axis=1)
     return df_leaguescore
 
+
 def data_suspiciousInfo(df):
     susinfo = df[['sample_id', 'ML', 'BL']]
     df_susinfo = Utilities.transform_to_list(susinfo)
@@ -51,6 +52,7 @@ def data_suspiciousInfo(df):
     df_susinfo['ML'] = [','.join(map(str, l)) for l in df_susinfo['ML']]
     df_susinfo['BL'] = [','.join(map(str, l)) for l in df_susinfo['BL']]
     return df_susinfo
+
 
 def calculate_score(df,config,isCreateSusInfo = False,isDayEnd = False):
     df_custid = pd.DataFrame()

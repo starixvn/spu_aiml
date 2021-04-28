@@ -42,6 +42,7 @@ def get_unique_bettype(x):
     result = set(result)
     return pd.Series((result,counts))
 
+
 class AssociationbyIP:
     def run(self, df_dataip,date_insert,config):
         try:
@@ -86,7 +87,7 @@ class AssociationbyIP:
                 df_listAllBettype['BTC'] = df_listAllBettype['bettype'].str.len()
                 df_listAllBettype['bettype'] = df_listAllBettype['bettype'].apply(lambda x: set(x))
                 df_listAllBettype['bettype'] = [','.join(map(str, l)) for l in df_listAllBettype['bettype']]
-                df_listAllBettype.set_index('sample_id',inplace=True)
+                df_listAllBettype.set_index('sample_id', inplace=True)
                 #endregion
 
                 #region: merge data list ip and bettype and take unique row

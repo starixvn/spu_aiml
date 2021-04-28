@@ -55,8 +55,7 @@ def day_end_aggregate(args):
 
     except Exception as err:
         message_telegram = f'{config.ENV} | Error in day-end agg function: {err}'
-        # Utilities.notify_logging(message_telegram)
-        print(message_telegram)
+        Utilities.notify_logging(message_telegram)
         raise ValueError
 
 
