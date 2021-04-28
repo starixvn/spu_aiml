@@ -49,7 +49,7 @@ def aggregate(args):
 
         logging.info(f"Time to complete child process {os.getpid()}: {time.time() - time_getStaging}")
     except Exception as err:
-        message_telegram = f'GROUP BETTING | {config.ENV} | Error in agg function: {err}'
+        message_telegram = f'GROUP BETTING | {config.ENV} | Error in on-the-fly agg function: {err}'
         Utilities.notify_logging(message_telegram)
         raise ValueError
 

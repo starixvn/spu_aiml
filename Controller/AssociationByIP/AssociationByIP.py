@@ -117,11 +117,11 @@ class AssociationByIPController:
 
                 couple_ip_stats_da = CoupleIPStatsDA()
                 couple_ip_stats_da.insert(chunks1, date_insert)
-                logging.info(f"GROUP BETTING | Group Betting by IP is done, total: {time.time() - time_start} seconds")
-                message_telegram = f"GROUP BETTING | Group Betting by IP is done, total {round((time.time() - time_start)/3600,4)} hours "
+                #logging.info(f"GROUP BETTING | {config.ENV} | Group Betting by IP is done, total: {time.time() - time_start} seconds")
+                #message_telegram = f"GROUP BETTING | {config.ENV} | Group Betting by IP is done, total {round((time.time() - time_start)/3600,4)} hours "
                 Utilities.notify_logging(message_telegram)
                 #endregion
         except Exception as e:
-            message_telegram = f"GROUP BETTING | Error at phase Group Betting by IP: {e}"
+            message_telegram = f"GROUP BETTING | {config.ENV} | Error at phase Group Betting by IP: {e}"
             Utilities.notify_logging(message_telegram)
             raise ValueError       
