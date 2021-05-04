@@ -33,6 +33,7 @@ class Configuration(object):
         self.backup = self.getDataStrConfig(self.config, 'DEFAULT', 'BACK_UP')
         self.errorFolder = self.getDataStrConfig(
             self.config, 'DEFAULT', 'ERROR_FOLDER')
+        self.app_name = self.getDataStrConfig(self.config, 'DEFAULT', 'APP_NAME')
 
         # define GroupBetting config
         self.config_retry = int(self.getDataStrConfig(
@@ -53,6 +54,10 @@ class Configuration(object):
             self.config, 'GROUPBETTINGCONFIG', 'NB_WORKER_PHASE_2'))
         self.num_batch_cus = int(self.getDataStrConfig(
             self.config, 'GROUPBETTINGCONFIG', 'NUM_BATCH_CUS'))
+        
+        # define pool db
+        self.pool_name = self.getDataStrConfig(self.config, 'POOL_DB', 'POOL_NAME')
+        self.pool_size = int(self.getDataStrConfig(self.config, 'POOL_DB', 'POOL_SIZE'))
         
         # define information db SPU
         self.aimluser = self.getDataStrConfig(
@@ -94,3 +99,9 @@ class Configuration(object):
     def getDataBooleanConfig(self, config, parent, child):
         config.sections()
         return config[parent].getboolean(child)
+
+ENV='LOCAL'
+if ENV=='LOCAL':
+    config = Configuration("localconfig.ini",ENV)
+else:
+    config = Configuration("proconfig.ini",ENV)
