@@ -16,7 +16,6 @@ class BaseDAModel(object):
         self.param = None
         self.output_exception_msg = None
         self.output_sperror_msg = None
-        self.pool = self.create_pool()
     
     def update_sp(self,sp,param):
         self.sp = sp
@@ -24,8 +23,5 @@ class BaseDAModel(object):
         self.output_exception_msg = f"{config.app_name} | {config.ENV} | ERROR | Execute SP {self.sp} failed: "
         self.output_sperror_msg = f"{config.app_name} | {config.ENV} | ERROR | Error from SP {self.sp}: "
     
-    def create_pool(self):
-        self.pool = MySQLConnectionPool(pool_name=config.pool_name, pool_size=config.pool_size,
-                                   user=self.user, password=self.pwd, host=self.host, port=self.port, database=self.database)
-        return self.pool
+
         

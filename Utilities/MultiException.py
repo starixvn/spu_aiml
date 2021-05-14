@@ -5,3 +5,9 @@ class Error(Exception):
 class ContinueGroupBetting(Error):
     """Raised when want to continue app"""
     pass
+
+class ParentException(Error):
+    pass
+
+class ChildException(Error):
+    pass

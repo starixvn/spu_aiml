@@ -1,5 +1,5 @@
-from Configuration.Configuration import Configuration
-config = Configuration("localconfig.ini","LOCAL")
+from Configuration.Configuration import config
+from DataAccess.DataAccessConnection import connection_pool_cts_datacenter,connection_pool_spu_aiml
 import logging
 import warnings
 from TaskManagement.GroupBettingManagement.GroupBettingController import GroupBettingController
@@ -11,5 +11,6 @@ logging.basicConfig(filename=os.path.join(config.save_dir_log, config.log_name),
 
 if __name__ == "__main__":
     GroupBettingController.run()
+    
     
     

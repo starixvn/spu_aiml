@@ -1,3 +1,5 @@
+from DataAccess.DataAccessConnection import DataAccessConnection
+from DataAccess.DataAccessConnection import connection_pool_cts_datacenter,connection_pool_spu_aiml,spu_aiml,cts_datacenter
 import sys
 ##PROD
 #sys.path.append("/home/vnteam/app/")
@@ -9,18 +11,19 @@ import time
 import logging
 import json
 import numpy as np
-from Utilities import FunctionSupport
-from DataAccess.AssociationIPDA.SPU_AIML import CoupleIPStats
-from mysql.connector import MySQLConnection
-from app import config
+from Utilities import Utilities
+from DataAccess.Model.SPU_AIML.SPU_InsertCoupleIPStatsDAModel import SPU_InsertCoupleIPStatsDAModel
+from DataAccess.Model.CTS_DataCenter.CTS_InsertAssociationByIPDAModel import CTS_InsertAssociationByIPDAModel
+from DataAccess.CoreDA.BaseDA import BaseDA
+from Configuration.Configuration import config
 
 
-class GroupbyIP(object):
+class AssociationByIPManagement(object):
     def __init__(self,*args):
         self.df_dataip = args[0]
         self.date_insert = args[1]
+        self.data_env = args[2]
 
-    
     def transform_to_listIP(self,df):
         keys, values1 = df.sort_values('sample_id').values.T
         ukeys, index = np.unique(keys, True)
@@ -31,7 +34,6 @@ class GroupbyIP(object):
         # print(df2)
         return df2
 
-
     def transform_to_listBettype(self,df):
         keys, values1 = df.sort_values('sample_id').values.T
         ukeys, index = np.unique(keys, True)
@@ -39,21 +41,19 @@ class GroupbyIP(object):
         df2 = pd.DataFrame({'sample_id': ukeys, 'bettype': [list(a) for a in arrays]})
         return df2
     
-    
     def run(self):
         try:
             logging.info(f"{config.ENV} |Group Betting by IP is running")
             # message_telegram = f"{ENV} |Group Betting by IP is running"
             # SendLogTelegram.send_message(message_telegram)
             self.df_dataip = self.df_dataip[['custid','ip','bettype','matchid','leagueid','homeid','awayid','transdate']]
-            GroupbyIP.AssociationbyIP(self.df_dataip,self.date_insert)
+            self.AssociationbyIP(self.df_dataip,self.date_insert)
             del self.df_dataip
         except Exception as e:
-            message_telegram = f"{config.ENV} | Error at phase Association by IP: {e}"
-            FunctionSupport.notify_logging(message_telegram)
+            message_telegram = f"{config.app_name} | {config.ENV} | Error at phase Association by IP | {e}"
+            Utilities.notify_logging(message_telegram)
         
-        
-    def AssociationbyIP(self,df_dataip,date_insert,config):
+    def AssociationbyIP(self,df_dataip,date_insert):
         try:
             time_start = time.time()
             
@@ -123,16 +123,27 @@ class GroupbyIP(object):
                 fullDataIPSPU_dba = df_result.to_dict(orient="records")
                 chunks1 = [fullDataIPSPU_dba[x:x+config.chunk_size]
                         for x in range(0, len(fullDataIPSPU_dba), config.chunk_size)]
-                
-                CoupleIPStats.InsertCoupleIPStats(chunks1,date_insert)
+                connection_spu = DataAccessConnection(connection_pool_spu_aiml)
+                connection_cts = DataAccessConnection(connection_pool_cts_datacenter)
+                for chunk in chunks1:
+                    chunk = json.dumps(chunk)
+                    ip_param = SPU_InsertCoupleIPStatsDAModel(chunk,date_insert)
+                    dba_results = BaseDA.execute("SPU_AIML_InsertCoupleIPStats",spu_aiml,ip_param,connection_spu)
+                    if config.transfer_ip:
+                        if len(dba_results[0]) > 0:
+                            df_CTS = pd.DataFrame(dba_results[0], columns=[
+                            "C1",
+                            "C2"])
+                            fullDataIPCTS_dba = df_CTS.to_json(orient="records")
+                            ip_param = CTS_InsertAssociationByIPDAModel(fullDataIPCTS_dba,self.date_insert)
+                            BaseDA.execute("CTS_DC_Association_InsertAssociationByIP",cts_datacenter,ip_param,connection_cts)
+                del connection_spu,connection_cts
                 logging.info(f"Group Betting by IP is done, total: {time.time() - time_start} seconds")
                 #message_telegram = f"Group Betting by IP is done, total {round((time.time() - time_start)/3600,4)} hours "
                 #SendLogTelegram.send_message(message_telegram)
                 #endregion
         except Exception as e:
-            message_telegram = f"Error at phase Group Betting by IP: {e}"
-            FunctionSupport.notify_logging(message_telegram)
-            raise ValueError       
+            raise ValueError("function AssociationbyIP | " + repr(e))
         
 
     

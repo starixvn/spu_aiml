@@ -12,7 +12,9 @@ from Helper import Notifier
 import numpy as np
 import pandas as pd
 import datetime
+import subprocess
 import logging
+from Configuration.Configuration import config
 from numba import prange, njit, set_num_threads
 
 
@@ -97,8 +99,25 @@ def notify_logging(mess, isInfo = False):
         logging.info(mess)
     else:
         logging.error(mess)
-    Notifier.telegram_send_message(mess)
+    #Notifier.send_message(mess)
 
+def change_permission_file(list_file):
+    list_file_denied = [f for f in list_file if (os.access(config.root_orig + f, os.R_OK) is False or os.access(config.root_orig + f, os.X_OK) is False)]
+    if len(list_file_denied) > 0:
+        message_telegram = f"{config.ENV} | Processing change permission file : {len(list_file_denied)}"
+        notify_logging(message_telegram)
+        for i in list_file_denied:
+            subprocess.Popen(f"echo 'Welcome1' | sudo -S  chmod 755 {config.root_orig + i}", stdout=subprocess.PIPE, shell=True)
+def distance_time(transdate1, transdate2):
+    """
+    >>> Input  : transdate 1 : datetime.datetime(2020,9,26,7,28,1)
+
+                 transdate 2 : datetime.datetime(2020,9,26,7,31,1)
+
+    >>> Output : 180 seconds
+    """
+
+    return (datetime.datetime(*transdate2)-datetime.datetime(*transdate1)).total_seconds()
 
 def separate(transdate):
     """
@@ -152,7 +171,6 @@ def transform_to_list(df):
         a) for a in arrays], 'BL': [list(b) for b in arrays2]})
     return df2
 
-
 def gini_score(lista):
     """
     >>> Input  : list of integer,each represents quantity of some class
@@ -190,6 +208,7 @@ def save_a_file(location,file_name,object):
 def move_files(from_location,to_location,list_files):
     for file in list_files:
         os.rename(os.path.join(from_location,file),os.path.join(to_location,file))
+        
         
 def filter_files_by_type(list_files,str_type):
     str_type = ".csv"

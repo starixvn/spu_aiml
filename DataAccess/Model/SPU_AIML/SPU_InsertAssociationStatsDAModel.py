@@ -1,6 +1,6 @@
 import json
 import datetime
-class SPU_InsertAssociationStats(object):
+class SPU_InsertAssociationStatsDAModel(object):
     def __init__(self,*args):
         self.ip_DailyStats: json = args[0]
         self.ip_ScanDate: datetime = args[1]

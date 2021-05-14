@@ -1,34 +1,32 @@
-import os
+from Utilities.MultiException import ContinueGroupBetting
+from Utilities import Utilities
+from TaskManagement.GroupBettingManagement.AssociationByIP.AssociationByIPManagement import AssociationByIPManagement
+from TaskManagement.GroupBettingManagement.PrepareData.PrepareDataManagement import PrepareDataManagement
+from TaskManagement.GroupBettingManagement.AssociationByScore.AssociationByScoreManagement import AssociationByScoreManagement
+from Configuration.Configuration import config
 import time
-from TaskManagement.GroupBettingManagement.AssociationByScore.AggScoreCouple import AggScoreCouple
-from TaskManagement.GroupBettingManagement.AssociationByIP.GroupbyIP import GroupbyIP
-from TaskManagement.GroupBettingManagement.AssociationByScore.ExtractInsightData import ExtractInsightData
-from TaskManagement.GroupBettingManagement.AssociationByScore.PrepareDataEnv import PrepareDataEnv
-from DataAccess.GroupBettingDA.SPU_AIML import AssociationStatsStaging
-from app import config
-
 
 class GroupBettingController(object):
-    def clean_dataenv(self,config):
-        AssociationStatsStaging.TruncateAssociationStatsStaging()
-        check_cus_files=os.listdir(config.root)
-        if config.cus_list_fn in check_cus_files:
-            os.remove(os.path.join(config.root,config.cus_list_fn))
-        if config.cus_dict_fn in check_cus_files:
-            os.remove(os.path.join(config.root,config.cus_dict_fn))
-            
-    def run(self):
-        self.clean_dataenv(config)
+    def run():
         initial = []
+        month_prev = None
+        day_prev = None
+        year_prev = None
         while True:
-            data_env = PrepareDataEnv(initial)
-            df_dataip, date_insert,day_prev, batch_cus_dict, daily_cus_dict, isContinue = data_env.run()
-            if isContinue:
-                time.sleep(config.time_sleep)
+            try:
+                data_env = PrepareDataManagement(initial,month_prev,day_prev,year_prev)
+                df_dataip, batch_cus_dict, daily_cus_dict, batch_cus_list, date_insert= data_env.run()
+                
+                association_ip = AssociationByIPManagement(df_dataip,date_insert,data_env)
+                association_ip.run()
+                
+                association_score = AssociationByScoreManagement(data_env, batch_cus_dict, batch_cus_list, daily_cus_dict, date_insert)
+                month_prev,day_prev,year_prev = association_score.run()
+                
+            except ContinueGroupBetting:
                 continue
-            association_ip = GroupbyIP(df_dataip,date_insert)
-            association_ip.run()
-            calculate_data = ExtractInsightData(batch_cus_dict)
-            calculate_data.run()
-            agg_score = AggScoreCouple(data_env.initail, day_prev, batch_cus_dict, daily_cus_dict, date_insert)
-            agg_score.run()
+            except Exception as e:
+                message_telegram = f"{config.ENV} | GroupBetting stopped"
+                Utilities.notify_logging(message_telegram)
+                break
+            

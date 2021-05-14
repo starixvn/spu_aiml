@@ -1,4 +1,4 @@
-class SPU_GetAssociationStatsStagingDAModel(object):
+class SPU_GetAssociationStatsDAModel(object):
     def __init__(self,*args):
         self.ip_FromCustID1: int = args[0]
         self.ip_ToCustID1: int = args[1]
