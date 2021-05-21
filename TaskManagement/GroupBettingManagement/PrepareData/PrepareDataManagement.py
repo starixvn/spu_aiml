@@ -1,4 +1,3 @@
-
 from DataAccess.CoreDA.CommonDA import CommonDA
 import sys
 ##PROD
@@ -23,6 +22,7 @@ from tqdm import tqdm
 from Utilities import Utilities
 from DataAccess.DataAccessConnection import connection_pool_cts_datacenter,connection_pool_spu_aiml,spu_aiml,cts_datacenter
 from DataAccess.DataAccessConnection import DataAccessConnection
+import multiprocessing as mp
 
 
 class PrepareDataManagement(object):
@@ -37,10 +37,10 @@ class PrepareDataManagement(object):
             check_files = [f for f in sorted(os.listdir(config.root_orig))]
             
             if len(check_files) > 0:
-                orig_fn = check_files[0]
                 check_files_sameday = Utilities.filter_files_by_day(check_files)
                 filter_type = ".csv"
                 check_files_sameday = Utilities.filter_files_by_type(check_files_sameday,filter_type)
+                orig_fn = check_files_sameday[0]
                 
                 if self.initial==[]:
                     self.month_prev=orig_fn.split('.')[0].split('_')[1]
@@ -48,7 +48,7 @@ class PrepareDataManagement(object):
                     self.year_prev=orig_fn.split('.')[0].split('_')[3]
                     logging.info(
                         "======================================================================================================")
-                    message_telegram = f"{config.ENV} | Group Betting is running for {self.year_prev+'-'+self.month_prev+'-'+self.day_prev}"
+                    message_telegram = f"{config.app_name} | {config.ENV} | INFO | Group Betting is running for {self.year_prev+'-'+self.month_prev+'-'+self.day_prev}"
                     Utilities.notify_logging(message_telegram,isInfo=True)
                     self.initial.append(self.day_prev)
                     
@@ -63,9 +63,7 @@ class PrepareDataManagement(object):
     def clean_data(self,check_files_sameday,orig_fn):
         try:
             ### define time to start batch file
-            current_time = time.strftime("%H:%M:%S", time.localtime())
-            print(f"{config.ENV} | CURRENT TIME : ", current_time)
-            logging.info(f'Start running file {orig_fn}')
+            logging.info(f'Start running new batch file')
             logging.info(f"Total file: {len(check_files_sameday)}")
             
             Utilities.change_permission_file(check_files_sameday)
@@ -204,8 +202,7 @@ class PrepareDataManagement(object):
             self.dump_daily_cus_dict(batch_cus_dict, check_cus_files)
 
             daily_cus_dict = Utilities.load_a_file(config.root, config.cus_dict_fn)
-            logging.info(
-                f"{config.ENV} | Done phase 0, takes {time.time() - time_phase0} seconds")
+            
             return batch_cus_dict, daily_cus_dict, batch_cus_list, date_insert
         except ChildException as e:
             raise ValueError(e)
@@ -228,6 +225,7 @@ class PrepareDataManagement(object):
             
     def run(self):
         try:
+            
             time_phase0 = time.time()
 
             if self.initial == []:
@@ -236,13 +234,13 @@ class PrepareDataManagement(object):
             check_files_sameday, orig_fn = self.check_folder_file()
             df_dataip, DATE, data = self.clean_data(check_files_sameday,orig_fn)
             batch_cus_dict, daily_cus_dict, batch_cus_list, date_insert = self.handling_data(DATE,data,time_phase0)
-            
+            logging.info(f'{config.app_name} | {config.ENV} | INFO | PrepareDataManagement was completed in {time.time() - time_phase0} seconds ({round((time.time() - time_phase0)/3600,4)} hours)')
             return df_dataip, batch_cus_dict, daily_cus_dict, batch_cus_list, date_insert
             
         except ContinueGroupBetting:
             raise ContinueGroupBetting
         except Exception as e:
-            message_telegram = f"{config.app_name} | {config.ENV} | Error at phase PrepareDataManagement | {e}"
+            message_telegram = f"{config.app_name} | {config.ENV} | ERROR | Phase PrepareDataManagement | {e}"
             Utilities.notify_logging(message_telegram)
             raise ValueError
             

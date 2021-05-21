@@ -43,19 +43,21 @@ class AssociationByIPManagement(object):
     
     def run(self):
         try:
+            time_start = time.time()
             logging.info(f"{config.ENV} |Group Betting by IP is running")
             # message_telegram = f"{ENV} |Group Betting by IP is running"
             # SendLogTelegram.send_message(message_telegram)
             self.df_dataip = self.df_dataip[['custid','ip','bettype','matchid','leagueid','homeid','awayid','transdate']]
             self.AssociationbyIP(self.df_dataip,self.date_insert)
+            logging.info(f'{config.app_name} | {config.ENV} | INFO | AssociationByIPManagement was completed in {time.time() - time_start} seconds ({round((time.time() - time_start)/3600,4)} hours)')
             del self.df_dataip
         except Exception as e:
-            message_telegram = f"{config.app_name} | {config.ENV} | Error at phase Association by IP | {e}"
+            message_telegram = f"{config.app_name} | {config.ENV} | ERROR | Phase Association by IP | {e}"
             Utilities.notify_logging(message_telegram)
         
     def AssociationbyIP(self,df_dataip,date_insert):
         try:
-            time_start = time.time()
+            #time_start = time.time()
             
             #region: prepare homeID, awayID, LeagueID, EventDate,
             df_prepareData = df_dataip.groupby('matchid')[['leagueid','homeid','awayid','transdate']].first()
@@ -138,7 +140,7 @@ class AssociationByIPManagement(object):
                             ip_param = CTS_InsertAssociationByIPDAModel(fullDataIPCTS_dba,self.date_insert)
                             BaseDA.execute("CTS_DC_Association_InsertAssociationByIP",cts_datacenter,ip_param,connection_cts)
                 del connection_spu,connection_cts
-                logging.info(f"Group Betting by IP is done, total: {time.time() - time_start} seconds")
+                #logging.info(f"Group Betting by IP is done, total: {time.time() - time_start} seconds")
                 #message_telegram = f"Group Betting by IP is done, total {round((time.time() - time_start)/3600,4)} hours "
                 #SendLogTelegram.send_message(message_telegram)
                 #endregion

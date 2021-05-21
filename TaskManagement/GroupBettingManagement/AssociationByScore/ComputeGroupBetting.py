@@ -35,8 +35,10 @@ class ComputeGroupBetting(object):
         self.batch_cus_list = args[1]
         self.daily_cus_dict = args[2]
         self.date_insert = args[3]
+        self.time_start = args[4]
         
     def run(self):
+        time_start = time.time()
         try:
             time_constant = self.check_day_end()
             if time_constant !=0 :
@@ -74,9 +76,10 @@ class ComputeGroupBetting(object):
                 #continue
                 return True
             print("tinh new batch khong dayend")
-            self.compute_GroupBetting_new_batch()  
+            self.compute_GroupBetting_new_batch()
+            logging.info(f'{config.app_name} | {config.ENV} | INFO | ComputeGroupBetting was completed in {time.time() - time_start} seconds ({round((time.time() - time_start)/3600,4)} hours)')
         except Exception as e:
-            message_telegram = f"Error at function ComputeGroupBetting | {e}"
+            message_telegram = f"function ComputeGroupBetting | {e}"
             raise ValueError(message_telegram)  
 
     def data_suspiciousInfo(self,df):

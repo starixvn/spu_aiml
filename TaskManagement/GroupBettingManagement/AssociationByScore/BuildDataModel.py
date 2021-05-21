@@ -17,7 +17,6 @@ import os
 from tqdm import tqdm
 import itertools
 import multiprocessing as mp
-import pathos.multiprocessing as pamp
 import logging
 import gc
 import numpy as np
@@ -31,7 +30,7 @@ class BuildDataModel(object):
 
     def run(self):
         try:
-            start_processing = time.time()
+            time_start = time.time()
             candidates = os.listdir(os.path.join(config.root, config.match_breaking))
             
             ## another 3rd party mp
@@ -44,15 +43,15 @@ class BuildDataModel(object):
             pool.join()
             print('\n', '********************************************************************************************************************************************')
             print("\n", f"{config.ENV} | PROCESSING TIME %.0f SECONDS" %
-                (time.time() - start_processing))
-            logging.info(
-                f"{config.ENV} | Done phase 1, takes {time.time() - start_processing} seconds")
+                (time.time() - time_start))
+            logging.info(f'{config.app_name} | {config.ENV} | INFO | Function BuildDataModel was completed in {time.time() - time_start} seconds ({round((time.time() - time_start)/3600,4)} hours)')
         except Exception as e:
             message_telegram = f"function BuildDataModel | {e}"
             raise ValueError(message_telegram)
 
     def process_a_combination(self,filepath):
         try:
+            time_start1 = time.time()
             """
             >>> Input    :  filepath
             >>> Output   :  pairwise-time-score matrix
@@ -114,17 +113,22 @@ class BuildDataModel(object):
             # build chunks for DB saving
             chunks = [obj[x:x+config.chunk_size] for x in range(0, len(obj), config.chunk_size)]
             del m
-
+            logging.info(f"Calculate process a combination: {time.time() - time_start1}")
+            time_start2 = time.time()
             # filter json obj
             if len(obj) > 0:
                 connection_spu = DataAccessConnection(connection_pool_spu_aiml)
                 for chunk in chunks:
+                    time_start3 = time.time()
                     chunk = json.dumps(chunk)
                     ip_param = SPU_InsertAssociationStatsStagingDAModel(chunk)
                     BaseDA.execute("SPU_AIML_InsertAssociationStatsStaging",spu_aiml,ip_param,connection_spu)
+                    logging.info(f"Time insert each batch {time.time() - time_start3}")
                 del connection_spu
+            logging.info(f"Total time insert {len(chunks)} BATCH to db : {time.time() - time_start2}")
             del chunks, obj
             gc.collect()
+            
         except Exception as e:
             message_telegram = f"function process_a_combination | {e}"
             raise ValueError(message_telegram)
