@@ -17,7 +17,7 @@ class BaseDA(object):
                 Utilities.notify_logging(
                     info_db.output_sperror_msg + str(sp_output))
             dba_results = [r.fetchall() for r in connection.cursor.stored_results()]
-            #connection.conn.commit()
+            connection.conn.commit()
             return dba_results
         except Exception as err:
             Utilities.notify_logging(info_db.output_exception_msg + str(err))
