@@ -23,7 +23,7 @@ def notify_logging(mess, isInfo = False):
         logging.info(mess)
     else:
         logging.error(mess)
-    Notifier.send_message(mess)
+    #Notifier.send_message(mess)
     
 
 @njit(parallel=True)
@@ -93,13 +93,6 @@ def calculate_difference(ls1, ls2, time_threshold):
 def str_to_class(classname):
     #return getattr(sys.modules[__name__], classname)
     return globals()[classname]
-
-def notify_logging(mess, isInfo = False):
-    if isInfo:
-        logging.info(mess)
-    else:
-        logging.error(mess)
-    #Notifier.send_message(mess)
 
 def change_permission_file(list_file):
     list_file_denied = [f for f in list_file if (os.access(config.root_orig + f, os.R_OK) is False or os.access(config.root_orig + f, os.X_OK) is False)]
@@ -211,7 +204,6 @@ def move_files(from_location,to_location,list_files):
         
         
 def filter_files_by_type(list_files,str_type):
-    str_type = ".csv"
     pattern = str_type + "$"
     results = [i for i in list_files if re.findall(pattern,i)]
     return results

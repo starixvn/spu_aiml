@@ -9,7 +9,7 @@ from Utilities.MultiException import ContinueGroupBetting
 from DataAccess.Model.SPU_AIML.SPU_InsertAssociationStatsStagingDAModel import SPU_InsertAssociationStatsStagingDAModel
 from Configuration.Configuration import config
 from DataAccess.DataAccessConnection import DataAccessConnection
-from DataAccess.DataAccessConnection import connection_pool_cts_datacenter,connection_pool_spu_aiml,spu_aiml,cts_datacenter
+from DataAccess.DataAccessConnection import spu_aiml,cts_datacenter
 from Utilities import Utilities
 from mysql.connector import MySQLConnection
 import time
@@ -117,7 +117,7 @@ class BuildDataModel(object):
             time_start2 = time.time()
             # filter json obj
             if len(obj) > 0:
-                connection_spu = DataAccessConnection(connection_pool_spu_aiml)
+                connection_spu = DataAccessConnection(spu_aiml)
                 for chunk in chunks:
                     time_start3 = time.time()
                     chunk = json.dumps(chunk)

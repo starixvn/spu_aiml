@@ -20,7 +20,7 @@ import pandas as pd
 from datetime import date as dt
 from tqdm import tqdm
 from Utilities import Utilities
-from DataAccess.DataAccessConnection import connection_pool_cts_datacenter,connection_pool_spu_aiml,spu_aiml,cts_datacenter
+from DataAccess.DataAccessConnection import spu_aiml,cts_datacenter
 from DataAccess.DataAccessConnection import DataAccessConnection
 import multiprocessing as mp
 
@@ -40,7 +40,10 @@ class PrepareDataManagement(object):
                 check_files_sameday = Utilities.filter_files_by_day(check_files)
                 filter_type = ".csv"
                 check_files_sameday = Utilities.filter_files_by_type(check_files_sameday,filter_type)
-                orig_fn = check_files_sameday[0]
+                if len(check_files_sameday) > 0:
+                    orig_fn = check_files_sameday[0]
+                else:
+                    raise ContinueGroupBetting
                 
                 if self.initial==[]:
                     self.month_prev=orig_fn.split('.')[0].split('_')[1]
@@ -211,7 +214,7 @@ class PrepareDataManagement(object):
         
     def clean_dataenv(self):
         try:
-            connection_spu = DataAccessConnection(connection_pool_spu_aiml)
+            connection_spu = DataAccessConnection(spu_aiml)
             ip_param = SPU_TruncateTableDAModel("AssociationStatsStaging")
             BaseDA.execute("SPU_AIML_DBA_Truncate_Table",spu_aiml,ip_param,connection_spu)
             del connection_spu

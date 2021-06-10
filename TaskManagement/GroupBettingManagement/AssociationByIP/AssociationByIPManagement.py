@@ -1,5 +1,5 @@
 from DataAccess.DataAccessConnection import DataAccessConnection
-from DataAccess.DataAccessConnection import connection_pool_cts_datacenter,connection_pool_spu_aiml,spu_aiml,cts_datacenter
+from DataAccess.DataAccessConnection import spu_aiml,cts_datacenter
 import sys
 ##PROD
 #sys.path.append("/home/vnteam/app/")
@@ -125,8 +125,8 @@ class AssociationByIPManagement(object):
                 fullDataIPSPU_dba = df_result.to_dict(orient="records")
                 chunks1 = [fullDataIPSPU_dba[x:x+config.chunk_size]
                         for x in range(0, len(fullDataIPSPU_dba), config.chunk_size)]
-                connection_spu = DataAccessConnection(connection_pool_spu_aiml)
-                connection_cts = DataAccessConnection(connection_pool_cts_datacenter)
+                connection_spu = DataAccessConnection(spu_aiml)
+                connection_cts = DataAccessConnection(cts_datacenter)
                 for chunk in chunks1:
                     chunk = json.dumps(chunk)
                     ip_param = SPU_InsertCoupleIPStatsDAModel(chunk,date_insert)

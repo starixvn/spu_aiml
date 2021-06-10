@@ -1,5 +1,4 @@
 from Configuration.Configuration import config
-from DataAccess.DataAccessConnection import connection_pool_cts_datacenter,connection_pool_spu_aiml
 import logging
 import warnings
 from TaskManagement.GroupBettingManagement.GroupBettingController import GroupBettingController

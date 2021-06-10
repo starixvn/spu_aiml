@@ -24,7 +24,7 @@ from DataAccess.Model.SPU_AIML.SPU_InsertAssociationSuspiciousInfoDAModel import
 from DataAccess.Model.SPU_AIML.SPU_UpdateAssociationStatsStagingStatusDAModel import SPU_UpdateAssociationStatsStagingStatusDAModel
 from DataAccess.Model.CTS_DataCenter.CTS_InsertAssociationByAIDAModel import CTS_InsertAssociationByAIDAModel
 from DataAccess.DataAccessConnection import DataAccessConnection
-from DataAccess.DataAccessConnection import connection_pool_cts_datacenter,connection_pool_spu_aiml,spu_aiml,cts_datacenter
+from DataAccess.DataAccessConnection import spu_aiml,cts_datacenter
 from DataAccess.CoreDA.BaseDA import BaseDA
 from Utilities import Utilities
 
@@ -53,7 +53,7 @@ class ComputeGroupBetting(object):
                 print(f'{config.ENV} | date_insert when DAY END {self.date_insert}')
                 self.compute_GroupBetting_accumulate_batch(the_first_is_the_last)
                 
-                connection_spu = DataAccessConnection(connection_pool_spu_aiml)
+                connection_spu = DataAccessConnection(spu_aiml)
                 ip_param = SPU_UpdateScanStatusDAModel(self.date_insert)
                 BaseDA.execute("SPU_AIML_UpdateScanStatus",spu_aiml,ip_param,connection_spu)
                 print("***********************************************************************************************************************************************************************************")
@@ -142,8 +142,8 @@ class ComputeGroupBetting(object):
         try:
             time_getStaging = time.time()
             
-            connection_spu = DataAccessConnection(connection_pool_spu_aiml)
-            connection_cts = DataAccessConnection(connection_pool_cts_datacenter)
+            connection_spu = DataAccessConnection(spu_aiml)
+            connection_cts = DataAccessConnection(cts_datacenter)
             
             ip_param = SPU_GetAssociationStatsStagingDAModel(args)
             dba_results = BaseDA.execute("SPU_AIML_GetAssociationStatsStaging", spu_aiml, ip_param, connection_spu)
@@ -341,8 +341,8 @@ class ComputeGroupBetting(object):
         
     def aggregate_day_end(self,args):
         try:
-            connection_spu = DataAccessConnection(connection_pool_spu_aiml)
-            connection_cts = DataAccessConnection(connection_pool_cts_datacenter)
+            connection_spu = DataAccessConnection(spu_aiml)
+            connection_cts = DataAccessConnection(cts_datacenter)
             the_first_is_the_last = args[2]
             time_getStaging = time.time()
             ip_param = SPU_GetAssociationStatsDAModel(int(args[0]), int(args[1]))

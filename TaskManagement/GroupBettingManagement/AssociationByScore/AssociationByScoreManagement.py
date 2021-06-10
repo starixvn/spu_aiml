@@ -26,7 +26,7 @@ class AssociationByScoreManagement(object):
             agg_score.run()
             
             if self.data_env.initial == []:
-                message_telegram = f"{config.app_name} | {config.ENV} | INFO | AssociationByIPManagement was completed in {time.time() - self.time_start} seconds ({round((time.time() - self.time_start)/3600,4)} hours)"
+                message_telegram = f"{config.app_name} | {config.ENV} | INFO | AssociationByScoreManagement was completed in {time.time() - self.time_start} seconds ({round((time.time() - self.time_start)/3600,4)} hours)"
                 Utilities.notify_logging(message_telegram)
                 self.time_start = time.time()
             return self.data_env.month_prev,self.data_env.day_prev,self.data_env.year_prev,self.time_start
