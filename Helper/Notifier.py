@@ -10,7 +10,7 @@ def send_message(err):
     retry = Retry(connect=3, backoff_factor=0.5)
     adapter = HTTPAdapter(max_retries=retry)
     session.mount(url, adapter)
-    session.mount(url, adapter)
+    
 
     session.post(url)
     #requests.post(url)

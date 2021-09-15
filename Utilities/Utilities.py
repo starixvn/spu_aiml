@@ -11,6 +11,7 @@ from DataAccess.Model.SPU_AIML.SPU_GetAssociationStatsStagingDAModel import SPU_
 from Helper import Notifier
 import numpy as np
 import pandas as pd
+from Utilities.MultiException import ContinueGroupBetting
 import datetime
 import subprocess
 import logging
@@ -19,11 +20,14 @@ from numba import prange, njit, set_num_threads
 
 
 def notify_logging(mess, isInfo = False):
-    if isInfo:
-        logging.info(mess)
-    else:
-        logging.error(mess)
-    #Notifier.send_message(mess)
+    try:
+        if isInfo:
+            logging.info(mess)
+        else:
+            logging.error(mess)
+        #Notifier.send_message(mess)
+    except Exception as e:
+        raise ContinueGroupBetting
     
 
 @njit(parallel=True)

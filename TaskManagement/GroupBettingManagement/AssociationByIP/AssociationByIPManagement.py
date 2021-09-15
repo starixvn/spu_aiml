@@ -1,5 +1,6 @@
 from DataAccess.DataAccessConnection import DataAccessConnection
 from DataAccess.DataAccessConnection import spu_aiml,cts_datacenter
+from datetime import datetime
 import sys
 ##PROD
 #sys.path.append("/home/vnteam/app/")
@@ -137,7 +138,11 @@ class AssociationByIPManagement(object):
                             "C1",
                             "C2"])
                             fullDataIPCTS_dba = df_CTS.to_json(orient="records")
-                            ip_param = CTS_InsertAssociationByIPDAModel(fullDataIPCTS_dba,self.date_insert)
+                            now = datetime.now()
+                            current_time = now.strftime("%H:%M:%S")
+                            #current_time = now.strftime('%Y-%m-%d %H:%M:%S')
+                            datetime_insert = self.date_insert + " " + current_time
+                            ip_param = CTS_InsertAssociationByIPDAModel(fullDataIPCTS_dba,datetime_insert)
                             BaseDA.execute("CTS_DC_Association_InsertAssociationByIP",cts_datacenter,ip_param,connection_cts)
                 del connection_spu,connection_cts
                 #logging.info(f"Group Betting by IP is done, total: {time.time() - time_start} seconds")

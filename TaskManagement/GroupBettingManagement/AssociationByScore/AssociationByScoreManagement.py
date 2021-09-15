@@ -16,6 +16,7 @@ class AssociationByScoreManagement(object):
         self.daily_cus_dict = args[3]
         self.date_insert = args[4]
         self.time_start = args[5]
+        self.among_of_data = args[6]
         
     def run(self):
         try:
@@ -26,10 +27,13 @@ class AssociationByScoreManagement(object):
             agg_score.run()
             
             if self.data_env.initial == []:
-                message_telegram = f"{config.app_name} | {config.ENV} | INFO | AssociationByScoreManagement was completed in {time.time() - self.time_start} seconds ({round((time.time() - self.time_start)/3600,4)} hours)"
+                message_telegram = f"{config.app_name} | {config.ENV} | INFO | AssociationByScoreManagement was completed in \n{int(time.time() - self.time_start)} seconds ({round((time.time() - self.time_start)/3600,2)} hours) \nTotal ticket: {self.among_of_data}"
                 Utilities.notify_logging(message_telegram)
                 self.time_start = time.time()
-            return self.data_env.month_prev,self.data_env.day_prev,self.data_env.year_prev,self.time_start
+                self.among_of_data = 0
+            return self.data_env.month_prev,self.data_env.day_prev,self.data_env.year_prev,self.time_start,self.among_of_data
+        except ContinueGroupBetting:
+                raise ContinueGroupBetting
         except Exception as e:
             message_telegram = f"{config.app_name} | {config.ENV} | ERROR | Phase AssociationByScoreManagement | {e}"
             Utilities.notify_logging(message_telegram)

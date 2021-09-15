@@ -31,6 +31,7 @@ class PrepareDataManagement(object):
         self.month_prev = args[1]
         self.day_prev = args[2]
         self.year_prev = args[3]
+        self.among_of_data = args[4]
         
     def check_folder_file(self):
         try:
@@ -77,6 +78,7 @@ class PrepareDataManagement(object):
             ### move data was concat to backup folder
             Utilities.move_files(config.root_orig,config.backup,check_files_sameday)
             logging.info(f"Number of rows: {len(data)}")
+            self.among_of_data = self.among_of_data + len(data)
             
             if len(data.index)==0:
                 raise ContinueGroupBetting
